@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-class EEF_Session extends ArrayObject
+class P3_Session extends ArrayObject
 {
 	static protected $instance;
 
@@ -41,7 +41,7 @@ class EEF_Session extends ArrayObject
 	public static function singleton()
 	{
 		if(empty(self::$instance)) {
-			self::$instance = new EEF_Session;
+			self::$instance = new P3_Session;
 		}
 
 		return self::$instance;

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * EEF_Loader
+ * P3_Loader
  *
- * Handles loading anything and everything throughout EEF
+ * Handles loading anything and everything throughout P3
  */
-class EEF_Loader
+class P3_Loader
 {
 	/**
 	 * Magic AutoLoad function attems to Load class when
@@ -39,7 +39,7 @@ class EEF_Loader
 	public static function createURI(array $location = null, array $arguments = null, array $get = array())
 	{
 		if($location == null) {
-			return '/'.EEF_PATH_PREFIX;
+			return '/'.P3_PATH_PREFIX;
 		} else {
 			$controller = $location[0];
 			if(count($location) == 2) {
@@ -55,18 +55,18 @@ class EEF_Loader
 				}
 			}
 
-			return '/'.EEF_PATH_PREFIX.$controller.'/'.$action.(($arguments != null) ? implode('/', $arguments) : '').((!empty($get_args) ? '?'.implode('&', $get_args) : ''));
+			return '/'.P3_PATH_PREFIX.$controller.'/'.$action.(($arguments != null) ? implode('/', $arguments) : '').((!empty($get_args) ? '?'.implode('&', $get_args) : ''));
 		}
 	}
 
 	/**
 	 * Loads appropriate controller based on Uri
 	 *
-	 * @param EEF_Uri $uri URI to Dispatch
+	 * @param P3_Uri $uri URI to Dispatch
 	 */
-	public static function dispatch(EEF_Uri $uri = null){
+	public static function dispatch(P3_Uri $uri = null){
 		if(is_null($uri)) {
-			$uri = new EEF_Uri;
+			$uri = new P3_Uri;
 		}
 
 		self::loadController($uri->getController(), $uri);
@@ -77,7 +77,7 @@ class EEF_Loader
 	 */
 	public static function getLoader()
 	{
-		return self::isCli() ? 'EEF_Cli_Loader' : 'EEF_Loader';
+		return self::isCli() ? 'P3_Cli_Loader' : 'P3_Loader';
 	}
 
 	/**
@@ -97,33 +97,33 @@ class EEF_Loader
 	 */
 	public static function loadBootstrap($file = null){
 		if(empty($file)){
-			if(!defined('EEF_APP_PATH'))
-				throw new EEF_Exception('EEF_APP_PATH not defined, cannot locate bootstrap.');
+			if(!defined('P3_APP_PATH'))
+				throw new P3_Exception('P3_APP_PATH not defined, cannot locate bootstrap.');
 			else
-				$file = EEF_APP_PATH.'/bootstrap.php';
+				$file = P3_APP_PATH.'/bootstrap.php';
 		}
 
 		if(!is_readable($file))
-			throw new EEF_Exception('Unable to load bootstrap file "%s"', array($file));
+			throw new P3_Exception('Unable to load bootstrap file "%s"', array($file));
 
 		require($file);
 	}
 
 	/**
-	 * Loads EEF_Controller
+	 * Loads P3_Controller
 	 *
 	 * @param string $controller
-	 * @param EEF_URI $uri
+	 * @param P3_URI $uri
 	 * @return <type>
 	 */
-	public static function loadController($controller, EEF_URI $uri)
+	public static function loadController($controller, P3_URI $uri)
 	{
 		$name  = strtolower($controller);
-		$class = EEF_String_Utils::to_camel_case($controller, true).'Controller';
+		$class = P3_String_Utils::to_camel_case($controller, true).'Controller';
 
 		if(self::classExists($class)) return;
 
-		$path = EEF_APP_PATH.'/controllers/';
+		$path = P3_APP_PATH.'/controllers/';
 		if(self::isCli()) {
 			$path .= 'cli/';
 		}
@@ -131,11 +131,11 @@ class EEF_Loader
 		if(is_readable($path.$name.'.php')) {
 			include_once($path.$name.'.php');
 		} else {
-			throw new EEF_Exception('The controller "%s" failed to load', array($class), 404);
+			throw new P3_Exception('The controller "%s" failed to load', array($class), 404);
 		}
 
 		if(!self::classExists($class)) {
-			throw new EEF_Exception('The controller "%s" failed to load', array($class), 500);
+			throw new P3_Exception('The controller "%s" failed to load', array($class), 500);
 		}
 
 		return(new $class($uri));
@@ -164,7 +164,7 @@ class EEF_Loader
 		 *  If class still doesn't exist, we have a problem
 		 */
 		if(!class_exists($class, false) && !interface_exists($class, false))
-			throw new EEF_Exception('The class "%s" failed to load', array($class));
+			throw new P3_Exception('The class "%s" failed to load', array($class));
 
 	}
 
@@ -173,8 +173,8 @@ class EEF_Loader
 	 */
 	public static function loadHelpers()
 	{
-		/* @todo: Find a better way than including as they are built.. maybe loop through EEF/Helpers? */
-		$path = 'EEF/Helpers/';
+		/* @todo: Find a better way than including as they are built.. maybe loop through P3/Helpers? */
+		$path = 'P3/Helpers/';
 		require_once($path.'html.php');
 		require_once($path.'number.php');
 	}
@@ -190,10 +190,10 @@ class EEF_Loader
 			return;
 		}
 
-		$path = EEF_APP_PATH.'/models/'.$model.'.php';
+		$path = P3_APP_PATH.'/models/'.$model.'.php';
 
 		if(!is_readable($path)) {
-			throw new EEF_Exception('Couldn\'t read Model "%s" into the system', array($model));
+			throw new P3_Exception('Couldn\'t read Model "%s" into the system', array($model));
 		}
 
 		require_once($path);
@@ -207,10 +207,10 @@ class EEF_Loader
 	 * @return string Classes relative path (from include path)
 	 */
 	public static function getClassPath($class){
-		require_once('EEF/String/Utils.php');
+		require_once('P3/String/Utils.php');
 
 		$exp = explode('_', $class);
-		$file = ucfirst(EEF_String_Utils::to_camel_case(array_pop($exp), true).'.php');
+		$file = ucfirst(P3_String_Utils::to_camel_case(array_pop($exp), true).'.php');
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
 		return $dir.DIRECTORY_SEPARATOR.$file;
@@ -223,7 +223,7 @@ class EEF_Loader
 	 */
 	public static function redirect($location = '', $hash = null)
 	{
-		$loc = '/'.EEF_PATH_PREFIX;
+		$loc = '/'.P3_PATH_PREFIX;
 		if(is_array($location)) {
 			$loc .= $location[0].'/';
 			if(!empty($location[1])) {
@@ -245,14 +245,14 @@ class EEF_Loader
 	 *
 	 * @param string $class AutoLoading Class [must contain autoload, like self]
 	 */
-	public static function registerAutoload($class = 'EEF_Loader'){
+	public static function registerAutoload($class = 'P3_Loader'){
 		if(!function_exists('spl_autoload_register'))
-			throw new EEF_Exception('spl_autoload does not exist in this PHP Installation');
+			throw new P3_Exception('spl_autoload does not exist in this PHP Installation');
 
 		self::loadClass($class);
 
 		if(!in_array('autoload', get_class_methods($class)))
-			throw new EEF_Exception('The class "%s" does not have an autoload() method', array($class));
+			throw new P3_Exception('The class "%s" does not have an autoload() method', array($class));
 
 		/* Regiser AutoLoad funtion */
 		spl_autoload_register(array($class, 'autoload'));

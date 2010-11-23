@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-class EEF_Date
+class P3_Date
 {
 	const TS_HOUR = 3600;
 	const TS_DAY  = 86400;

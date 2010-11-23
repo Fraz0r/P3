@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-class EEF_CSV_Interpreter
+class P3_CSV_Interpreter
 {
 	public    $_data = array();
 
@@ -34,7 +34,7 @@ class EEF_CSV_Interpreter
 		if(FALSE !== ($this->_fh = fopen($this->_path, 'r'))) {
 			$this->_pointer = 0;
 		} else {
-			throw new EEF_Exception('Cannot open CSV File "%s" for processing', array($path));
+			throw new P3_Exception('Cannot open CSV File "%s" for processing', array($path));
 		}
 	}
 

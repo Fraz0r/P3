@@ -1,6 +1,6 @@
 <?php
 
-class EEF_DB extends PDO
+class P3_DB extends PDO
 {
 	public function __construct(array $config, array $options = array())
 	{
@@ -41,7 +41,7 @@ class EEF_DB extends PDO
 	 */
 	public function get ($class, $where='1', $force_single = false, $order_by = null)
 	{
-		EEF_Loader::loadModel($class);
+		P3_Loader::loadModel($class);
 
 		/* A little user checking never hurts... checking if user probably meant to send an (int)where */
 		if($where !== '1' && (int)$where > 0) {

@@ -17,7 +17,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-abstract class EEF_Model_Abstract
+abstract class P3_Model_Abstract
 {
 
 	private static $_db;
@@ -71,7 +71,7 @@ abstract class EEF_Model_Abstract
 		}
 	}
 
-	public static function setDB(EEF_DB $db)
+	public static function setDB(P3_DB $db)
 	{
 		self::$_db = $db;
 	}

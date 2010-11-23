@@ -20,7 +20,7 @@ abstract class html {
 	{
 		$method = isset($options[self::ATTR_FORM_METHOD]) ? $options[self::ATTR_FORM_TYPE] : self::FORM_METHOD_POST;
 		$xhr    = (bool)(isset($options[self::ATTR_FORM_TYPE]) && $options[self::ATTR_FORM_TYPE] == self::FORM_TYPE_AJAX);
-		return '<form'.(($xhr) ? ' class="eef-ajaxform"':'').' method="'.$method.'" action="'.$action.'">';
+		return '<form'.(($xhr) ? ' class="P3-ajaxform"':'').' method="'.$method.'" action="'.$action.'">';
 	}
 
 	public static function form_end()
@@ -35,7 +35,7 @@ abstract class html {
 
 	public static function link_to($name, $location, $args = array(), $get = array())
 	{
-		return '<a href="'.EEF_Loader::createURI($location, $args, $get).'">'.$name.'</a>';
+		return '<a href="'.P3_Loader::createURI($location, $args, $get).'">'.$name.'</a>';
 	}
 
 	public static function select($name, $html_options)

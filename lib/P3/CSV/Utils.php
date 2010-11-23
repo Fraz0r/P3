@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-class EEF_CSV_Utils
+class P3_CSV_Utils
 {
 	/**
 	 * Prints an array to a CSV Line

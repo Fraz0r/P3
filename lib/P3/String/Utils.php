@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-abstract class EEF_String_Utils {
+abstract class P3_String_Utils {
  /**
    * Translates a camel case string into a string with underscores (e.g. firstName -&gt; first_name)
   *

@@ -6,11 +6,11 @@
  */
 
 /**
- * EEF_Filter
+ * P3_Filter
  *
  * The filter class is an OOP wrapper for PHP's filter extension
  */
-class EEF_Filter
+class P3_Filter
 {
 	// <editor-fold defaultstate="collapsed" desc="Constants">
 	const INPUT_POST = 0;
@@ -79,7 +79,7 @@ class EEF_Filter
 	public function  __construct($input = null)
 	{
 		if(!extension_loaded('filter'))
-			throw new EEF_Exception('EEF_Filters Require PHP\'s Fitler Extension', null);
+			throw new P3_Exception('P3_Filters Require PHP\'s Fitler Extension', null);
 
 		if($input == null) {
 			$input = self::INPUT_REQUEST;

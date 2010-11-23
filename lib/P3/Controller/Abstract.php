@@ -1,11 +1,11 @@
 <?php
 
 /**
- * EEF_Controller_Abstract
+ * P3_Controller_Abstract
  *
- * Base Class for EEF's Controllers
+ * Base Class for P3's Controllers
  */
-abstract class EEF_Controller_Abstract
+abstract class P3_Controller_Abstract
 {
 	/**
 	 * The method to call within the controller
@@ -24,7 +24,7 @@ abstract class EEF_Controller_Abstract
 	/**
 	 * URI passed to controller
 	 *
-	 * @var EEF_Uri
+	 * @var P3_Uri
 	 */
 	protected $_uri;
 
@@ -52,13 +52,13 @@ abstract class EEF_Controller_Abstract
 	/**
 	 * Constructor
 	 *
-	 * @param EEF_Uri $uri
+	 * @param P3_Uri $uri
 	 */
-	public function __construct(EEF_Uri $uri = null)
+	public function __construct(P3_Uri $uri = null)
 	{
 		/* If $uri is null, use current Uri (By creating one) */
 		if($uri == null) {
-			$uri = new EEF_Uri;
+			$uri = new P3_Uri;
 		}
 
 		/* Store vars (for controller use) */
@@ -78,7 +78,7 @@ abstract class EEF_Controller_Abstract
 
 		/* Throw a 404 Error if the "page" wasn't found */
 		if(!method_exists($this, $this->_action))
-			throw new EEF_Exception('Method not found in controller', 404);
+			throw new P3_Exception('Method not found in controller', 404);
 
 		/* Run the action, and store the output */
 		$this->_actionReturn = $this->{$this->_action}();

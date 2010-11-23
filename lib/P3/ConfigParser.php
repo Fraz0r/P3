@@ -1,6 +1,6 @@
 <?php
 
-class EEF_ConfigParser
+class P3_ConfigParser
 {
 	protected $_config = array();
 
@@ -24,7 +24,7 @@ class EEF_ConfigParser
 	/**
 	 *
 	 * @param array $options
-	 * @return EEF_ConfigParser
+	 * @return P3_ConfigParser
 	 */
 	static public function load(array $options = array())
 	{
@@ -39,7 +39,7 @@ class EEF_ConfigParser
 			$ret[$file] = $bool;
 
 			if(!$bool) {
-				throw new EEF_Exception('Unable to parse "%s" into the config', array($file));
+				throw new P3_Exception('Unable to parse "%s" into the config', array($file));
 			} else {
 				$this->_config = array_merge($config, $this->_config);
 			}

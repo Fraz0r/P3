@@ -1,11 +1,11 @@
 <?php
 
 /**
- * EEF_Uri
+ * P3_Uri
  *
  * Used to handle and create MVC Uri's
  */
-class EEF_Uri
+class P3_Uri
 {
 	/**
 	 * Stores each part of the URI in an Assoc. Array
@@ -41,11 +41,11 @@ class EEF_Uri
 	 * @param string $uri
 	 */
 	public function __construct($uri = null){
-		if($uri == null && !EEF_Loader::isCli()){
+		if($uri == null && !P3_Loader::isCli()){
 			$uri = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].':'.$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI'];
 		}
 
-		if(!EEF_Loader::isCli()) {
+		if(!P3_Loader::isCli()) {
 			$this->parse($uri);
 		} else {
 			$this->parseCli();
@@ -96,7 +96,7 @@ class EEF_Uri
 	 */
 	public function getBase()
 	{
-		return 'http://'.$this->getHost().'/'.EEF_PATH_PREFIX;
+		return 'http://'.$this->getHost().'/'.P3_PATH_PREFIX;
 	}
 
 	/**
@@ -182,8 +182,8 @@ class EEF_Uri
 		}
 		
 		/* Handle Path Prefixing */
-		//$this->_requestUri['path'] = str_replace(EEF_PATH_PREFIX, '', $this->_requestUri['path'], 1);
-		$this->_requestUri['path'] = preg_replace('~^/'.EEF_PATH_PREFIX.'~', '/', $this->_requestUri['path']);
+		//$this->_requestUri['path'] = str_replace(P3_PATH_PREFIX, '', $this->_requestUri['path'], 1);
+		$this->_requestUri['path'] = preg_replace('~^/'.P3_PATH_PREFIX.'~', '/', $this->_requestUri['path']);
 	}
 
 	/**

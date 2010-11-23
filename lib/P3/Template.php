@@ -1,10 +1,10 @@
 <?php
 /**
- * EEF_Template
+ * P3_Template
  *
  * Template class used to render views
  */
-class EEF_Template
+class P3_Template
 {
 	/* Attributes */
 	const ATTR_CONTENT_TYPE           = 1;
@@ -51,7 +51,7 @@ class EEF_Template
 
 	/**
 	 * URI dispatched
-	 * @var EEF_Uri
+	 * @var P3_Uri
 	 */
 	protected $_uri;
 
@@ -64,12 +64,12 @@ class EEF_Template
 	/**
 	 * Constructor
 	 */
-	public function __construct (EEF_Uri $uri = null, $path = null, array $options = array())
+	public function __construct (P3_Uri $uri = null, $path = null, array $options = array())
 	{
 		$this->_uri = $uri;
 
 		if(empty($path)) {
-			$path = EEF_APP_PATH.'/views';
+			$path = P3_APP_PATH.'/views';
 		}
 
 		$this->_path = realpath($path);
@@ -188,7 +188,7 @@ class EEF_Template
 		$file = $this->_path.'/'.$page;
 
 		if(!is_readable($file))
-			throw new EEF_Exception('Template "%s" is not readable', array($file));
+			throw new P3_Exception('Template "%s" is not readable', array($file));
 
 		extract($this->_vars);
 		try{
@@ -200,7 +200,7 @@ class EEF_Template
 				$rendered = $content;
 			} else {
 				ob_start();
-				include(EEF_APP_PATH.'/layouts/'.$this->_layout);
+				include(P3_APP_PATH.'/layouts/'.$this->_layout);
 				$rendered = ob_get_clean();
 			}
 

@@ -5,7 +5,7 @@
  * @author Tim Frazier <tim@essential-elements.net>
  */
 
-class EEF_FixedWidth_Interpreter
+class P3_FixedWidth_Interpreter
 {
 	protected $_cols;
 	protected $_fh;
@@ -75,7 +75,7 @@ class EEF_FixedWidth_Interpreter
 			$this->_pointer = 0;
 			$this->_open    = true;
 		} else {
-			throw new EEF_Exception('Failed to open FixedWidth File \'%s\'', array($this->_path));
+			throw new P3_Exception('Failed to open FixedWidth File \'%s\'', array($this->_path));
 		}
 	}
 }

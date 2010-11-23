@@ -1,10 +1,10 @@
 <?php
 /**
- * Description of EEF_Controller_MVC
+ * Description of P3_Controller_MVC
  *
  * @author Tim Frazier <tim@essential-elements.net>
  */
-class EEF_Controller_MVC extends EEF_Controller_Abstract
+class P3_Controller_MVC extends P3_Controller_Abstract
 {
 	/* Attributes */
 	const ATTR_TEMPLATE_CLASS = 1;
@@ -56,21 +56,21 @@ class EEF_Controller_MVC extends EEF_Controller_Abstract
 	/**
 	 * Template to use for rendering
 	 *
-	 * @var EEF_Template
+	 * @var P3_Template
 	 */
 	protected $_view;
 
 	/**
 	 * Constructor
 	 * 
-	 * @param EEF_Uri $uri
+	 * @param P3_Uri $uri
 	 * @param array $options 
 	 */
-	public function  __construct(EEF_Uri $uri = null, array $options = array())
+	public function  __construct(P3_Uri $uri = null, array $options = array())
 	{
 		/* Create a uri, if null was passed */
 		if($uri == null) {
-			$uri = new EEF_Uri;
+			$uri = new P3_Uri;
 		}
 
 		/* Save passed options */
@@ -91,7 +91,7 @@ class EEF_Controller_MVC extends EEF_Controller_Abstract
 			$c = $this->getAttribute(self::ATTR_TEMPLATE_CLASS);
 			$this->_view = new $c($uri);
 		} else {
-			$this->_view = new EEF_Template($uri);
+			$this->_view = new P3_Template($uri);
 		}
 
 		/* Set our layout */
@@ -102,7 +102,7 @@ class EEF_Controller_MVC extends EEF_Controller_Abstract
 		/* Load Models */
 		if(count($this->_models)) {
 			foreach($this->_models as $model) {
-				EEF_Loader::loadModel($model);
+				P3_Loader::loadModel($model);
 			}
 		}
 

@@ -4,7 +4,7 @@
  *
  * @author Tim Frazier <tim@essential-elements.net>
  */
-class EEF_CSV_MappedInterpreter extends EEF_CSV_Interpreter
+class P3_CSV_MappedInterpreter extends P3_CSV_Interpreter
 {
 	const ATTR_MAPPING          = 1;
 
