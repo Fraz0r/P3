@@ -2,7 +2,7 @@
 /**
  * Description of P3_Controller_MVC
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 class P3_Controller_MVC extends P3_Controller_Abstract
 {

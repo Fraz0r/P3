@@ -63,6 +63,8 @@ class P3_Loader
 	 * Loads appropriate controller based on Uri
 	 *
 	 * @param P3_Uri $uri URI to Dispatch
+	 * @deprecated since version 0.9.0
+	 * @see P3_Router::dispatch()
 	 */
 	public static function dispatch(P3_Uri $uri = null){
 		if(is_null($uri)) {
@@ -166,6 +168,20 @@ class P3_Loader
 		if(!class_exists($class, false) && !interface_exists($class, false))
 			throw new P3_Exception('The class "%s" failed to load', array($class));
 
+	}
+
+	public static function loadEnv()
+	{
+		/* Attempt to set up an app path if we dont have one */
+		if(!defined("P3_APP_PATH")) {
+			define("P3_APP_PATH", realpath(dirname(__FILE__).'/../..').'/app');
+		}
+
+		/* Make sure lib is include path */
+		set_include_path(realpath(dirname(__FILE__).'/..').PATH_SEPARATOR.get_include_path());
+
+		/* Set up Auto Loading */
+		self::registerAutoload();
 	}
 
 	/**

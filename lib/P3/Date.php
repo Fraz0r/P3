@@ -2,7 +2,7 @@
 /**
  * Description of Date
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
 class P3_Date

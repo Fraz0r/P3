@@ -85,8 +85,22 @@ abstract class P3_Controller_Abstract
 
 	}
 
+//Static
+	/**
+	 * Renders the contents of a passed URI
+	 *
+	 * @param P3_Uri $uri URI to render
+	 * @param string/null $layout_override If left out, the default layout for the controller will be used in the rendering.  If null, no layout will be used.  If string, will attempt to use passed layout
+	 * @return string HTML Render for passed Uri
+	 */
+	public static function render(P3_Uri $uri, $layout_override = false)
+	{
+		return $ret;
+	}
+
+//Protected
 	/* Overideable to fill vars prior to a "page" running */
-	protected function init()
+	protected function _init()
 	{
 	}
 }

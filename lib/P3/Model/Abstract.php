@@ -14,7 +14,7 @@
  *
  *
  * @todo   Have delete() cascade through [relating] models (If wanted, of course)(Figuring out a way to work constraints)
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
 abstract class P3_Model_Abstract

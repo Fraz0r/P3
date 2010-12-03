@@ -2,7 +2,7 @@
 /**
  * Description of Utils
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
 abstract class P3_String_Utils {

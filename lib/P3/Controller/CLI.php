@@ -2,7 +2,7 @@
 /**
  * Description of CLI
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
 class P3_Controller_CLI extends P3_Controller_Abstract
@@ -59,7 +59,7 @@ class P3_Controller_CLI extends P3_Controller_Abstract
 		$this->_printLine('**');
 		$this->_printLine('* P3 Cli Controller Command Line Indexer MVC v1.0.0 beta');
 		$this->_printLine('*');
-		$this->_printLine('* Author: Tim Frazier <tim@essential-elements.net>');
+		$this->_printLine('* Author: Tim Frazier <tim.frazier@gmail.com>');
 		$this->_printLine('* Date:   2010-04-07');
 		$this->_printLine('**');
 		$this->_printLine();

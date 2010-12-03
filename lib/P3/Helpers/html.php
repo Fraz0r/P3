@@ -4,7 +4,7 @@
  *
  * A helper class, mainly for views
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 abstract class html {
 	const ATTR_FORM_TYPE   = 1;

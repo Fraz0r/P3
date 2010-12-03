@@ -2,7 +2,7 @@
 /**
  * Description of MappedInterpreter
  *
- * @author Tim Frazier <tim@essential-elements.net>
+ * @author Tim Frazier <tim.frazier@gmail.com>
  */
 class P3_CSV_MappedInterpreter extends P3_CSV_Interpreter
 {
