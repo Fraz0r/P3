@@ -17,7 +17,7 @@ class P3_Router {
 	 * (RegEx)  Used to split paths into tokens
 	 * @var string
 	 */
-	private static $_regexTokenizer = '([^\.^/^-]*)([\./-]*)';
+	private static $_regexTokenizer = '([\./-]*)([^\n^\s^\.^/^-]*)';
 
 	/**
 	 * Adds route to parse list
@@ -44,8 +44,9 @@ class P3_Router {
 	 * @param P3_Uri $uri URI for dispatch
 	 * @since 0.9.0
 	 */
-	public static function dispatch(P3_Uri $uri = null)
+	public static function dispatch($path)
 	{
+		$route = is_array($path) ? $path : self::parseRoute($path);
 	}
 
 	/**
@@ -54,15 +55,18 @@ class P3_Router {
 	 * @param string $path URI for routing
 	 * @return string Route for controller/action
 	 */
-	public static function routeFor($path)
+	public static function parseRoute($path_str)
 	{
 		/* Tokenize path for comparing */
-		$path = self::tokenizePath($path);
+		$path = self::tokenizePath($path_str);
 
 		/* Setup routing vars */
 		$dir        = "";
 		$controller = null;
 		$action     = null;
+		$args       = array();
+		$arg_c      = 0;
+
 
 		/* Loop through Routes */
 		foreach(self::$_routes as $r) {
@@ -70,35 +74,32 @@ class P3_Router {
 			/* Grab the tokens from the route */
 			$route = $r->tokens;
 
-			/* Make sure token counts match */
-			if(count($path) != count($route)) {
-				continue;
-			}
 			/* Make sure token spereators match */
-			if(count(array_diff($route[2], $path[2]))) {
-				continue;
+			for($x = 0; $x < count($route[1]) -1; $x++) {
+				if($route[1][$x] != $path[1][$x]) 
+					break 2;
 			}
 
 			/* Potential match, loop through tokens and verify */
-			for($i = 0; $i < count($path); $i++) {
-				switch($route[1][$i]) {
+			for($i = 0; $i < count($route[2]) - 1; $i++) {
+				switch($route[2][$i]) {
 					case ':controller':
-						$controller = $path[1][$i];
+						$controller = $path[2][$i];
 						break;
 					case ':action':
-						$action = $path[1][$i];
+						$action = $path[2][$i];
 						break;
 					case ':dir':
-						$dir = $path[1][$i];
+						$dir = $path[2][$i];
 						break;
 					default:
-						if(preg_match('!^:(.*)!', $route[1][$i], $m)) {
-							/* TODO: Parse Arg in Router  */
-							echo "Loading Param '{$m[1]}' with value '{$path[1][$i]}'\n";
+						if(preg_match('!^:(.*)!', $route[2][$i], $m)) {
+							$args[$arg_c++] = $path[2][$i];
+							$args[$m[1]] = $path[2][$i];
 						} else {
-							if($route[1][$i] != "") {
+							if($route[2][$i] != "") {
 								/* Static - Must match exact */
-								if($path[1][$i] !== $route[1][$i]) {
+								if($path[2][$i] !== $route[2][$i]) {
 									continue 3;
 								}
 							}
@@ -106,6 +107,11 @@ class P3_Router {
 						break;
 				}
 			}
+			var_dump($i);
+
+			/* Parse args */
+			while($i < count($path[2]) -1 ) 
+				$args[$arg_c++] = $path[2][$i++];
 
 			/* If we got this far, the route matches */
 			$action     = !is_null($r->options['action']) ? $r->options['action'] : $action;
@@ -120,19 +126,21 @@ class P3_Router {
 
 		/* Raise Exception if we have no controller to route too */
 		if(is_null($controller)) {
-			throw new P3_Exception("P3_Router:  No controller was matched in the route.", '', 500);
+			throw new P3_Exception("P3_Router:  No controller was matched in the route.", '', 501);
 		}
 
 		return array(
 			'controller' => $controller,
 			'action'     => $action,
-			'dir'        => $dir
+			'path'       => $path,
+			'dir'        => $dir,
+			'args'       => $args
 		);
 	}
 
 	public static function tokenizePath($path)
 	{
-		preg_match_all(sprintf("!%s!", self::$_regexTokenizer), trim($path, '/'), $m);
+		preg_match_all(sprintf("!%s!", self::$_regexTokenizer), rtrim($path, '/'), $m);
 		return $m;
 	}
 
