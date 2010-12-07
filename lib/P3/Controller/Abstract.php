@@ -22,11 +22,11 @@ abstract class P3_Controller_Abstract
 	protected $_args = array();
 
 	/**
-	 * URI passed to controller
+	 * Routing Data Array
 	 *
-	 * @var P3_Uri
+	 * @var array
 	 */
-	protected $_uri;
+	protected $_routing_data;
 
 	/**
 	 * Map (To name arguments)
@@ -52,19 +52,19 @@ abstract class P3_Controller_Abstract
 	/**
 	 * Constructor
 	 *
-	 * @param P3_Uri $uri
+	 * @param array $routing_data
 	 */
-	public function __construct(P3_Uri $uri = null)
+	public function __construct($routing_data = array())
 	{
 		/* If $uri is null, use current Uri (By creating one) */
-		if($uri == null) {
-			$uri = new P3_Uri;
+		if($routing_data == null) {
+			$routing_data = P3_Router::parseRoute();
 		}
 
 		/* Store vars (for controller use) */
-		$this->_uri    = $uri;
-		$this->_action = $uri->getAction();
-		$this->_args   = $uri->getArguments();
+		$this->_routing_data = $routing_data;
+		$this->_action = $routing_data['action'];
+		$this->_args   = $routing_data['args'];
 
 		/* If arguments are mapped, set up access by named keys */
 		if(!empty($this->_argMap) && isset($this->_argMap[$this->_action])) {
@@ -74,7 +74,7 @@ abstract class P3_Controller_Abstract
 		}
 
 		/* Call init */
-		$this->init();
+		$this->_init();
 
 		/* Throw a 404 Error if the "page" wasn't found */
 		if(!method_exists($this, $this->_action))

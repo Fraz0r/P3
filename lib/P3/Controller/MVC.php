@@ -63,14 +63,14 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	/**
 	 * Constructor
 	 * 
-	 * @param P3_Uri $uri
+	 * @param array $routing_data
 	 * @param array $options 
 	 */
-	public function  __construct(P3_Uri $uri = null, array $options = array())
+	public function  __construct($routing_data = null, array $options = array())
 	{
 		/* Create a uri, if null was passed */
-		if($uri == null) {
-			$uri = new P3_Uri;
+		if($routing_data == null) {
+			$routing_data = P3_Router::parseRoute();
 		}
 
 		/* Save passed options */
@@ -78,20 +78,12 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 			$this->setattribute($k, $v);
 		}
 
-		/* Determine if we are in an AJAX Call */
-		$this->_isXHR = (count($_POST) && isset($_POST['xhr']));
-
-		/* Clear the var used for determining AJAX Mode (if it exists) */
-		if($this->_isXHR) {
-			unset($_POST['xhr']);
-		}
-
 		/* Define a new instance of our template class */
 		if (isset($this->_attributes[self::ATTR_TEMPLATE_CLASS])) {
 			$c = $this->getAttribute(self::ATTR_TEMPLATE_CLASS);
-			$this->_view = new $c($uri);
+			$this->_view = new $c($routing_data);
 		} else {
-			$this->_view = new P3_Template($uri);
+			$this->_view = new P3_Template($routing_data);
 		}
 
 		/* Set our layout */
@@ -107,7 +99,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 		}
 
 		/* Call parent constructor (to run the method) */
-		parent::__construct($uri);
+		parent::__construct($routing_data);
 
 		/* If the method didnt render, and didnt return false... Auto-Render */
 		if(!$this->_rendered && (is_null($this->_actionReturn) || (bool)$this->_actionReturn)) {
@@ -122,13 +114,13 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	 * @param string $page
 	 */
 	public function _display($page = null) {
-		if(!empty($this->_css[$this->_uri->getAction()])) {
-			foreach($this->_css[$this->_uri->getAction()] as $css_path) {
+		if(!empty($this->_css[$this->_routing_data['action']])) {
+			foreach($this->_css[$this->_routing_data['action']] as $css_path) {
 				$this->_view->addStyleSheet($css_path);
 			}
 		}
-		if(!empty($this->_js[$this->_uri->getAction()])) {
-			foreach($this->_js[$this->_uri->getAction()] as $js_path) {
+		if(!empty($this->_js[$this->_routing_data['action']])) {
+			foreach($this->_js[$this->_routing_data['action']] as $js_path) {
 				$this->_view->addJavascript($js_path);
 			}
 		}

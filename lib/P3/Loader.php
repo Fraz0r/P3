@@ -60,21 +60,6 @@ class P3_Loader
 	}
 
 	/**
-	 * Loads appropriate controller based on Uri
-	 *
-	 * @param P3_Uri $uri URI to Dispatch
-	 * @deprecated since version 0.9.0
-	 * @see P3_Router::dispatch()
-	 */
-	public static function dispatch(P3_Uri $uri = null){
-		if(is_null($uri)) {
-			$uri = new P3_Uri;
-		}
-
-		self::loadController($uri->getController(), $uri);
-	}
-
-	/**
 	 * Returns either the basic loader, or Cli_Loader (If Cli Mode)
 	 */
 	public static function getLoader()
@@ -115,10 +100,10 @@ class P3_Loader
 	 * Loads P3_Controller
 	 *
 	 * @param string $controller
-	 * @param P3_URI $uri
-	 * @return <type>
+	 * @param array $routing_data
+	 * @return P3_Controller
 	 */
-	public static function loadController($controller, P3_URI $uri)
+	public static function loadController($controller, array $routing_data)
 	{
 		$name  = strtolower($controller);
 		$class = P3_String_Utils::to_camel_case($controller, true).'Controller';
@@ -140,7 +125,7 @@ class P3_Loader
 			throw new P3_Exception('The controller "%s" failed to load', array($class), 500);
 		}
 
-		return(new $class($uri));
+		return(new $class($routing_data));
 	}
 
 	/**
@@ -170,18 +155,29 @@ class P3_Loader
 
 	}
 
-	public static function loadEnv()
+	/**
+	 * This function will set P3_APP_PATH (if it's not set), update the PHP Include path (unless $set_include_path is false), register auto-load, load the bootstrap, and load the routes
+	 * @param bool $set_include_path Will call set_include_path() if true, and skip if false
+	 */
+	public static function loadEnv($set_include_path = true)
 	{
 		/* Attempt to set up an app path if we dont have one */
 		if(!defined("P3_APP_PATH")) {
 			define("P3_APP_PATH", realpath(dirname(__FILE__).'/../..').'/app');
 		}
 
-		/* Make sure lib is include path */
-		set_include_path(realpath(dirname(__FILE__).'/..').PATH_SEPARATOR.get_include_path());
+		/* Include lib */
+		if($set_include_path)
+			set_include_path(realpath(dirname(__FILE__).'/..').PATH_SEPARATOR.get_include_path());
 
 		/* Set up Auto Loading */
 		self::registerAutoload();
+
+		/* Load Bootstrap */
+		self::loadBootstrap();
+
+		/* Load Routes */
+		self::loadRoutes();
 	}
 
 	/**
@@ -216,8 +212,25 @@ class P3_Loader
 	}
 
 	/**
+	 * Loads Routes into P3_Router
+	 * @param string $file File containing routing statements.  Default path is attempted if left null.
+	 */
+	public static function loadRoutes($file = null)
+	{
+		if(is_null($file)) {
+			if(!defined('P3_APP_PATH'))
+				throw new P3_Exception('P3_APP_PATH not defined, cannot locate routes.');
+			else
+				$file = P3_APP_PATH.'/routes.php';
+		}
+		if(!is_readable($file))
+			throw new P3_Exception('Unable to load routes file "%s"', array($file));
+
+		require($file);
+	}
+
+	/**
 	 * Replaces the '_' in a classes name with '/' and returns it
-	 * Tricky =]
 	 *
 	 * @param string $class ClassName
 	 * @return string Classes relative path (from include path)

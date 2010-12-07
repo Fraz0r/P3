@@ -53,7 +53,7 @@ class P3_Template
 	 * URI dispatched
 	 * @var P3_Uri
 	 */
-	protected $_uri;
+	protected $_routing_data;
 
 	/**
 	 * Vars being passed to view
@@ -64,9 +64,9 @@ class P3_Template
 	/**
 	 * Constructor
 	 */
-	public function __construct (P3_Uri $uri = null, $path = null, array $options = array())
+	public function __construct ($routing_data = null, $path = null, array $options = array())
 	{
-		$this->_uri = $uri;
+		$this->_routing_data = $routing_data;
 
 		if(empty($path)) {
 			$path = P3_APP_PATH.'/views';
@@ -124,7 +124,7 @@ class P3_Template
 	public function display($page = null)
 	{
 		if(is_null($page))
-			$page = $this->_uri->getController().'/'.$this->_uri->getAction().'.tpl';
+			$page = $this->_routing_data['controller'].'/'.$this->_routing_data['action'].'.tpl';
 
 		$display =  $this->render($page);
 
