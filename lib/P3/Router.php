@@ -8,16 +8,16 @@
 class P3_Router {
 
 	/**
-	 * Stack of routes in order of priority (FIFO)
+	 * List of routes in order of priority
 	 * @var array
 	 */
 	private static $_routes = array();
 
 	/**
-	 * Regex used to split paths into tokens
+	 * (RegEx)  Used to split paths into tokens
 	 * @var string
 	 */
-	private static $_regexTokenizer = '([\./-]*)([^\.^/^-]*)';
+	private static $_regexTokenizer = '(\[?[\./-]*)([^\[^\]^\.^/^-]*)\]?';
 
 	/**
 	 * Adds route to parse list
@@ -41,12 +41,13 @@ class P3_Router {
 	/**
 	 * Dispatches passed URI to the proper controller/action
 	 *
-	 * @param P3_Uri $uri URI for dispatch
+	 * @param string $path URI for dispatch
 	 * @since 0.9.0
 	 */
-	public static function dispatch($path)
+	public static function dispatch($path = null)
 	{
-		$route = is_array($path) ? $path : self::parseRoute($path);
+		$routing_data = self::parseRoute($path);
+		P3_Loader::loadController($routing_data['controller'], $routing_data);
 	}
 
 	/**
@@ -55,8 +56,11 @@ class P3_Router {
 	 * @param string $path URI for routing
 	 * @return string Route for controller/action
 	 */
-	public static function parseRoute($path_str)
+	public static function parseRoute($path_str = null)
 	{
+		//header("Content-type: text/plain");
+		$path_str = !is_null($path_str) ? $path_str : $_SERVER['REQUEST_URI'];
+
 		/* Tokenize path for comparing */
 		$path = self::tokenizePath($path_str);
 
@@ -67,17 +71,23 @@ class P3_Router {
 		$args       = array();
 		$arg_c      = 0;
 
-
 		/* Loop through Routes */
 		foreach(self::$_routes as $r) {
-			echo "Checking Route: {$r->path}\n";
 			/* Grab the tokens from the route */
 			$route = $r->tokens;
 
+			/* First token check, fixes default route ["/"] */
+			if($route[0][0] == "/" && $path[0][0] != "/") {
+				continue;
+			}
+
 			/* Make sure token spereators match */
 			for($x = 0; $x < count($route[1]) -1; $x++) {
-				if($route[1][$x] != $path[1][$x]) 
-					break 2;
+				if($route[1][$x] != $path[1][$x]) {
+					if(($route[1][$x] == '[/' && $path[1][$x] == '')) {
+						break 2;
+					}
+				}
 			}
 
 			/* Potential match, loop through tokens and verify */
@@ -107,7 +117,7 @@ class P3_Router {
 						break;
 				}
 			}
-			var_dump($i);
+
 
 			/* Parse args */
 			while($i < count($path[2]) -1 ) 
@@ -119,7 +129,7 @@ class P3_Router {
 			$dir        = !is_null($r->options['dir']) ? $r->options['dir'] : $dir;
 
 			/* Default to index if we have no action */
-			$action     = is_null($action) ? 'index' : $action;
+			$action     = empty($action) ? 'index' : $action;
 			break;
 
 		}
@@ -140,7 +150,10 @@ class P3_Router {
 
 	public static function tokenizePath($path)
 	{
-		preg_match_all(sprintf("!%s!", self::$_regexTokenizer), rtrim($path, '/'), $m);
+		if($path != '/')
+			$path = rtrim($path, '/');
+
+		preg_match_all(sprintf("!%s!", self::$_regexTokenizer), $path, $m);
 		return $m;
 	}
 
