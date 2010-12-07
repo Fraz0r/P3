@@ -8,16 +8,16 @@
 class P3_Router {
 
 	/**
-	 * List of routes in order of priority
+	 * Stack of routes in order of priority (FIFO)
 	 * @var array
 	 */
 	private static $_routes = array();
 
 	/**
-	 * (RegEx)  Used to split paths into tokens
+	 * Regex used to split paths into tokens
 	 * @var string
 	 */
-	private static $_regexTokenizer = '([\./-]*)([^\n^\s^\.^/^-]*)';
+	private static $_regexTokenizer = '([\./-]*)([^\.^/^-]*)';
 
 	/**
 	 * Adds route to parse list
