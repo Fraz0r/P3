@@ -51,6 +51,19 @@ class P3_Router {
 	}
 
 	/**
+	 * Loads two common routes, one for the default ("/") route, and another for the standard MVC layout ("/:controller/:action/:id")
+	 *
+	 * Note:  You'll want this to be the last call in your routes.php file, otherwise they will override your other calls
+	 * @param array $default_routing_data Routing data for the default route ("/").  Defaults to array('controller' => 'default');
+	 */
+	public static function loadDefaultRoutes(array $default_routing_data = array())
+	{
+		$default_routing_data = !count($default_routing_data) ? array('controller' => 'default') : $default_routing_data;
+		self::addRoute("/", $default_routing_data);
+		self::addRoute('/:controller/:action/:id');
+	}
+
+	/**
 	 * Returns first matched route for given controller/action
 	 *
 	 * @param string $path URI for routing
@@ -124,9 +137,9 @@ class P3_Router {
 				$args[$arg_c++] = $path[2][$i++];
 
 			/* If we got this far, the route matches */
-			$action     = !is_null($r->options['action']) ? $r->options['action'] : $action;
+			$action     = !is_null($r->options['action'])     ? $r->options['action']     : $action;
 			$controller = !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
-			$dir        = !is_null($r->options['dir']) ? $r->options['dir'] : $dir;
+			$dir        = !is_null($r->options['dir'])        ? $r->options['dir']        : $dir;
 
 			/* Default to index if we have no action */
 			$action     = empty($action) ? 'index' : $action;
