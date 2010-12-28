@@ -11,21 +11,7 @@ class P3_Model_Base {
 	 *
 	 * @var array
 	 */
-	protected $_alias = array();
-
-	/**
-	 * List of "has many" relationships
-	 *
-	 * @var array
-	 */
-	public $_has_many = array();
-
-	/**
-	 * List of "has one" relationships
-	 *
-	 * @var array
-	 */
-	public $_has_one = array();
+	protected static $_alias = array();
 
 	/**
 	 * Array to store column data
@@ -77,13 +63,11 @@ class P3_Model_Base {
 	 */
 	public function  __isset($name)
 	{
-		$in_data  = (!empty($this->_data[$name])     ? true : false);
-		$in_one   = (!empty($this->_has_one[$name])  ? true : false);
-		$in_many  = (!empty($this->_has_many[$name]) ? true : false);
-
-		return($in_data || $in_one || $in_many);
+		return(!empty($this->_data[$name]));
 	}
 
+// Static
+// Magic
 	/**
 	 * Magic Get:  Retrieve Model Value
 	 *
@@ -91,38 +75,15 @@ class P3_Model_Base {
 	 *
 	 * @param string $name accessed db column
 	 * @magic
-	 *
-	 * @todo Relations need to be moved out of the db class, otherwise a Base model will not work
 	 */
 	public function  __get($name)
 	{
 		/* Handle Aliases */
-		if(!empty($this->_alias[$name])) {
-			$name = $this->_alias[$name];
+		if(!empty(static::$_alias[$name])) {
+			$name = static::$_alias[$name];
 		}
 
-		/* If key exists in db row */
-		if(isset($this->_data[$name])) {
-			/* Check if this key is mapped to another class via _belongs_to */
-			if(isset($this->_belongs_to) && array_key_exists($name, $this->_belongs_to)) {
-				$owner = $this->_belongs_to[$name];
-				return self::$_db->get($owner, (int)$this->_data[$name]);
-			}
-			else{
-				/* If unmapped, just return the var */
-				return($this->_data[$name]);
-			}
-		} elseif(isset($this->_has_one[$name])) {
-			$assignment = $this->_has_one[$name];
-			$child = $assignment[0];
-			$field = $assignment[1];
-			return(self::$_db->get($child, "{$field} = '{$this->_data[$this->_pk]}'", true));
-		} elseif(isset($this->_has_many[$name])) {
-			$assignment = $this->_has_many[$name];
-			$child = $assignment[0];
-			$field = $assignment[1];
-			return(self::$_db->get($child, "{$field} = '{$this->_data[$this->_pk]}'"));
-		}
+		return isset($this->{$name}) ? $this->{$name} : null;
 	}
 
 	/**
