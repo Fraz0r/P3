@@ -17,33 +17,19 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-abstract class P3_Model_Abstract
+abstract class P3_Model_DB extends P3_Model_Base
 {
-
-	private static $_db;
-
 	/**
 	 * The PK of the table.  Override this if other than 'id'
 	 * @var string
 	 */
 	public $_pk = 'id';
 
-	protected $_alias = array();
-
 	/**
 	 * Stores changed columns [for update]
 	 * @var array
 	 */
 	protected $_changed = array();
-
-	public $_has_one = array();
-	public $_has_many = array();
-
-	/**
-	 * Array to store column data
-	 * @var array $_data
-	 */
-	protected $_data = array();
 
 	/**
 	 * Class name to lower (Database Table)
@@ -58,19 +44,16 @@ abstract class P3_Model_Abstract
 	 */
 	public function  __construct(array $record_array = null)
 	{
-		if(!is_null($record_array)) {
-			foreach($record_array as $k => $v) {
-				$this->_data[$k] = $v;
-			}
-			if(empty($record_array[$this->_pk])) {
-				$this->{$this->_pk} = -1;
-			}
+		parent::__construct($record_array);
 
-		} else {
-			$this->{$this->_pk} = -1;
-		}
+		if(is_null($this->_data[$this->_pk]))
+			$this->_data[$this->_pk] = -1;
 	}
 
+	/**
+	 * Sets up the db for use across all models   (This is usually done in the bootstrap)
+	 * @param P3_DB $db DB singleton
+	 */
 	public static function setDB(P3_DB $db)
 	{
 		self::$_db = $db;
@@ -85,67 +68,6 @@ abstract class P3_Model_Abstract
 		$pk  = $this->_pk;
 		$sql = 'DELETE FROM '.$this->_table.' WHERE '.$pk.' = \''.$this->_data[$pk].'\'';
 		return self::$_db->query($sql);
-	}
-
-
-	/**
-	 * Magic Get:  Retrieve DB Column
-	 *
-	 * Also handles Relations
-	 *
-	 * @param string $name accessed db column
-	 * @magic
-	 */
-	public function  __get($name)
-	{
-		/* Handle Aliases */
-		if(!empty($this->_alias[$name])) {
-			$name = $this->_alias[$name];
-		}
-
-		/**
-		 * @todo fix magic get
-		 */
-
-		/* If key exists in db row */
-		if(isset($this->_data[$name])) {
-			/* Check if this key is mapped to another class via _belongs_to */
-			if(isset($this->_belongs_to) && array_key_exists($name, $this->_belongs_to)) {
-				$owner = $this->_belongs_to[$name];
-				return self::$_db->get($owner, (int)$this->_data[$name]);
-			}
-			else{
-				/* If unmapped, just return the var */
-				return($this->_data[$name]);
-			}
-		} elseif(isset($this->_has_one[$name])) {
-			$assignment = $this->_has_one[$name];
-			$child = $assignment[0];
-			$field = $assignment[1];
-			return(self::$_db->get($child, "{$field} = '{$this->_data[$this->_pk]}'", true));
-		} elseif(isset($this->_has_many[$name])) {
-			$assignment = $this->_has_many[$name];
-			$child = $assignment[0];
-			$field = $assignment[1];
-			return(self::$_db->get($child, "{$field} = '{$this->_data[$this->_pk]}'"));
-		}
-	}
-
-	public function  __isset($name)
-	{
-		$in_data  = (!empty($this->_data[$name])     ? true : false);
-		$in_one   = (!empty($this->_has_one[$name])  ? true : false);
-		$in_many  = (!empty($this->_has_many[$name]) ? true : false);
-
-		return($in_data || $in_one || $in_many);
-	}
-
-	/**
-	 * Returns DB Collumns as array
-	 */
-	public function getData()
-	{
-		return($this->_data);
 	}
 
 	/**
@@ -206,34 +128,6 @@ abstract class P3_Model_Abstract
 		}
 	}
 
-	/**
-	 * Magic Set:  Set a db column value
-	 *
-	 * @param string $name db column to set
-	 * @param int $value value to set it
-	 */
-	public function  __set($name,  $value)
-	{
-		if($name != $this->pk && (!isset($this->_data[$name]) || ($value != $this->_data[$name])))
-			$this->_changed[] = $name;
-
-		$this->_data[$name] = $value;
-	}
-
-	public function set(array $values)
-	{
-		foreach($values as $k => $v) {
-			$this->{$k} = $v;
-		}
-	}
-
-	/**
-	 * returns Data encoded as JSON
-	 */
-	public function toJSON()
-	{
-		return json_encode($this->_data);
-	}
 	/**
 	 * Retrieve the db table name
 	 *
