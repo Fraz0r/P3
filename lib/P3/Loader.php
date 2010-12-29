@@ -14,7 +14,15 @@ class P3_Loader
 	 * @param string $class Class being searched for by PHP
 	 */
 	public static function autoload($class){
-		self::loadClass($class);
+		if(count(explode('_', $class)) > 1) {
+			self::loadClass($class);
+		} elseif(ucfirst($class[0]) == $class[0]) {
+			//Load Model, if first char is upperscase
+			self::loadModel($class);
+		} else {
+			//Load helper, if first char is lowercase
+			self::loadHelper($class);
+		}
 	}
 
 	/**
@@ -183,12 +191,9 @@ class P3_Loader
 	/**
 	 * Loads helpers into system
 	 */
-	public static function loadHelpers()
+	public static function loadHelper($helper)
 	{
-		/* @todo: Find a better way than including as they are built.. maybe loop through P3/Helpers? */
-		$path = 'P3/Helpers/';
-		require_once($path.'html.php');
-		require_once($path.'number.php');
+		//@todo:  Finish helper loader
 	}
 
 	/**

@@ -224,7 +224,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 	public function  __get($name)
 	{
-		if(FALSE !== ($value = parent::__get($name))) {
+		if(null !== ($value = parent::__get($name))) {
 			return $value;
 		} else {
 			$class = null;
