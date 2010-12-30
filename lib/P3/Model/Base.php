@@ -63,7 +63,7 @@ class P3_Model_Base {
 	 */
 	public function  __isset($name)
 	{
-		return(!empty($this->_data[$name]));
+		return(isset($this->_data[$name]));
 	}
 
 // Static
@@ -83,7 +83,12 @@ class P3_Model_Base {
 			$name = static::$_alias[$name];
 		}
 
-		return isset($this->{$name}) ? $this->{$name} : null;
+
+		if (isset($this->{$name})) {
+			return $this->_data[$name];
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -95,7 +100,7 @@ class P3_Model_Base {
 	 */
 	public function  __set($name,  $value)
 	{
-		if($name != $this->pk && (!isset($this->_data[$name]) || ($value != $this->_data[$name])))
+		if($name != static::pk() && (!is_null($this->_data[$name]) || ($value != $this->_data[$name])))
 			$this->_changed[] = $name;
 
 		$this->_data[$name] = $value;

@@ -16,6 +16,15 @@ abstract class html {
 	const FORM_METHOD_GET  = 'get';
 	const FORM_METHOD_POST = 'post';
 
+	/**
+	 * @todo Make base work in nested dirs
+	 */
+	public static function base()
+	{
+		$base = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].($_SERVER['SERVER_PORT'] != 80 ? ':'.$_SERVER['SERVER_PORT'] : '').'/';
+		return '<base href="'.$base.'" />';
+	}
+
 	public static function form_start($action, array $options = array())
 	{
 		$method = isset($options[self::ATTR_FORM_METHOD]) ? $options[self::ATTR_FORM_TYPE] : self::FORM_METHOD_POST;

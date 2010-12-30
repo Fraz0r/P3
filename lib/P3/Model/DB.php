@@ -65,6 +65,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public static $_dbColumns = array();
 
+	public static $_db = null;
+
 
 	/**
 	 * Use get() to fetch an array of models. But if you already have the array, you can use this __constructer
@@ -75,8 +77,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 	{
 		parent::__construct($record_array);
 
-		if(is_null($this->_data[$this->_pk]))
-			$this->_data[$this->_pk] = -1;
+		if(is_null($this->_data[static::pk()]))
+			$this->_data[static::pk()] = -1;
 	}
 
 	/**
@@ -94,7 +96,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function delete()
 	{
-		$sql = 'DELETE FROM '.static::$_table.' WHERE '.static::$_pk.' = \''.$this->_data[static::$_pk].'\'';
+		$sql = 'DELETE FROM '.static::$_table.' WHERE '.static::pk().' = \''.$this->_data[static::pk()].'\'';
 		return self::$_db->query($sql);
 	}
 
@@ -103,7 +105,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function load()
 	{
-		$pk     = self::$_pk;
+		$pk     = static::pk();
 		$pk_val = $this->_data[$pk];
 		$stmnt  = self::$_db->query(
 					"SELECT *
@@ -123,8 +125,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 	public function save()
 	{
 		$arr    = $this->_data;
-		$pk_val = $this->_data[static::$_pk];
-		unset($arr[static::$_pk]);
+		$pk_val = $this->_data[static::pk()];
+		unset($arr[static::pk()]);
 
 		if($pk_val != -1) {
 			if((bool)count($this->_changed)) {
@@ -134,7 +136,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 					$vals[] = $this->_data[$v];
 				}
 				$sql .= implode(', ', $keys);
-				$sql .= ' WHERE '.static::$_pk.' = \''.$pk_val.'\'';
+				$sql .= ' WHERE '.static::pk().' = \''.$pk_val.'\'';
 				$stmnt = self::$_db->prepare($sql);
 				$stmnt->execute($vals);
 			}
@@ -149,7 +151,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 			$sql .= ' ON DUPLICATE KEY UPDATE '.implode(', ', $sets);
 			$stmnt = self::$_db->prepare($sql);
 			$stmnt->execute(array_values($arr));
-			$this->_data[$this->_pk] = self::$_db->lastInsertId();
+			$this->_data[static::pk()] = self::$_db->lastInsertId();
 
 			/* Load all keys (This will grab mysql defaults) */
 			$this->load();
@@ -157,6 +159,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 //Static
+	public static function all(array $options = array())
+	{
+		$options['skip_int_check'] = true;
+		return static::find('1', $options);
+	}
+
 	/**
 	 * Find a record, or array of records
 	 *
@@ -168,6 +176,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
+		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 
 		if($only_one)
 			$limit = 1;
@@ -176,8 +185,9 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$sql = 'SELECT * FROM '.static::$_table;
 
 		if(!empty($where)) {
-			if(is_int($where)) {
+			if(!$skip_int_check && is_int($where)) {
 				$sql .= ' WHERE '.static::pk().' = '.$where;
+				$only_one = true;
 			} else {
 				$sql .= ' WHERE '.$where;
 			}
@@ -194,9 +204,27 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 
 		$stmnt = static::db()->query($sql);
-		$stmnt->setFetchMode(P3_DB::FETCH_CLASS, get_called_class());
+		$stmnt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
 
 		return $only_one ? $stmnt->fetch() : $stmnt->fetchAll();
+	}
+
+	public static function db($db = null)
+	{
+		if(!empty($db)) {
+			static::$_db = $db;
+		} else {
+			return static::$_db;
+		}
+	}
+
+	public static function pk($pk = null)
+	{
+		if(!empty($pk)) {
+			static::$_pk = $pk;
+		} else {
+			return static::$_pk;
+		}
 	}
 
 	/**
@@ -256,11 +284,17 @@ abstract class P3_Model_DB extends P3_Model_Base
 			}
 		}
 
-		P3_Loader::loadModel($class);
-		$value = $class::find($where, array("one" => $one));
-		$this->_data[$name] = $value;
+		if($class != null) {
+			P3_Loader::loadModel($class);
 
-		return $value;
+
+			$value = $class::find($where, array("one" => $one));
+			$this->_data[$name] = $value;
+
+			return $value;
+		} else {
+			return null;
+		}
 	}
 }
 

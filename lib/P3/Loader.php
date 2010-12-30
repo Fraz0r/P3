@@ -165,10 +165,13 @@ class P3_Loader
 
 	/**
 	 * This function will set P3_APP_PATH (if it's not set), update the PHP Include path (unless $set_include_path is false), register auto-load, load the bootstrap, and load the routes
-	 * @param bool $set_include_path Will call set_include_path() if true, and skip if false
 	 */
-	public static function loadEnv($set_include_path = true)
+	public static function loadEnv(array $options = array())
 	{
+		$set_include_path = isset($options['set_include_path']) ? $options['set_include_path'] : true;
+		$start_session    = isset($options['start_session']) ? $options['start_session'] : true;
+
+
 		/* Attempt to set up an app path if we dont have one */
 		if(!defined("P3_APP_PATH")) {
 			define("P3_APP_PATH", realpath(dirname(__FILE__).'/../..').'/app');
@@ -180,6 +183,9 @@ class P3_Loader
 
 		/* Set up Auto Loading */
 		self::registerAutoload();
+
+		if($start_session)
+			P3_Session::singleton();
 
 		/* Load Bootstrap */
 		self::loadBootstrap();
@@ -193,7 +199,13 @@ class P3_Loader
 	 */
 	public static function loadHelper($helper)
 	{
-		//@todo:  Finish helper loader
+		$path = dirname(__FILE__).'/Helpers/'.$helper.'.php';
+
+		if(!is_readable($path)) {
+			throw new P3_Exception('Couldn\'t read Helper "%s" into the system', array($helper));
+		}
+
+		require_once($path);
 	}
 
 	/**
@@ -203,17 +215,19 @@ class P3_Loader
 	 */
 	public static function loadModel($model)
 	{
-		if(self::classExists($model)) {
-			return;
+		if(!is_null($model)) {
+			if(self::classExists($model)) {
+				return;
+			}
+
+			$path = P3_APP_PATH.'/models/'.$model.'.php';
+
+			if(!is_readable($path)) {
+				throw new P3_Exception('Couldn\'t read Model "%s" into the system', array($model));
+			}
+
+			require_once($path);
 		}
-
-		$path = P3_APP_PATH.'/models/'.$model.'.php';
-
-		if(!is_readable($path)) {
-			throw new P3_Exception('Couldn\'t read Model "%s" into the system', array($model));
-		}
-
-		require_once($path);
 	}
 
 	/**
