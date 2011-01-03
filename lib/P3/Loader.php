@@ -18,7 +18,11 @@ class P3_Loader
 			self::loadClass($class);
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
-			self::loadModel($class);
+			if(substr($class, -10) == "Controller") {
+				require_once(P3_APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'.php');
+			} else {
+				self::loadModel($class);
+			}
 		} else {
 			//Load helper, if first char is lowercase
 			self::loadHelper($class);
@@ -111,10 +115,11 @@ class P3_Loader
 	 * @param array $routing_data
 	 * @return P3_Controller
 	 */
-	public static function loadController($controller, array $routing_data)
+	public static function loadController($controller, array $routing_data = array())
 	{
 		$name  = strtolower($controller);
 		$class = P3_String_Utils::to_camel_case($controller, true).'Controller';
+
 
 		if(self::classExists($class)) return;
 
