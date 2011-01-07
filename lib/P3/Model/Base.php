@@ -29,6 +29,16 @@ class P3_Model_Base {
 	}
 
 	/**
+	 * Checks to see if passed field has changed since load()
+	 * @param str $field Field to check
+	 * @return bool
+	 */
+	public function fieldChanged($field)
+	{
+		return in_array($field, $this->_changed);
+	}
+
+	/**
 	 * Returns Fields as array
 	 */
 	public function getData()
@@ -100,7 +110,7 @@ class P3_Model_Base {
 	 */
 	public function  __set($name,  $value)
 	{
-		if($name != static::pk() && (!is_null($this->_data[$name]) || ($value != $this->_data[$name])))
+		if($name != static::pk() && isset($this->_data[$name]) && (!is_null($this->_data[$name]) || ($value != $this->_data[$name])))
 			$this->_changed[] = $name;
 
 		$this->_data[$name] = $value;

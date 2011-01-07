@@ -19,12 +19,22 @@
 
 abstract class P3_Model_DB extends P3_Model_Base
 {
+//Public
+	/**
+	 * Controller to use for model (When generating links)
+	 * @var string
+	 */
+	public $controller = null;
+
+//Protected
 	/**
 	 * Stores changed columns [for update]
 	 * @var array
 	 */
 	protected $_changed = array();
 
+
+//Static
 	/**
 	 * List of "belongs to" relationships
 	 *
@@ -76,9 +86,6 @@ abstract class P3_Model_DB extends P3_Model_Base
 	public function  __construct(array $record_array = null)
 	{
 		parent::__construct($record_array);
-
-		if(is_null($this->_data[static::pk()]))
-			$this->_data[static::pk()] = -1;
 	}
 
 	/**
@@ -96,8 +103,20 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function delete()
 	{
-		$sql = 'DELETE FROM '.static::$_table.' WHERE '.static::pk().' = \''.$this->_data[static::pk()].'\'';
-		return self::$_db->query($sql);
+		$pk = static::pk();
+
+		$stmnt = $this->_db->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
+		$stmnt->execute(array($this->_data[$pk]));
+		return((bool)$stmnt->rowCount());
+	}
+
+	/**
+	 * Returns true if the record is new, False if existing
+	 * @return bool
+	 */
+	public function isNew()
+	{
+		return $this->{$this->pk()} < 0;
 	}
 
 	/**
@@ -124,39 +143,77 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function save()
 	{
-		$arr    = $this->_data;
-		$pk_val = $this->_data[static::pk()];
-		unset($arr[static::pk()]);
+		if(!$this->valid()) {
+			return false;
+		}
 
-		if($pk_val != -1) {
-			if((bool)count($this->_changed)) {
-				$sql = 'UPDATE '.static::$_table.' SET ';
-				foreach(array_unique($this->_changed) as $v) {
-					$keys[] = "{$v}=?";
-					$vals[] = $this->_data[$v];
-				}
-				$sql .= implode(', ', $keys);
-				$sql .= ' WHERE '.static::pk().' = \''.$pk_val.'\'';
-				$stmnt = self::$_db->prepare($sql);
-				$stmnt->execute($vals);
-			}
+		if (empty($this->_data[static::pk()])) {
+			return($this->_insert());
 		} else {
-			$sql  = 'INSERT INTO '.$this->_table.'('.implode(', ',array_keys($arr)).')';
-			foreach($arr as $k => $v) {
-				$vals[] = "?";
-				$sets[] = "{$k}='".addslashes($v)."'";
-			}
-			$sql .= ' VALUES('.implode(', ',$vals).')';
-			/* Handle duplicate key (Update) */
-			$sql .= ' ON DUPLICATE KEY UPDATE '.implode(', ', $sets);
-			$stmnt = self::$_db->prepare($sql);
-			$stmnt->execute(array_values($arr));
-			$this->_data[static::pk()] = self::$_db->lastInsertId();
-
-			/* Load all keys (This will grab mysql defaults) */
-			$this->load();
+			return($this->_update());
 		}
 	}
+
+	/**
+	 * Returns true if record fields are valid for saving
+	 * Note:  Not yet implemented
+	 * @return bool
+	 */
+	public function valid()
+	{
+		return true;
+	}
+
+//Protected
+	/**
+	 * Saves a new record to the database
+	 * @return boolean
+	 */
+	protected  function _insert()
+	{
+		$pk = static::pk();
+		$sql = 'INSERT INTO '.static::$_table.' ';
+		$fields = array();
+		$values = array();
+
+		foreach ($this->_data as $f => $v) {
+			if ($f == $pk) continue;
+			$fields[] = $f;
+			$values[] = "'$v'";
+		}
+
+		$sql .= '('.implode(',', $fields).') VALUES('.implode(',', $values).')';
+		$stmnt = static::db()->prepare($sql);
+		$stmnt->execute($values);
+		$this->{$pk} = static::db()->lastInsertId();
+		return((bool)$stmnt->rowCount());
+	}
+
+	/**
+	 * Updates a record in the database
+	 * @return boolean
+	 */
+	protected  function _update()
+	{
+		$pk = static::pk();
+		$sql = 'UPDATE '.static::$_table.' SET ';
+		$fields = array();
+		$values = array();
+
+		foreach ($this->_data as $f => $v) {
+			if ($f == $pk) continue; // We don't update the value of the pk
+			$fields[] = $f.' = ?';
+			$values[] = $v;
+		}
+
+		$sql .= implode(',', $fields);
+		$sql .= ' WHERE '.$pk.' = ?';
+		$values[] = $this->_data[$pk];
+		$stmnt = static::db()->prepare($sql);
+		$stmnt->execute($values);
+		return(($stmnt->rowCount() === false)? false : true);
+	}
+
 
 //Static
 	public static function all(array $options = array())
@@ -197,9 +254,9 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 		if(!is_null($limit)) {
 			if(!is_array($limit)) {
-				$sql .= 'LIMIT '.$limit;
+				$sql .= ' LIMIT '.$limit;
 			} else {
-				$sql .= 'LIMIT '.$limit[0].', '.$limit[1];
+				$sql .= ' LIMIT '.$limit[0].', '.$limit[1];
 			}
 		}
 
@@ -264,12 +321,16 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 				if(isset(static::$_hasMany[$name]['fk'])) {
 					$where = static::$_hasMany[$name]['fk'].'='.$this->_data[static::pk()];
+				} else {
+					$where = strtolower(get_called_class()).'_id ='.$this->_data[static::pk()];
 				}
 			} elseif(isset(static::$_hasOne[$name])) {
 				$class = isset(static::$_hasOne[$name]['class']) ? static::$_hasOne[$name]['class'] : $name;
 
 				if(isset(static::$_hasOne[$name]['fk'])) {
 					$where = static::$_hasOne[$name]['fk'].'='.$this->_data[static::pk()];
+				} else {
+					$where = strtolower(get_called_class()).'_id ='.$this->_data[static::pk()];
 				}
 
 				$one = true;

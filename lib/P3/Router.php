@@ -7,6 +7,8 @@
  */
 class P3_Router {
 
+	private static $_dispatchedRoute = null;
+
 	/**
 	 * List of routes in order of priority
 	 * @var array
@@ -25,15 +27,13 @@ class P3_Router {
 	 * @param string $path Path string
 	 * @param array $options Routing Data
 	 */
-	public static function addRoute($path, array $options = array())
+	public static function addRoute($path, array $options = array(), array $specific_options = array())
 	{
-		//$m = preg_split(sprintf('![\.-/]!', self::$_pathTokenSeperator), trim($path, '/'));
-
-
 		$o = new stdClass();
 		$o->path    = $path;
 		$o->tokens  = self::tokenizePath($path);
 		$o->options = $options;
+		$o->specific_options = $specific_options;
 
 		self::$_routes[count(self::$_routes)] = $o;
 	}
@@ -44,10 +44,66 @@ class P3_Router {
 	 * @param string $path URI for dispatch
 	 * @since 0.9.0
 	 */
-	public static function dispatch($path = null)
+	public static function dispatch($routing_data = null)
 	{
-		$routing_data = self::parseRoute($path);
+		$routing_data = !is_array($routing_data) ? self::parseRoute($path) : $routing_data;
+		self::$_dispatchedRoute = $routing_data;
 		P3_Loader::loadController($routing_data['controller'], $routing_data);
+	}
+
+	public static function render($options = null)
+	{
+		$options = is_null($options) ? self::parseRoute() : $options;
+
+		if(isset($options['controller'])) {
+			ob_start();
+			self::dispatch($options);
+			$return = ob_get_contents();
+			ob_end_clean();
+			return $return;
+		} elseif(isset($options['partial'])) {
+			$partial = $options['partial'];
+			if(strpos($partial, '/')) {
+				list($controller, $view) = explode('/', $partial);
+				$view = '_'.$view.'.tpl';
+				$path = $controller.'/'.$view;
+			} else {
+				die("NEED TO PROGRAM PARTIALS W/O CONTROLLER");
+			}
+
+			require(P3_APP_PATH.'/views/'.$path);
+		}
+	}
+
+	public static function redirect($path) {
+		header("Location: {$path}");
+	}
+
+	/**
+	 * Returns current dispatched action
+	 * @return str
+	 */
+	public static function getAction()
+	{
+		return self::$_dispatchedRoute['action'];
+	}
+
+	/**
+	 * Returns current dispatched controller
+	 * @return str
+	 */
+	public static function getController()
+	{
+		return self::$_dispatchedRoute['controller'];
+	}
+
+	/**
+	 * Returns current dispatched route
+	 * @return str
+	 */
+	public static function getDispatched()
+	{
+		return self::$_dispatchedRoute;
 	}
 
 	/**
@@ -128,6 +184,12 @@ class P3_Router {
 							}
 						}
 						break;
+				}
+			}
+
+			if(isset($r->specific_options['only'])) {
+				if(!in_array($action, $r->specific_options['only'])) {
+					continue;
 				}
 			}
 
