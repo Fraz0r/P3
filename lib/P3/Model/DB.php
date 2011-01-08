@@ -110,6 +110,24 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return((bool)$stmnt->rowCount());
 	}
 
+	public function decrement($field, array $options = array())
+	{
+		$dec  = isset($options['dec'])  ? $options['dec']  : 1;
+		$save = isset($options['save']) ? $options['save'] : false;
+		$this->{$field} -= $dec;
+		if($save) $this->save();
+		return $this->{$field};
+	}
+
+	public function increment($field, array $options = array())
+	{
+		$inc  = isset($options['inc'])  ? $options['inc']  : 1;
+		$save = isset($options['save']) ? $options['save'] : false;
+		$this->{$field} += $inc;
+		if($save) $this->save();
+		return $this->{$field};
+	}
+
 	/**
 	 * Returns true if the record is new, False if existing
 	 * @return bool
@@ -220,6 +238,29 @@ abstract class P3_Model_DB extends P3_Model_Base
 	{
 		$options['skip_int_check'] = true;
 		return static::find('1', $options);
+	}
+
+	/**
+	 * Destroy records matching $where
+	 *
+	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
+	 * @param array $options List of options for the query
+	 */
+	public static function destroy($where, array $options = array())
+	{
+		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
+
+
+		$sql = 'DELETE '.static::$_table;
+
+		if(!empty($where)) {
+			if(!$skip_int_check && is_int($where)) {
+				$sql .= ' WHERE '.static::pk().' = '.$where;
+				$only_one = true;
+			} else {
+				$sql .= ' WHERE '.$where;
+			}
+		}
 	}
 
 	/**
