@@ -86,6 +86,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 			$this->_view = new P3_Template($routing_data);
 		}
 
+		$this->_init();
 		/* Call parent constructor (to run the method) */
 		parent::__construct($routing_data);
 

@@ -106,6 +106,11 @@ class P3_Router {
 		return self::$_dispatchedRoute;
 	}
 
+	public static function isXHR()
+	{
+		return(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+	}
+
 	/**
 	 * Loads two common routes, one for the default ("/") route, and another for the standard MVC layout ("/:controller/:action/:id")
 	 *

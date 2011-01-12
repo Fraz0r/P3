@@ -3,17 +3,15 @@
  * **REQUIRES PHP 5.3+ [Late Static Bindings]**
  *
  * Note:  This class Requires a PDO attached.
- *      Call EE_Model_Abstract::setDB or
- *      setDatabase with a desired PDO or Extension
+ *      Call P3_Model_DB::db() with a desired PDO or Extension
  *      prior to using Models.  [Bootstraps a good spot]
  *
- *       Belongs To:  $_belongs_to[field]  = Model
- *          Has One:  $_has_one[accesser]  = (Model, foreign_key)
- *         Has Many:  $_has_many[accesser] = (Model, foreign_key)
- * Has Many Through:  Incoming...
+ *       Belongs To:  $_belongsTo[accessor]  = (:class => Model, :fk => foreign_key)
+ *          Has One:  $_hasOne[accessor]  = (:class => Model, :fk => foreign_key)
+ *         Has Many:  $_hasMany[accessor] = (:class => Model, :fk => foreign_key)
+ * Has Many Through:  $_hasManyThrough[accessor] = (:class => Model, :joinTable => db_table, :fk => owners_key, :efk => childs_key)
  *
  *
- * @todo   Have delete() cascade through [relating] models (If wanted, of course)(Figuring out a way to work constraints)
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
@@ -33,6 +31,14 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	protected $_changed = array();
 
+	/* Events */
+	protected $_beforeCreate  = array();
+	protected $_afterCreate   = array();
+	protected $_beforeSave    = array();
+	protected $_afterSave     = array();
+	protected $_beforeDestroy = array();
+	protected $_afterDestroy  = array();
+
 
 //Static
 	/**
@@ -48,6 +54,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 * @var array
 	 */
 	public static $_hasMany = array();
+
+	/**
+	 * List of "has many through" relationships
+	 *
+	 * @var array
+	 */
+	public static $_hasManyThrough = array();
 
 	/**
 	 * List of "has one" relationships
@@ -83,30 +96,109 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * @param array $record_array an array of field => val
 	 */
-	public function  __construct(array $record_array = null)
+	public function  __construct(array $record_array = null, array $options = array())
 	{
+		$this->bindEventListeners($options);
+
+		$this->_triggerEvent('beforeCreate');
 		parent::__construct($record_array);
+		$this->_triggerEvent('afterCreate');
 	}
 
 	/**
-	 * Sets up the db for use across all models   (This is usually done in the bootstrap)
-	 * @param P3_DB $db DB singleton
+	 * Adds an EXISTING record model to the current model (via join table)
+	 *
+	 * Note: This is only for ManyToMany relationships
+	 *
+	 * @param P3_Model_DB $related_model
+	 * @param array $options Options
 	 */
-	public static function setDB(P3_DB $db)
+	public function addModelToMany($related_model, array $options = array())
 	{
-		self::$_db = $db;
+		foreach(static::$_hasManyThrough as $field => $opts) {
+			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
+				$pk = $this->_data[static::pk()];
+				P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
+			}
+		}
+	}
+
+	/**
+	 * Binds Listeners to model
+	 * @param array $listeners Mult. Dim. Array of closures to be bound [per event]
+	 */
+	protected function bindEventListeners(array $listeners = array())
+	{
+		if(isset($listeners['beforeCreate']))
+			$this->_beforeCreate = $listeners['beforeCreate'];
+		if(isset($listeners['afterCreate']))
+			$this->_afterCreate = $listeners['afterCreate'];
+
+		if(isset($listeners['beforeSave']))
+			$this->_beforeSave = $listeners['beforeSave'];
+		if(isset($listeners['afterSave']))
+			$this->_afterSave = $listeners['afterSave'];
+
+		if(isset($listeners['beforeDestroy']))
+			$this->_beforeDestroy = $listeners['beforeDestroy'];
+		if(isset($listeners['afterDestroy']))
+			$this->_afterDestroy = $listeners['afterDestroy'];
+	}
+
+	/**
+	 * Returns a new relationship model, with fk(s) ready
+	 *
+	 * Note:  This does NOT work with _belongsTo.  You are doing
+	 * shit backwards if you need that functionaliy
+	 */
+	public function build($model_name, array $record_array = array())
+	{
+		/* Has One */
+		foreach(static::$_hasOne as $field => $opts) {
+			if(isset($opts['class']) && $opts['class'] == $model_name) {
+				$class = $opts['class'];
+				$pk = static::pk();
+				$fk = $opts['fk'];
+				$fields = array_merge($record_array, array($fk => $this->{$pk}));
+				return new $class($fields);
+			}
+		}
+
+		/* Has Many */
+		foreach(static::$_hasOne as $field => $opts) {
+			if(isset($opts['class']) && $opts['class'] == $model_name) {
+				$class = $opts['class'];
+				$pk = static::pk();
+				$fk = $opts['fk'];
+				return new $class(array($fk => $this->{$pk}));
+			}
+		}
+
+		/* Has Many Through */
+		foreach(static::$_hasManyThrough as $field => $opts) {
+			if(isset($opts['class']) && $opts['class'] == $model_name) {
+				$class = $opts['class'];
+				$pk = $this->_data[self::pk()];
+
+				/* This looks rough, but all it does is binds a save handler to the returning model (To insert the join record upon save) */
+				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
+			}
+		}
 	}
 
 	/**
 	 * Deletes Record from Database
-	 *
 	 */
 	public function delete()
 	{
 		$pk = static::pk();
 
-		$stmnt = $this->_db->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
+		$stmnt = self::db()->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
+
+		$this->_triggerEvent('beforeDestroy');
 		$stmnt->execute(array($this->_data[$pk]));
+		$this->_triggerEvent('afterDestroy');
+
 		return((bool)$stmnt->rowCount());
 	}
 
@@ -165,11 +257,18 @@ abstract class P3_Model_DB extends P3_Model_Base
 			return false;
 		}
 
-		if (empty($this->_data[static::pk()])) {
-			return($this->_insert());
-		} else {
-			return($this->_update());
+		$this->_triggerEvent('beforeSave');
+		try {
+			if (empty($this->_data[static::pk()]))
+				$ret = $this->_insert();
+			else
+				$ret = $this->_update();
+		} catch(PDOException $e) {
+			return false;
 		}
+		$this->_triggerEvent('afterSave');
+
+		return $ret;
 	}
 
 	/**
@@ -230,6 +329,17 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($values);
 		return(($stmnt->rowCount() === false)? false : true);
+	}
+
+	protected function _triggerEvent($event)
+	{
+		$funcs = $this->{'_'.$event};
+
+		if(is_null($funcs))
+			throw new P3_Exception("'%s' is not a bindable Event", array($event));
+
+		foreach($funcs as $func)
+			$func($this);
 	}
 
 
@@ -383,6 +493,20 @@ abstract class P3_Model_DB extends P3_Model_Base
 				}
 
 				$one = true;
+			} elseif(isset(static::$_hasManyThrough[$name])) {
+				$class = static::$_hasManyThrough[$name]['class'];
+				$join_table = static::$_hasManyThrough[$name]['joinTable'];
+				$fk = static::$_hasManyThrough[$name]['fk'];
+				$efk = static::$_hasManyThrough[$name]['efk'];
+
+				$sql = "SELECT b.* FROM `{$join_table}` a";
+				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
+				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
+
+				$stmnt = static::db()->query($sql);
+				$stmnt->setFetchMode(PDO::FETCH_CLASS, $class);
+
+				return $stmnt->fetchAll();
 			}
 		}
 
