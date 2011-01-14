@@ -31,6 +31,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	protected $_changed = array();
 
+	protected $_errors  = array();
+
 	/* Events */
 	protected $_beforeCreate  = array();
 	protected $_afterCreate   = array();
@@ -41,6 +43,16 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 
 //Static
+
+	/* Validaters */
+	public static $_validatesAlpha    = array();
+	public static $_validatesAlphaNum = array();
+	public static $_validatesEmail    = array();
+	public static $_validatesLength   = array();
+	public static $_validatesNum      = array();
+	public static $_validatesPresence = array();
+	public static $_validatesUnique   = array();
+
 	/**
 	 * List of "belongs to" relationships
 	 *
@@ -211,6 +223,17 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return $this->{$field};
 	}
 
+	public function getFields(array $fields = array())
+	{
+		$ret = array();
+		foreach($this->_data as $field => $val) {
+			if(FALSE !== array_search($field, $fields)) {
+				$ret[$field] = $val;
+			}
+		}
+		return $ret;
+	}
+
 	public function increment($field, array $options = array())
 	{
 		$inc  = isset($options['inc'])  ? $options['inc']  : 1;
@@ -278,7 +301,9 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function valid()
 	{
-		return true;
+		$flag = true;
+
+		return $flag;
 	}
 
 //Protected
@@ -329,17 +354,6 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($values);
 		return(($stmnt->rowCount() === false)? false : true);
-	}
-
-	protected function _triggerEvent($event)
-	{
-		$funcs = $this->{'_'.$event};
-
-		if(is_null($funcs))
-			throw new P3_Exception("'%s' is not a bindable Event", array($event));
-
-		foreach($funcs as $func)
-			$func($this);
 	}
 
 

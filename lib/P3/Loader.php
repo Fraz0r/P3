@@ -7,6 +7,8 @@
  */
 class P3_Loader
 {
+	protected static $_loadedController = null;
+
 	/**
 	 * Magic AutoLoad function attems to Load class when
 	 * Calling, or Instantiating an unloaded Class
@@ -79,6 +81,11 @@ class P3_Loader
 		return self::isCli() ? 'P3_Cli_Loader' : 'P3_Loader';
 	}
 
+	public static function getLoadedController()
+	{
+		var_dump(self::$_loadedController);
+	}
+
 	/**
 	 * Returns true if being run from terminal, false if from apache
 	 *
@@ -138,7 +145,8 @@ class P3_Loader
 			throw new P3_Exception('The controller "%s" failed to load', array($class), 500);
 		}
 
-		return(new $class($routing_data));
+		self::$_loadedController = new $class($routing_data);
+		return self::$_loadedController;
 	}
 
 	/**

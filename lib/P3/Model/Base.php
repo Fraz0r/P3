@@ -76,7 +76,21 @@ class P3_Model_Base {
 		return(isset($this->_data[$name]));
 	}
 
+
+// Protected
+	protected function _triggerEvent($event)
+	{
+		$funcs = $this->{'_'.$event};
+
+		if(is_null($funcs))
+			throw new P3_Exception("'%s' is not a bindable Event", array($event));
+
+		foreach($funcs as $func)
+			$func($this);
+	}
+
 // Static
+
 // Magic
 	/**
 	 * Magic Get:  Retrieve Model Value

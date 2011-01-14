@@ -66,11 +66,12 @@ class P3_Router {
 			if(strpos($partial, '/')) {
 				list($controller, $view) = explode('/', $partial);
 				$view = '_'.$view.'.tpl';
-				$path = $controller.'/'.$view;
 			} else {
-				die("NEED TO PROGRAM PARTIALS W/O CONTROLLER");
+				$controller = P3_Router::getController();
+				$view = '_'.$partial.'.tpl';
 			}
 
+			$path = $controller.'/'.$view;
 			require(P3_APP_PATH.'/views/'.$path);
 		}
 	}

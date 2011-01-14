@@ -7,60 +7,48 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 abstract class html {
-	const ATTR_FORM_TYPE   = 1;
-	const ATTR_FORM_METHOD = 2;
-
-	const FORM_TYPE_STANDARD = 101;
-	const FORM_TYPE_AJAX     = 102;
-
-	const FORM_METHOD_GET  = 'get';
-	const FORM_METHOD_POST = 'post';
-
 	/**
 	 * @todo Make base work in nested dirs
 	 */
 	public static function base()
 	{
 		$base = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].($_SERVER['SERVER_PORT'] != 80 ? ':'.$_SERVER['SERVER_PORT'] : '').'/';
-		return '<base href="'.$base.'" />';
+		echo '<base href="'.$base.'" />';
 	}
 
-	public static function form_start($action, array $options = array())
+	public static function linkFor(P3_Model_DB $model, $text = null, $action = 'show', array $options = array())
 	{
-		$method = isset($options[self::ATTR_FORM_METHOD]) ? $options[self::ATTR_FORM_TYPE] : self::FORM_METHOD_POST;
-		$xhr    = (bool)(isset($options[self::ATTR_FORM_TYPE]) && $options[self::ATTR_FORM_TYPE] == self::FORM_TYPE_AJAX);
-		return '<form'.(($xhr) ? ' class="P3-ajaxform"':'').' method="'.$method.'" action="'.$action.'">';
+		$controller = $model->controller;
+		$text       = is_null($text) ? ucfirst($action) : $text;
+
+		/* This needs to be programmed (First route setting both a controller and action) */
+		//$route      = P3_Router::getFirstGlobalRoute();
+		$path = str_replace(':controller', $controller, $route['path']);
+		$path = str_replace(':action', $action, $route['path']);
+
+		if((bool)strpos($route['path'], ':id'))
+			$path = str_replace(':id', $model->id, $route['path']);
+		else
+			$path = rtrim($path, '/').'/'.$model->id;
+
+		echo '<a href="'.$path.'">'.$text.'</a>';
 	}
 
-	public static function form_end()
-	{
-		return '</form>';
-	}
 
-	public static function hidden_field($name, $val)
-	{
-		return '<input type="hidden" name="'.$name.'" value="'.$val.'" />';
-	}
-
-	public static function link_to($name, $location, $args = array(), $get = array())
-	{
-		return '<a href="'.P3_Loader::createURI($location, $args, $get).'">'.$name.'</a>';
-	}
-
-	public static function select($name, $html_options)
+	public static function select($name, $html_options, array $options = array())
 	{
 		$select  = '<select name="'.$name.'">';
-		$select .= self::select_options($html_options);
+		$select .= self::select_options($html_options, $options);
 		$select .= '</select>';
 		return $select;
 	}
 
-	public static function select_options($html_options)
+	public static function select_options($html_options, array $options = array())
 	{
 		$options = '';
 		if(!empty($html_options)) {
 			foreach($html_options as $k => $v) {
-				$options .= '<option value="'.$k.'">'.$v.'</option>';
+				$options .= '<option'.((isset($options['selected']) && $options['selected'] == $k) ? ' selected="selected"' : '').' value="'.$k.'">'.$v.'</option>';
 			}
 		}
 		return $options;
