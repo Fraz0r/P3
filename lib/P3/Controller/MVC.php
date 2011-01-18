@@ -68,6 +68,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	 */
 	public function  __construct($routing_data = null, array $options = array())
 	{
+
 		/* Create a uri, if null was passed */
 		if(!count($routing_data)) {
 			$routing_data = P3_Router::parseRoute();
@@ -86,14 +87,13 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 			$this->_view = new P3_Template($routing_data);
 		}
 
-		$this->_init();
-		/* Call parent constructor (to run the method) */
-		parent::__construct($routing_data);
-
 		/* Set our layout */
 		if(!empty($this->_layout) && $this->_layout != 'none') {
 			$this->_view->setLayout($this->_layout);
 		}
+
+		/* Call parent constructor (to run the method) */
+		parent::__construct($routing_data);
 
 		/* If the method didnt render, and didnt return false... Auto-Render */
 		if(!$this->_rendered && (is_null($this->_actionReturn) || (bool)$this->_actionReturn)) {

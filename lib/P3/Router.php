@@ -10,6 +10,12 @@ class P3_Router {
 	private static $_dispatchedRoute = null;
 
 	/**
+	 * Holds routing_data for global route (if any)
+	 * @var stdClass $routing_data
+	 */
+	private static $_globalRoute = null;
+
+	/**
 	 * List of routes in order of priority
 	 * @var array
 	 */
@@ -34,6 +40,10 @@ class P3_Router {
 		$o->tokens  = self::tokenizePath($path);
 		$o->options = $options;
 		$o->specific_options = $specific_options;
+
+		if(FALSE !== strpos($path, ':controller') && FALSE !== strpos($path, ':action')) {
+			self::$_globalRoute = $o;
+		}
 
 		self::$_routes[count(self::$_routes)] = $o;
 	}
@@ -63,6 +73,9 @@ class P3_Router {
 			return $return;
 		} elseif(isset($options['partial'])) {
 			$partial = $options['partial'];
+			if(isset($options['locals'])) {
+			 extract($options['locals']);
+			}
 			if(strpos($partial, '/')) {
 				list($controller, $view) = explode('/', $partial);
 				$view = '_'.$view.'.tpl';
@@ -107,6 +120,11 @@ class P3_Router {
 		return self::$_dispatchedRoute;
 	}
 
+	public static function getGlobalRoute()
+	{
+		return self::$_globalRoute;
+	}
+
 	public static function isXHR()
 	{
 		return(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
@@ -122,7 +140,7 @@ class P3_Router {
 	{
 		$default_routing_data = !count($default_routing_data) ? array('controller' => 'default') : $default_routing_data;
 		self::addRoute("/", $default_routing_data);
-		self::addRoute('/:controller/:action/:id');
+		self::addRoute('/:controller/:id/:action');
 	}
 
 	/**
@@ -156,41 +174,51 @@ class P3_Router {
 				continue;
 			}
 
-			/* Make sure token spereators match */
+			/****   Taking this check out, it's not necessary *****/
+			/* Make sure token spereators match 
 			for($x = 0; $x < count($route[1]) -1; $x++) {
 				if($route[1][$x] != $path[1][$x]) {
-					if(($route[1][$x] == '[/' && $path[1][$x] == '')) {
+					if(($route[1][$x] == '[/')) {
 						break 2;
 					}
 				}
 			}
+			 *
+			 */
 
 			/* Potential match, loop through tokens and verify */
+			$j = 0;
 			for($i = 0; $i < count($route[2]) - 1; $i++) {
 				switch($route[2][$i]) {
 					case ':controller':
-						$controller = $path[2][$i];
+						$controller = $path[2][$j];
 						break;
 					case ':action':
-						$action = $path[2][$i];
+						$action = $path[2][$j];
 						break;
 					case ':dir':
-						$dir = $path[2][$i];
+						$dir = $path[2][$j];
 						break;
+					case ':id':
+						if(!intval($path[2][$j]) && $route[0][$j] == '[/:id]') {
+							$j--;
+							continue;
+						}
 					default:
-						if(preg_match('!^:(.*)!', $route[2][$i], $m)) {
-							$args[$arg_c++] = $path[2][$i];
-							$args[$m[1]] = $path[2][$i];
+						if(preg_match('!^:(.*)!', $route[2][$j], $m)) {
+							$args[$arg_c++] = $path[2][$j];
+							$args[$m[1]] = $path[2][$j];
 						} else {
-							if($route[2][$i] != "") {
+							if($route[2][$j] != "") {
 								/* Static - Must match exact */
-								if($path[2][$i] !== $route[2][$i]) {
+								if($path[2][$j] !== $route[2][$j]) {
 									continue 3;
 								}
 							}
 						}
 						break;
 				}
+			$j++;
 			}
 
 			if(isset($r->specific_options['only'])) {
@@ -209,8 +237,14 @@ class P3_Router {
 			$controller = !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
 			$dir        = !is_null($r->options['dir'])        ? $r->options['dir']        : $dir;
 
-			/* Default to index if we have no action */
-			$action     = empty($action) ? 'index' : $action;
+			/* Default to index if we have no action, to show if we have no action but an id */
+			if(empty($action)) {
+				if(!isset($args['id']) || empty($args['id'])) {
+					$action = 'index';
+				} else {
+					$action = 'show';
+				}
+			}
 			break;
 
 		}

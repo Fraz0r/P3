@@ -13,6 +13,16 @@ class P3_Model_Base {
 	 */
 	protected static $_alias = array();
 
+	protected $_errors  = array();
+
+	/* Validaters */
+	public static $_validatesAlpha    = array();
+	public static $_validatesAlphaNum = array();
+	public static $_validatesEmail    = array();
+	public static $_validatesLength   = array();
+	public static $_validatesNum      = array();
+	public static $_validatesPresence = array();
+
 	/**
 	 * Array to store column data
 	 * @var array $_data
@@ -47,11 +57,113 @@ class P3_Model_Base {
 	}
 
 	/**
+	 * Returns errors.  If $all is true, returns all errors.  If all is false, only the first error per field is returned.
+	 */
+	public function getErrors($all = false)
+	{
+		if($all) {
+			return $this->_errors;
+		} else {
+			$ret = array();
+			foreach($this->_errors as $field => $arr)
+				$ret = array_merge($ret, array($arr[0]));
+
+			return $ret;
+		}
+	}
+
+	/**
 	 * returns Data encoded as JSON
 	 */
 	public function toJSON()
 	{
 		return json_encode($this->_data);
+	}
+
+	public function valid()
+	{
+		$flag = true;
+
+		/* presence */
+		foreach(static::$_validatesPresence as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s is required';
+
+			if(empty($this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
+
+		/* email */
+		foreach(static::$_validatesEmail as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be a valid email address';
+
+			if(FALSE === filter_var($this->_data[$field], P3_Filter::FILTER_VALIDATE_EMAIL)) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
+
+		/* length (REQUIRES options) */
+		foreach(static::$_validatesLength as $k => $opts) {
+			if(!is_array($opts) || !count($opts)) {
+				throw new P3_Exception('_validatesLength requires options', array(), 500);
+			}
+
+			$field = $k;
+			$min   = isset($opts['min']) ? $opts['min'] : null;
+			$max   = isset($opts['max']) ? $opts['max'] : null;
+
+			if(isset($opts['range'])) {
+				list($min, $max) = explode('-', $opts['range']);
+			}
+
+			if(!is_null($min) && strlen($this->_data[$field]) < $min) {
+				$flag = false;
+				$this->_addError($field, sprintf('%s must be at least %d characters long', $field, $min));
+			}
+			if(!is_null($max) && strlen($this->_data[$field]) > $max) {
+				$flag = false;
+				$this->_addError($field, sprintf('%s must be less than %d characters long', $field, $max));
+			}
+		}
+
+		/* num */
+		foreach(static::$_validatesNum as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be numeric';
+
+			if(!preg_match('!^([0-9]*)$!', $this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
+
+		/* num */
+		foreach(static::$_validatesAlpha as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must contain characters only';
+
+			if(!preg_match('!^([a-zA-Z]*)$!', $this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
+
+		/* alpha_num */
+		foreach(static::$_validatesAlphaNum as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must contain characters and numbers only';
+
+			if(!preg_match('!^([a-zA-Z0-9]*)$!', $this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
+
+		return $flag;
 	}
 
 	/**

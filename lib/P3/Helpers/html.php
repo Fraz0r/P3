@@ -40,18 +40,23 @@ abstract class html {
 		$select  = '<select name="'.$name.'">';
 		$select .= self::select_options($html_options, $options);
 		$select .= '</select>';
-		return $select;
+		echo  $select;
 	}
 
 	public static function select_options($html_options, array $options = array())
 	{
-		$options = '';
+		if(isset($options['blankOption'])) {
+			$options_str = is_null($options['blankOption']) ? '' : '<option value="">'.$options['blankOption'].'</option>';
+		} else {
+			$options_str = '<option value="">Choose one</option>';
+		}
+
 		if(!empty($html_options)) {
 			foreach($html_options as $k => $v) {
-				$options .= '<option'.((isset($options['selected']) && $options['selected'] == $k) ? ' selected="selected"' : '').' value="'.$k.'">'.$v.'</option>';
+				$options_str .= '<option'.((isset($options['selected']) && $options['selected'] == $k) ? ' selected="selected"' : '').' value="'.$k.'">'.$v.'</option>';
 			}
 		}
-		return $options;
+		return $options_str;
 	}
 }
 

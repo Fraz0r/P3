@@ -31,8 +31,6 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	protected $_changed = array();
 
-	protected $_errors  = array();
-
 	/* Events */
 	protected $_beforeCreate  = array();
 	protected $_afterCreate   = array();
@@ -45,12 +43,6 @@ abstract class P3_Model_DB extends P3_Model_Base
 //Static
 
 	/* Validaters */
-	public static $_validatesAlpha    = array();
-	public static $_validatesAlphaNum = array();
-	public static $_validatesEmail    = array();
-	public static $_validatesLength   = array();
-	public static $_validatesNum      = array();
-	public static $_validatesPresence = array();
 	public static $_validatesUnique   = array();
 
 	/**
@@ -223,15 +215,29 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return $this->{$field};
 	}
 
+	public function id()
+	{
+		return $this->{$this->pk()};
+	}
+
+	public function getController()
+	{
+		return empty($this->controller) ? get_class($this).'s' : $this->controller;
+	}
+
 	public function getFields(array $fields = array())
 	{
-		$ret = array();
-		foreach($this->_data as $field => $val) {
-			if(FALSE !== array_search($field, $fields)) {
-				$ret[$field] = $val;
+		if(empty($fields)) {
+			return $this->getData();
+		} else {
+			$ret = array();
+			foreach($this->_data as $field => $val) {
+				if(FALSE !== array_search($field, $fields)) {
+					$ret[$field] = $val;
+				}
 			}
+			return $ret;
 		}
-		return $ret;
 	}
 
 	public function increment($field, array $options = array())
@@ -249,7 +255,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function isNew()
 	{
-		return $this->{$this->pk()} < 0;
+		return !isset($this->{$this->pk()}) || $this->{$this->pk()} < 0;
 	}
 
 	/**
@@ -295,18 +301,38 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
-	 * Returns true if record fields are valid for saving
-	 * Note:  Not yet implemented
+	 * Returns true if record fields are valid
 	 * @return bool
 	 */
 	public function valid()
 	{
-		$flag = true;
+		$flag = parent::valid();
+
+		/* unique */
+		foreach(static::$_validatesUnique as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
+
+			$class = get_class($this);
+			if(FALSE !== $class::find($field.' = \''.$this->_data[$field].'\'', array('one' => true))) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
+			}
+		}
 
 		return $flag;
 	}
 
 //Protected
+
+	protected function _addError($field, $str)
+	{
+		if(!is_array($this->_errors[$field]))
+			$this->_errors[$field] = array();
+
+		$this->_errors[$field][] = $str;
+	}
+
 	/**
 	 * Saves a new record to the database
 	 * @return boolean
@@ -375,7 +401,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 
 
-		$sql = 'DELETE '.static::$_table;
+		$sql = 'DELETE FROM '.static::$_table;
 
 		if(!empty($where)) {
 			if(!$skip_int_check && is_int($where)) {
@@ -385,6 +411,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 				$sql .= ' WHERE '.$where;
 			}
 		}
+
+		return static::db()->exec($sql);
 	}
 
 	/**

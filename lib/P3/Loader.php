@@ -124,8 +124,10 @@ class P3_Loader
 	 */
 	public static function loadController($controller, array $routing_data = array())
 	{
+		self::loadHelper('str');
+
 		$name  = strtolower($controller);
-		$class = P3_String_Utils::to_camel_case($controller, true).'Controller';
+		$class = str::toCamelCase($controller, true).'Controller';
 
 
 		if(self::classExists($class)) return;
@@ -268,10 +270,10 @@ class P3_Loader
 	 * @return string Classes relative path (from include path)
 	 */
 	public static function getClassPath($class){
-		require_once('P3/String/Utils.php');
+		self::loadHelper('str');
 
 		$exp = explode('_', $class);
-		$file = ucfirst(P3_String_Utils::to_camel_case(array_pop($exp), true).'.php');
+		$file = ucfirst(str::toCamelCase(array_pop($exp), true).'.php');
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
 		return $dir.DIRECTORY_SEPARATOR.$file;
