@@ -49,7 +49,7 @@ class P3_Model_Base {
 	}
 
 	/**
-	 * Returns Fields as array
+	 * Returns Fields as associative array
 	 */
 	public function getData()
 	{
@@ -80,6 +80,11 @@ class P3_Model_Base {
 		return json_encode($this->_data);
 	}
 
+	/**
+	 * Handles validations
+	 *
+	 * @return boolean Returns true if all fields are valid
+	 */
 	public function valid()
 	{
 		$flag = true;

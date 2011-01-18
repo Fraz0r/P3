@@ -92,6 +92,11 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public static $_dbColumns = array();
 
+	/**
+	 * Database for models to use
+	 *
+	 * @var P3_DB
+	 */
 	public static $_db = null;
 
 
@@ -206,6 +211,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return((bool)$stmnt->rowCount());
 	}
 
+	/**
+	 * Decrements field in model.  Saves if save => true is passed in options
+	 *
+	 * @param string $field Field to decrement
+	 * @param array $options
+	 * @return int Decremented value
+	 */
 	public function decrement($field, array $options = array())
 	{
 		$dec  = isset($options['dec'])  ? $options['dec']  : 1;
@@ -215,16 +227,34 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return $this->{$field};
 	}
 
+	/**
+	 * Returns Primary Key value for the model
+	 *
+	 * @return int PK Val for Model
+	 */
 	public function id()
 	{
 		return $this->{$this->pk()};
 	}
 
+	/**
+	 * Returns controller model uses for CRUD.  Attempts to guess if it's not set
+	 *
+	 * Note:  Guessing is very basic, it's best to set this in your models
+	 *
+	 * @return string Controller model uses for CRUD
+	 */
 	public function getController()
 	{
 		return empty($this->controller) ? get_class($this).'s' : $this->controller;
 	}
 
+	/**
+	 * Returns all, or requested fields as an associative array
+	 *
+	 * @param array $fields Array of fields requested
+	 * @return array Array of field => val
+	 */
 	public function getFields(array $fields = array())
 	{
 		if(empty($fields)) {
@@ -240,6 +270,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 	}
 
+	/**
+	 * Increments a field on the model.  Saves if save => true is set in $options.
+	 *
+	 * @param string $field Field to increment
+	 * @param array $options
+	 * @return int Incremented Value
+	 */
 	public function increment($field, array $options = array())
 	{
 		$inc  = isset($options['inc'])  ? $options['inc']  : 1;
@@ -325,6 +362,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 //Protected
 
+	/**
+	 * Adds error to model
+	 *
+	 * @param string $field Field error was raised on
+	 * @param string $str Error message
+	 */
 	protected function _addError($field, $str)
 	{
 		if(!is_array($this->_errors[$field]))
@@ -335,6 +378,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 	/**
 	 * Saves a new record to the database
+	 *
 	 * @return boolean
 	 */
 	protected  function _insert()
@@ -359,6 +403,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 	/**
 	 * Updates a record in the database
+	 *
 	 * @return boolean
 	 */
 	protected  function _update()
@@ -384,6 +429,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 
 
 //Static
+	/**
+	 * Returns all models
+	 *
+	 * @param array $options
+	 * @return array Array of all models
+	 */
 	public static function all(array $options = array())
 	{
 		$options['skip_int_check'] = true;
@@ -459,6 +510,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return $only_one ? $stmnt->fetch() : $stmnt->fetchAll();
 	}
 
+	/**
+	 * Gets or Sets Database to use for models
+	 *
+	 * @param P3_DB $db
+	 * @return mixed Returns Database object if get()
+	 */
 	public static function db($db = null)
 	{
 		if(!empty($db)) {
@@ -468,6 +525,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 	}
 
+	/**
+	 * Gets or Sets PK Field for Model
+	 *
+	 * @param string $pk
+	 * @return mixed Returns pk field if get()
+	 */
 	public static function pk($pk = null)
 	{
 		if(!empty($pk)) {
@@ -478,8 +541,10 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
-	 * Retrieve the db table name
+	 * Gets or Sets the db table name for the Model
 	 *
+	 * @param string $table Table to set
+	 * @return mixed Returns database table if get()
 	 */
 	public static function table($table = null)
 	{
@@ -491,6 +556,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 //Magic
+	/**
+	 * Adds relations to isset check
+	 *
+	 * @param string $name Variable
+	 * @return boolean True if set, False if not
+	 * @magic
+	 */
 	public function  __isset($name)
 	{
 		if(FALSE !== ($bool = parent::__isset($name))) {
@@ -500,6 +572,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 	}
 
+	/**
+	 * Retrievse value from desired field, also handles relations
+	 *
+	 * @param string $name Field to retrieve
+	 * @return mixed Value in field
+	 * @magic
+	 */
 	public function  __get($name)
 	{
 		if(null !== ($value = parent::__get($name))) {

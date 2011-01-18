@@ -7,6 +7,11 @@
  */
 class P3_Router {
 
+	/**
+	 * Container for dispatched route
+	 *
+	 * @var array $_routing_data Associative data containing dispatched route info
+	 */
 	private static $_dispatchedRoute = null;
 
 	/**
@@ -41,7 +46,7 @@ class P3_Router {
 		$o->options = $options;
 		$o->specific_options = $specific_options;
 
-		if(FALSE !== strpos($path, ':controller') && FALSE !== strpos($path, ':action')) {
+		if(is_null(self::$_globalRoute) && (FALSE !== strpos($path, ':controller') && FALSE !== strpos($path, ':action'))) {
 			self::$_globalRoute = $o;
 		}
 
@@ -61,16 +66,18 @@ class P3_Router {
 		P3_Loader::loadController($routing_data['controller'], $routing_data);
 	}
 
+	/**
+	 * Renders bases on options (Partial or full loads)
+	 *
+	 * @param array $options
+	 * @return null
+	 */
 	public static function render($options = null)
 	{
 		$options = is_null($options) ? self::parseRoute() : $options;
 
 		if(isset($options['controller'])) {
-			ob_start();
 			self::dispatch($options);
-			$return = ob_get_contents();
-			ob_end_clean();
-			return $return;
 		} elseif(isset($options['partial'])) {
 			$partial = $options['partial'];
 			if(isset($options['locals'])) {
@@ -89,13 +96,21 @@ class P3_Router {
 		}
 	}
 
+	/**
+	 * URL Redirect [302]
+	 *
+	 * Note:  This is basic for now.  Will come back and add route based redirects
+	 *
+	 * @param string $path Path to redirect to
+	 */
 	public static function redirect($path) {
 		header("Location: {$path}");
 	}
 
 	/**
 	 * Returns current dispatched action
-	 * @return str
+	 *
+	 * @return string Current routed action
 	 */
 	public static function getAction()
 	{
@@ -104,7 +119,8 @@ class P3_Router {
 
 	/**
 	 * Returns current dispatched controller
-	 * @return str
+	 *
+	 * @return string current dispatched controller
 	 */
 	public static function getController()
 	{
@@ -113,13 +129,20 @@ class P3_Router {
 
 	/**
 	 * Returns current dispatched route
-	 * @return str
+	 * @return string
 	 */
 	public static function getDispatched()
 	{
 		return self::$_dispatchedRoute;
 	}
 
+	/**
+	 * Returns first global route
+	 *
+	 * Note: Global, meaning setting both an action && a controller
+	 *
+	 * @return stdClass Global Route
+	 */
 	public static function getGlobalRoute()
 	{
 		return self::$_globalRoute;
@@ -263,6 +286,12 @@ class P3_Router {
 		);
 	}
 
+	/**
+	 * Returns path in the form of tokens, usable by internal methods
+	 *
+	 * @param string $path Path to tokenize
+	 * @return array Tokens from passed path
+	 */
 	public static function tokenizePath($path)
 	{
 		if($path != '/')

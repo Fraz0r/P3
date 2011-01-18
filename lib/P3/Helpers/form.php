@@ -3,6 +3,7 @@
 
 P3_Loader::loadHelper('str');
 P3_Loader::loadHelper('html');
+
 class form
 {
 	/**
@@ -48,9 +49,15 @@ class form
 		$this->_inspect();
 
 		if(isset($this->_options['print']) && $this->_options['print'])
-			$this->start();
+			$this->open();
 	}
 
+	/**
+	 * Renders a checkbox form option for the model's field
+	 *
+	 * @param string $field Field to use for naming/value
+	 * @param array $options
+	 */
 	public function checkBox($field, array $options = array())
 	{
 		$labelBefore = empty($options['labelBefore']) ? false : $options['labelBefore'];
@@ -68,6 +75,15 @@ class form
 			echo $input.$label;
 	}
 
+	/**
+	 * Renders a select menu for a given field within the model, using a collection
+	 * of models as the <option>'s
+	 *
+	 * @param string $field Field within model to render select for
+	 * @param array $collection Array of models for building <option>'s
+	 * @param string $display_key Field within collection models to use for the dislplay of the option
+	 * @param array $options
+	 */
 	public function collectionSelect($field, $collection, $display_key, array $options = array())
 	{
 		$value_key = !isset($options['value_key']) ? $collection[0]->pk() : $options['value_key'];
@@ -80,11 +96,20 @@ class form
 		$this->select($field, $select_options, $options);
 	}
 
-	public function end()
+	/**
+	 * Closes <form> tag
+	 */
+	public function close()
 	{
-		self::close();
+		self::end();
 	}
 
+	/**
+	 * Renders hidden field for field in model
+	 *
+	 * @param string $field
+	 * @param array $options
+	 */
 	public function hiddenField($field, array $options = array())
 	{
 		$val = !isset($options['value']) ? $this->_model->{$field} : $options['value'];
@@ -92,12 +117,25 @@ class form
 		echo $input;
 	}
 
+	/**
+	 * Renders <select> menu for field in model, using assoc. array as value => display
+	 *
+	 * @param string $field Field in model to set value
+	 * @param array $select_options
+	 * @param array $options
+	 */
 	public function select($field, array $select_options = array(), array $options = array())
 	{
 		$options = array_merge($options, array("selected" => $this->_model->{$field}));
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
+	/**
+	 * Renders <textarea> for field in model
+	 *
+	 * @param string $field Field in model to use for name/value
+	 * @param array $options
+	 */
 	public function textArea($field, array $options = array())
 	{
 		$cols  = empty($options['cols']) ? 45 : $options['cols'];
@@ -107,29 +145,55 @@ class form
 		echo $input;
 	}
 
+	/**
+	 * Renders <input[:type => text]> for field in model
+	 *
+	 * @param string $field Field in model for name/value
+	 * @param array $options
+	 */
 	public function textField($field, array $options = array())
 	{
 		$input = '<input type="text" name="'.$this->_getFieldName($field).'" value="'.$this->_model->{$field}.'" />';
 		echo $input;
 	}
 
+	/**
+	 * Renders <input[:type => password]> for field in model
+	 *
+	 * @param string $field Field in model for name/value
+	 * @param array $options
+	 */
 	public function passwordField($field, array $options = array())
 	{
 		$input = '<input type="password" name="'.$this->_getFieldName($field).'" value="'.$this->_model->{$field}.'" />';
 		echo $input;
 	}
 
-	public function start()
+	/**
+	 * Renders <form> tag
+	 */
+	public function open()
 	{
 		self::tag($this->_getUri(), $this->_options);
 	}
 
 //Private
+	/**
+	 * Generates name for form input
+	 *
+	 * @param string $field Field to generate name for
+	 * @return string Name for form input
+	 */
 	private function _getFieldName($field)
 	{
 		return $this->_modelField.'['.$field.']';
 	}
 
+	/**
+	 * Generates/Returns URI for <form>
+	 *
+	 * @return string  URI for <form>'s action
+	 */
 	private function _getUri()
 	{
 		if(empty($this->_uri)) {
@@ -145,6 +209,9 @@ class form
 		return $this->_uri;
 	}
 
+	/**
+	 * Inspects passed arguments and gathers required information
+	 */
 	private function _inspect()
 	{
 		$this->_modelField = str::fromCamelCase(get_class($this->_model));
@@ -153,7 +220,10 @@ class form
 	}
 
 //Static
-	public static function close()
+	/**
+	 * Renders </form>
+	 */
+	public static function end()
 	{
 		echo '</form>';
 	}
@@ -174,6 +244,12 @@ class form
 		return new self($model, $options);
 	}
 
+	/**
+	 * Renders <form> tag
+	 *
+	 * @param string $url URI For form's action
+	 * @param array $options
+	 */
 	public static function tag($url, array $options = array())
 	{
 		$form = '<form method="'.(isset($options['method']) ? $options['method'] : 'post').'"';

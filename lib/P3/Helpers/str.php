@@ -9,6 +9,7 @@ class str
 {
  /**
    * Translates a camel case string into a string with underscores (e.g. firstName -&gt; first_name)
+  *
    * @param string $str String in camel case format
    * @return string $str Translated into underscore format
    */
@@ -18,6 +19,14 @@ class str
     return preg_replace_callback('/([A-Z])/', $func, $str);
   }
 
+  /**
+   * Titleizes (capitalizes each word in a string)
+   *
+   * Note:  no check in place currently for words such as a, an, etc.
+   *
+   * @param string $str String to titleize
+   * @return string Titelized string
+   */
   public static function titleize($str)
   {
 	  $ex = explode(' ', $str);
@@ -42,6 +51,13 @@ class str
     return preg_replace_callback('/_([a-z])/', $func, $str);
   }
 
+  /**
+   * Converts string into human-friendly version (e.g. first_name -&gt; first name).  Capitlazises words if $titleize is true.
+   *
+   * @param string $str String in camel case or underscore notation to convert.
+   * @param boolean $titleize Titleizes string, if true
+   * @return string Converted string
+   */
   public static function toHuman($str, $titleize = false)
   {
 	  if(FALSE !== strrpos($str, '_')) {
