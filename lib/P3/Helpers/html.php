@@ -8,6 +8,12 @@
  */
 abstract class html {
 	/**
+	 * Array of elements that close with '/>' instead of '>'
+	 * @var array
+	 */
+	public static $_specialClose = array('base', 'input', 'link', 'img');
+
+	/**
 	 * @todo Make base work in nested dirs
 	 */
 	public static function base()
@@ -16,37 +22,32 @@ abstract class html {
 		echo '<base href="'.$base.'" />';
 	}
 
-	public static function linkFor(P3_Model_DB $model, $text = null, $action = 'show', array $options = array())
-	{
-		$controller = $model->controller;
-		$text       = is_null($text) ? ucfirst($action) : $text;
-
-		/* This needs to be programmed (First route setting both a controller and action) */
-		//$route      = P3_Router::getFirstGlobalRoute();
-		$path = str_replace(':controller', $controller, $route['path']);
-		$path = str_replace(':action', $action, $route['path']);
-
-		if((bool)strpos($route['path'], ':id'))
-			$path = str_replace(':id', $model->id, $route['path']);
-		else
-			$path = rtrim($path, '/').'/'.$model->id;
-
-		echo '<a href="'.$path.'">'.$text.'</a>';
-	}
-
-
+	/**
+	 * Generates and Renders select menu
+	 *
+	 * @param string $name Name for <select> element
+	 * @param array $html_options Array of value=>display for <select>'s <options>
+	 * @param array $options Options
+	 */
 	public static function select($name, $html_options, array $options = array())
 	{
 		$select  = '<select name="'.$name.'">';
-		$select .= self::select_options($html_options, $options);
+		$select .= self::selectOptions($html_options, $options);
 		$select .= '</select>';
 		echo  $select;
 	}
 
-	public static function select_options($html_options, array $options = array())
+	/**
+	 * Generates and returns <options>'s for <select>
+	 *
+	 * @param array $html_options Array of value => display for select options
+	 * @param array $options
+	 * @return string
+	 */
+	public static function selectOptions($html_options, array $options = array())
 	{
 		if(isset($options['blankOption'])) {
-			$options_str = is_null($options['blankOption']) ? '' : '<option value="">'.$options['blankOption'].'</option>';
+			$options_str = !($options['blankOption']) ? '' : '<option value="">'.$options['blankOption'].'</option>';
 		} else {
 			$options_str = '<option value="">Choose one</option>';
 		}
@@ -57,6 +58,19 @@ abstract class html {
 			}
 		}
 		return $options_str;
+	}
+
+	public static function _t($tagName, array $html_attrs = array())
+	{
+		$tagName = strtolower($tagName);
+		$element = '<'.$tagName;
+
+		foreach($html_attrs as $k => $v)
+			$element .= ' '.$k.'="'.$v.'"';
+
+		$element .= in_array($tagName, self::$_specialClose) ? '/>' : '>';
+
+		return $element;
 	}
 }
 

@@ -7,6 +7,24 @@
 
 abstract class number {
 	/**
+	 * Returns an array containing the desired range
+	 *
+	 * @param int $start
+	 * @param int $end 
+	 * @return array
+	 */
+	public static function range($start, $end)
+	{
+		$ret = array();
+
+		for($i = $start; $i <= $end; $i++) {
+			$ret[] = $i;
+		}
+
+		return $ret;
+	}
+
+	/**
 	 * Number to format to money
 	 *
 	 * @param float $number Number to format

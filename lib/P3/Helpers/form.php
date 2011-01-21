@@ -22,6 +22,12 @@ class form
 	 * Field name for form
 	 * @var string
 	 */
+	private $_modelClass = null;
+
+	/**
+	 * Field name for form
+	 * @var string
+	 */
 	private $_modelField = null;
 
 	/**
@@ -47,6 +53,9 @@ class form
 			$this->_options[$k] = $v;
 
 		$this->_inspect();
+
+		$class = $this->_modelClass;
+		if(count($class::$_hasAttachment)) $this->_options['multipart'] = true;
 
 		if(isset($this->_options['print']) && $this->_options['print'])
 			$this->open();
@@ -170,6 +179,20 @@ class form
 	}
 
 	/**
+	 * Renders <input[:type => submit]>
+	 *
+	 * @param string $display Value for button
+	 * @param array $options
+	 */
+	public function submitField($display, array $options = array())
+	{
+		echo html::_t('input', array(
+			'type'  => 'submit',
+			'value' => $display
+		));
+	}
+
+	/**
 	 * Renders <form> tag
 	 */
 	public function open()
@@ -214,7 +237,8 @@ class form
 	 */
 	private function _inspect()
 	{
-		$this->_modelField = str::fromCamelCase(get_class($this->_model));
+		$this->_modelClass = get_class($this->_model);
+		$this->_modelField = str::fromCamelCase($this->_modelClass);
 		$this->_action     = $this->_model->isNew() ? 'create' : 'update';
 		$this->_uri        = $this->_getUri();
 	}
@@ -253,7 +277,7 @@ class form
 	public static function tag($url, array $options = array())
 	{
 		$form = '<form method="'.(isset($options['method']) ? $options['method'] : 'post').'"';
-		$form .= (isset($options['multipart']) && $options['multipart']) ? ' enctype="form/multipart"' : '';
+		$form .= (isset($options['multipart']) && $options['multipart']) ? ' enctype="multipart/form-data"' : '';
 		$form .= ' action="'.$url.'">';
 		echo $form;
 	}

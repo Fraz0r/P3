@@ -17,6 +17,12 @@
 
 abstract class P3_Model_DB extends P3_Model_Base
 {
+//Attributes
+	const ATTR_ATTACHMENT_PATH = 1;
+
+	const ATTACHMENT_PATH_PUBLIC = 1;
+	const ATTACHMENT_PATH_SYSTEM = 2;
+
 //Public
 	/**
 	 * Controller to use for model (When generating links)
@@ -25,6 +31,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 	public $controller = null;
 
 //Protected
+
+	/**
+	 * Stores class attributes
+	 * @var array
+	 */
+	protected $_attr = array();
+
 	/**
 	 * Stores changed columns [for update]
 	 * @var array
@@ -51,6 +64,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 * @var array
 	 */
 	public static $_belongsTo = array();
+
+	/**
+	 * List of attachments
+	 *
+	 * @var array
+	 */
+	public static $_hasAttachment = array();
 
 	/**
 	 * List of "has many" relationships
@@ -133,6 +153,44 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
+	 * Adds error to model
+	 *
+	 * @param string $str
+	 */
+	public function addError($str)
+	{
+		$this->_errors[] = $str;
+	}
+
+	/**
+	 * Returns path for given attachment
+	 *
+	 * @param int $path_type Path type (Public or system)
+	 * @return string Attachment Path
+	 */
+	public function attachmentPath($attachment, $path_type = null)
+	{
+		$path_type = is_null($path_type) ? self::ATTACHMENT_PATH_SYSTEM : $path_type;
+
+		$opts = static::$_hasAttachment[$attachment];
+		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(P3_ROOT, '/') : '';
+		$path .= rtrim($opts['path'], '/').'/'.$this->id().'/'.$this->_data[$opts['field']];
+
+		return $path;
+	}
+
+	/**
+	 * Returns URL for attachment
+	 *
+	 * @param string $attachment Attachment
+	 * @return string Public URL for attachment
+	 */
+	public function attachmentURL($attachment)
+	{
+		return $this->attachmentPath($attachment, self::ATTACHMENT_PATH_PUBLIC);
+	}
+
+	/**
 	 * Binds Listeners to model
 	 * @param array $listeners Mult. Dim. Array of closures to be bound [per event]
 	 */
@@ -159,6 +217,10 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * Note:  This does NOT work with _belongsTo.  You are doing
 	 * shit backwards if you need that functionaliy
+	 *
+	 * @param string $model_name Name of model to build
+	 * @param array $record_array Array of field/vals for new model
+	 * @return P3_Model_DB
 	 */
 	public function build($model_name, array $record_array = array())
 	{
@@ -174,7 +236,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 
 		/* Has Many */
-		foreach(static::$_hasOne as $field => $opts) {
+		foreach(static::$_hasMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = static::pk();
@@ -205,10 +267,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$stmnt = self::db()->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
 
 		$this->_triggerEvent('beforeDestroy');
-		$stmnt->execute(array($this->_data[$pk]));
+		$stmnt->execute(array($this->id()));
 		$this->_triggerEvent('afterDestroy');
 
-		return((bool)$stmnt->rowCount());
+		$ret = (bool)$stmnt->rowCount();
+
+		if($ret) $this->destroyAttachments();
+		return $ret;
 	}
 
 	/**
@@ -228,6 +293,27 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
+	 * Destroys ALL attachments for model
+	 */
+	public function destroyAttachments()
+	{
+		$class = get_class($this);
+
+		foreach($class::$_hasAttachment as $accsr => $opts) {
+			$dir = P3_ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
+			if(is_dir($dir)) {
+				$objects = scandir($dir);
+				foreach($objects as $object) {
+					if($object != '.' && $object != '..') {
+						unlink("{$dir}/{$object}");
+					}
+				}
+				rmdir($dir);
+			}
+		}
+	}
+
+	/**
 	 * Returns Primary Key value for the model
 	 *
 	 * @return int PK Val for Model
@@ -235,6 +321,11 @@ abstract class P3_Model_DB extends P3_Model_Base
 	public function id()
 	{
 		return $this->{$this->pk()};
+	}
+
+	public function getAttr($attr)
+	{
+		return isset($this->_attr[$attr]) ? $this->_attr[$attr] : null;
 	}
 
 	/**
@@ -317,11 +408,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 	/**
 	 * Saves a record into the database
 	 */
-	public function save()
+	public function save($options = null)
 	{
-		if(!$this->valid()) {
-			return false;
-		}
+		if(count($this->getErrors(true))) return false;
+		if(!$this->valid()) return false;
+
+		$save_attachments = (!is_array($options) || !isset($options['save_attachments'])) ? true : $options['save_attachments'];
 
 		$this->_triggerEvent('beforeSave');
 		try {
@@ -334,7 +426,69 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 		$this->_triggerEvent('afterSave');
 
+		// Handle model attachments
+		if($ret && $save_attachments && !empty(static::$_hasAttachment)) {
+			$this->saveAttachments();
+		}
+
 		return $ret;
+	}
+
+	public function saveAttachments()
+	{
+		$class = get_class($this);
+		$model_field = str::fromCamelCase($class);
+
+		foreach(static::$_hasAttachment as $accsr => $opts) {
+			$field = $opts['field'];
+			if(isset($_FILES[$model_field])) {
+				$data = $_FILES[$model_field];
+
+				if($data['error'][$field] !== UPLOAD_ERR_OK) {
+					$ret = false;
+					$this->delete();
+					$this->_addError($field, 'Upload Error ['.$data['error'][$field].']');
+					break;
+				}
+
+				$path = P3_ROOT.'/htdocs'.$opts['path'];
+
+				if(!is_dir($path)) {
+					$ret = false;
+					$this->delete();
+					throw new P3_Exception("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
+				}
+
+				$path .= '/'.$this->id();
+
+				if(!is_dir($path)) mkdir($path);
+
+				//var_dump($data['tmp_name'][$field], $path.'/'.$data['name'][$field]);
+				if(!move_uploaded_file($data['tmp_name'][$field], $path.'/'.$data['name'][$field])) {
+					$ret = false;
+					$this->delete();
+					$this->_addError($field, 'Upload failed');
+					break;
+				}
+
+				$this->_data[$field] = $data['name'][$field];
+				$ret = $this->save(array('save_attachments' => false));
+			} else  {
+				$this->delete();
+			}
+		}
+	}
+
+	/**
+	 * Sets attribute
+	 *
+	 * @param int $attr
+	 * @param mixed $val
+	 * @return void
+	 */
+	public function setAttribute($attr, $val)
+	{
+		$this->_attr[$attr] = $val;
 	}
 
 	/**
@@ -397,6 +551,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$sql .= '('.implode(',', $fields).') VALUES('.implode(',', $values).')';
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($values);
+
 		$this->{$pk} = static::db()->lastInsertId();
 		return((bool)$stmnt->rowCount());
 	}
@@ -471,6 +626,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
 	 * @param array $options List of options for the query
+	 * @return P3_Model_DB
 	 */
 	public static function find($where, array $options = array())
 	{

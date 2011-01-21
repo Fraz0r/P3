@@ -181,7 +181,8 @@ class P3_Loader
 
 		/* Attempt to set up an app path if we dont have one */
 		if(!defined("P3_APP_PATH")) {
-			define("P3_APP_PATH", realpath(dirname(__FILE__).'/../..').'/app');
+			define("P3_ROOT", realpath(dirname(__FILE__).'/../..'));
+			define("P3_APP_PATH", P3_ROOT.'/app');
 		}
 
 		/* Include lib */
