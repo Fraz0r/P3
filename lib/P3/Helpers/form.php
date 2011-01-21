@@ -70,10 +70,20 @@ class form
 	public function checkBox($field, array $options = array())
 	{
 		$labelBefore = empty($options['labelBefore']) ? false : $options['labelBefore'];
+		unset($options['labelBefore']);
 
 		$id    = $this->_modelField.'-'.$this->_model->id().'-'.$field;
 		$label = '<label for="'.$id.'">'.str::toHuman($field, true).'</label>';
-		$input = '<input id="'.$id.'" type="checkbox" value="1" name="'.$this->_getFieldName($field).'"'.(($this->_model->{$field}) ? ' checked="checked"' : '').' />';
+
+		$attrs = array_merge(array(
+			'id'      => $id,
+			'type'    => 'checkbox',
+			'value'   => 1,
+			'name'    => $this->_getFieldName($field),
+			'checked' => $this->_model->{$field} ? 'checked' : ''
+		), $options);
+
+		$input = html::_t('input', 	$attrs);
 
 		/* Little trick I thought of.. This way 0 is sent if the box is not checked, but overridden to 1 if it is *bows* */
 		$this->hiddenField($field, array('value' => 0));
@@ -121,9 +131,13 @@ class form
 	 */
 	public function hiddenField($field, array $options = array())
 	{
-		$val = !isset($options['value']) ? $this->_model->{$field} : $options['value'];
-		$input = '<input type="hidden" name="'.$this->_getFieldName($field).'" value="'.$val.'" />';
-		echo $input;
+		$options['value'] = !isset($options['value']) ? $this->_model->{$field} : $options['value'];
+		echo html::_t('input', array_merge(
+			array(
+				'type'  => 'hidden',
+				'name'  => $this->_getFieldName($field)
+			), $options)
+		);
 	}
 
 	/**
@@ -162,8 +176,13 @@ class form
 	 */
 	public function textField($field, array $options = array())
 	{
-		$input = '<input type="text" name="'.$this->_getFieldName($field).'" value="'.$this->_model->{$field}.'" />';
-		echo $input;
+		echo html::_t('input',
+				array_merge(array(
+					'type'  => 'text',
+					'name'  => $this->_getFieldName($field),
+					'value' => $this->_model->{$field}
+				), $options)
+		);
 	}
 
 	/**
@@ -174,8 +193,13 @@ class form
 	 */
 	public function passwordField($field, array $options = array())
 	{
-		$input = '<input type="password" name="'.$this->_getFieldName($field).'" value="'.$this->_model->{$field}.'" />';
-		echo $input;
+		echo html::_t('input',
+				array_merge(array(
+					'type'  => 'password',
+					'name'  => $this->_getFieldName($field),
+					'value' => $this->_model->{$field}
+				), $options)
+		);
 	}
 
 	/**
@@ -186,10 +210,12 @@ class form
 	 */
 	public function submitField($display, array $options = array())
 	{
-		echo html::_t('input', array(
-			'type'  => 'submit',
-			'value' => $display
-		));
+		$options['value'] = $display;
+		echo html::_t('input',
+				array_merge(array(
+					'type'  => 'submit',
+				), $options)
+		);
 	}
 
 	/**
@@ -276,10 +302,16 @@ class form
 	 */
 	public static function tag($url, array $options = array())
 	{
-		$form = '<form method="'.(isset($options['method']) ? $options['method'] : 'post').'"';
-		$form .= (isset($options['multipart']) && $options['multipart']) ? ' enctype="multipart/form-data"' : '';
-		$form .= ' action="'.$url.'">';
-		echo $form;
+		if(isset($options['multipart'])) {
+			$options['enctype'] = 'multipart/form-data';
+			unset($options['multipart']);
+		}
+		echo html::_t('form',
+				array_merge(array(
+					'method'  => isset($options['method']) ? $options['method'] : 'post',
+					'action' => $url
+				), $options)
+		);
 	}
 }
 ?>
