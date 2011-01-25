@@ -65,8 +65,10 @@ class P3_Model_Base {
 			return $this->_errors;
 		} else {
 			$ret = array();
-			foreach($this->_errors as $field => $arr)
+			foreach($this->_errors as $field => $arr) {
 				$ret = array_merge($ret, array($arr[0]));
+			}
+
 
 			return $ret;
 		}

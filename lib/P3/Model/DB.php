@@ -162,6 +162,13 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$this->_errors[] = $str;
 	}
 
+	public function addFieldError($field, $str)
+	{
+		if(!isset($this->_errors[$field])) $this->_errors[$field] = array();
+
+		$this->_errors[$field][] = $str;
+	}
+
 	/**
 	 * Returns path for given attachment
 	 *
@@ -392,6 +399,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 			$object = $class_or_object;
 			$id     = $object->id();
 			$class  = get_class($object);
+
+			if($this->isNew()) return false;
 		} else {
 			$class = $class_or_object;
 		}
