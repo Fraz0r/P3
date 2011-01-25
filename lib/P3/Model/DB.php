@@ -390,6 +390,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 			$object = $class_or_object;
 			$id     = $object->id();
 			$class  = get_class($object);
+
+			if($object->isNew()) return false;
 		} else {
 			$class = $class_or_object;
 		}
