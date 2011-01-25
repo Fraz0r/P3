@@ -386,12 +386,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 */
 	public function isInMany($class_or_object, $id = null)
 	{
+		if($this->isNew()) return false;
+
 		if(is_object($class_or_object)) {
 			$object = $class_or_object;
 			$id     = $object->id();
 			$class  = get_class($object);
-
-			if($object->isNew()) return false;
 		} else {
 			$class = $class_or_object;
 		}
