@@ -378,6 +378,47 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
+	 * Determines if model is in Many-Many relationship
+	 *
+	 * @param mixed $class_or_object
+	 * @param integer $id
+	 * @return boolean
+	 */
+	public function isInMany($class_or_object, $id = null)
+	{
+		if(is_object($class_or_object)) {
+			$object = $class_or_object;
+			$id     = $object->id();
+			$class  = get_class($object);
+		} else {
+			$class = $class_or_object;
+		}
+		if(is_null($id)) return false;
+
+		$flag = false;
+		foreach(static::$_hasManyThrough as $accsr => $arr) {
+			if($arr['class'] == $class) {
+				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
+				$fk = static::$_hasManyThrough[$accsr]['fk'];
+				$efk = static::$_hasManyThrough[$accsr]['efk'];
+
+				$sql = "SELECT COUNT(*) FROM `{$join_table}` a";
+				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
+				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
+				$sql .= " AND {$efk} = ".$id;
+				$sql .= " LIMIT 1";
+				$flag = true;
+				break;
+			}
+		}
+
+		if(!$flag) return false;
+
+		$stmnt = static::db()->query($sql);
+		return((bool)$stmnt->fetchColumn());
+	}
+
+	/**
 	 * Returns true if the record is new, False if existing
 	 * @return bool
 	 */

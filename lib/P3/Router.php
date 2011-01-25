@@ -163,7 +163,7 @@ class P3_Router {
 	{
 		$default_routing_data = !count($default_routing_data) ? array('controller' => 'default') : $default_routing_data;
 		self::addRoute("/", $default_routing_data);
-		self::addRoute('/:controller/:id/:action');
+		self::addRoute('/:controller[/:id]/:action');
 	}
 
 	/**

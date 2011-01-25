@@ -179,11 +179,9 @@ class P3_Loader
 		$start_session    = isset($options['start_session']) ? $options['start_session'] : true;
 
 
-		/* Attempt to set up an app path if we dont have one */
-		if(!defined("P3_APP_PATH")) {
-			define("P3_ROOT", realpath(dirname(__FILE__).'/../..'));
-			define("P3_APP_PATH", P3_ROOT.'/app');
-		}
+		/* Attempt to set up app paths if we dont have them */
+		if(!defined("P3_ROOT"))     define("P3_ROOT", realpath(dirname(__FILE__).'/../..'));
+		if(!defined("P3_APP_PATH")) define("P3_APP_PATH", P3_ROOT.'/app');
 
 		/* Include lib */
 		if($set_include_path)
