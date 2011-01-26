@@ -267,11 +267,15 @@ class form
 		if($validate) {
 			$class = $this->_modelClass;
 			$js    = "var flag = true; ";
-			$js    = "var req = ".json_encode($class::$_validatesPresence).'; ';
+			$js    .= "var req = ".json_encode($class::$_validatesPresence).'; ';
 			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ flag = false; $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
 			$js    .= "if(!flag) alert('Please fill in required fields (*)'); ";
 			$js    .= "return flag;";
-			$this->_options['onsubmit'] = str_replace('"', '\'', $js);
+
+			if(!isset($this->_options['onsubmit']))
+				$this->_options['onsubmit'] = str_replace('"', '\'', $js);
+			else
+				$this->_options['onsubmit'] = $this->_options['onsubmit'].' '.str_replace('"', '\'', $js);
 		}
 
 		self::tag($this->_getUri(), $this->_options);
