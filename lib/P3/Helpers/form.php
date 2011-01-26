@@ -72,7 +72,7 @@ class form
 		$labelBefore = empty($options['labelBefore']) ? false : $options['labelBefore'];
 		unset($options['labelBefore']);
 
-		$id    = $this->_modelField.'-'.$this->_model->id().'-'.$field;
+		$id    = $this->_getFieldID($field);
 		$label = '<label for="'.$id.'">'.str::toHuman($field, true).'</label>';
 
 		$attrs = array_merge(array(
@@ -135,9 +135,34 @@ class form
 		echo html::_t('input', array_merge(
 			array(
 				'type'  => 'hidden',
+				'id'    => $this->_getFieldID($field),
 				'name'  => $this->_getFieldName($field)
 			), $options)
 		);
+	}
+
+	/**
+	 * Returns id for field
+	 *
+	 * @param string $field Field Name
+	 */
+	public function id($field)
+	{
+		return $this->_getFieldID($field);
+	}
+
+	/**
+	 * Renders <label> for $field
+	 *
+	 * @param string $field Field the label is for
+	 * @param string $text Dislplay text for label tag
+	 * @param array $options Options for rendering
+	 */
+	public function labelFor($field, $text = null, array $options = array())
+	{
+		$options['for'] = $this->_getFieldID($field);
+		$text = is_null($text) ? str::toHuman($field, true) : $text;
+		echo html::_t('label', $options).$text.'</label>';
 	}
 
 	/**
@@ -149,7 +174,8 @@ class form
 	 */
 	public function select($field, array $select_options = array(), array $options = array())
 	{
-		$options = array_merge($options, array("selected" => $this->_model->{$field}));
+		$options['selected'] = $this->_model->{$field};
+		$options['id']       = $this->_getFieldID($field);
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
@@ -164,7 +190,7 @@ class form
 		$cols  = empty($options['cols']) ? 45 : $options['cols'];
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
 
-		$input = '<textarea cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'">'.$this->_model->{$field}.'</textarea>';
+		$input = '<textarea id="'.$this->_getFieldID($field).'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'">'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
@@ -179,6 +205,7 @@ class form
 		echo html::_t('input',
 				array_merge(array(
 					'type'  => 'text',
+					'id'    => $this->_getFieldID($field),
 					'name'  => $this->_getFieldName($field),
 					'value' => $this->_model->{$field}
 				), $options)
@@ -197,6 +224,7 @@ class form
 				array_merge(array(
 					'type'  => 'password',
 					'name'  => $this->_getFieldName($field),
+					'id'    => $this->_getFieldID($field),
 					'value' => $this->_model->{$field}
 				), $options)
 		);
@@ -227,6 +255,17 @@ class form
 	}
 
 //Private
+	/**
+	 * Generates id attribute for form input
+	 *
+	 * @param sting $field Field name
+	 * @return string ID for html attr:id
+	 */
+	private function _getFieldID($field)
+	{
+		return $this->_modelField.'-'.$this->_model->id().'-'.$field;
+	}
+
 	/**
 	 * Generates name for form input
 	 *
