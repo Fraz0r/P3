@@ -257,6 +257,23 @@ class form
 	 */
 	public function open()
 	{
+		if(isset($this->_options['noValidate'])) {
+			$validate = false;
+			unset($this->_options['noValidate']);
+		} else {
+			$validate = true;
+		}
+
+		if($validate) {
+			$class = $this->_modelClass;
+			$js    = "var flag = true; ";
+			$js    = "var req = ".json_encode($class::$_validatesPresence).'; ';
+			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ flag = false; $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
+			$js    .= "if(!flag) alert('Please fill in required fields (*)'); ";
+			$js    .= "return flag;";
+			$this->_options['onsubmit'] = str_replace('"', '\'', $js);
+		}
+
 		self::tag($this->_getUri(), $this->_options);
 	}
 
@@ -312,6 +329,10 @@ class form
 		$this->_modelField = str::fromCamelCase($this->_modelClass);
 		$this->_action     = $this->_model->isNew() ? 'create' : 'update';
 		$this->_uri        = $this->_getUri();
+		$this->_id         = ($this->_model->isNew() ? 'new-' : 'edit-').str::fromCamelCase($this->_modelClass);
+		if(!$this->_model->isNew()) $this->_id .= '-'.$this->_model->id();
+
+		if(!isset($this->_options['id'])) $this->_options['id'] = $this->_id;
 	}
 
 //Static
