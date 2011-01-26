@@ -105,6 +105,7 @@ class P3_Router {
 	 */
 	public static function redirect($path) {
 		header("Location: {$path}");
+		exit;
 	}
 
 	/**

@@ -162,6 +162,12 @@ class form
 	{
 		$options['for'] = $this->_getFieldID($field);
 		$text = is_null($text) ? str::toHuman($field, true) : $text;
+
+		$class = $this->_modelClass;
+		if(isset($class::$_validatesPresence[$field]) || in_array($field, $class::$_validatesPresence)) {
+			$options['class'] = isset($options['class']) ? $options['class'].' required' : 'required';
+		}
+
 		echo html::_t('label', $options).$text.'</label>';
 	}
 

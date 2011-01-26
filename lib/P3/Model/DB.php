@@ -147,7 +147,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 		foreach(static::$_hasManyThrough as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
-				P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
+				if(!$this->isInMany($opts['class'], $related_model->id()))
+					P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
 			}
 		}
 	}
@@ -458,6 +459,34 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 	/**
+	 * Removes passed model from Many-to-Many relationship
+	 *
+	 * @param P3_Model_DB $related_model
+	 */
+	public function removeModelFromMany($related_model)
+	{
+		if(!$this->isInMany($related_model)) return false;
+
+		$class = get_class($related_model);
+		foreach(static::$_hasManyThrough as $accsr => $arr) {
+			if($arr['class'] == $class) {
+				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
+				$fk = static::$_hasManyThrough[$accsr]['fk'];
+				$efk = static::$_hasManyThrough[$accsr]['efk'];
+
+				$sql = "DELETE FROM `{$join_table}`";
+				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
+				$sql .= " AND {$efk} = ".$related_model->id();
+				$sql .= " LIMIT 1";
+				break;
+			}
+		}
+
+		$stmnt = static::$_db->query($sql);
+		return $stmnt->rowCount();
+	}
+
+	/**
 	 * Saves a record into the database
 	 */
 	public function save($options = null)
@@ -567,20 +596,6 @@ abstract class P3_Model_DB extends P3_Model_Base
 	}
 
 //Protected
-
-	/**
-	 * Adds error to model
-	 *
-	 * @param string $field Field error was raised on
-	 * @param string $str Error message
-	 */
-	protected function _addError($field, $str)
-	{
-		if(!is_array($this->_errors[$field]))
-			$this->_errors[$field] = array();
-
-		$this->_errors[$field][] = $str;
-	}
 
 	/**
 	 * Saves a new record to the database

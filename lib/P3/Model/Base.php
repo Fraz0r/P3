@@ -98,7 +98,7 @@ class P3_Model_Base {
 
 			if(empty($this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
 		}
 
@@ -109,7 +109,7 @@ class P3_Model_Base {
 
 			if(FALSE === filter_var($this->_data[$field], P3_Filter::FILTER_VALIDATE_EMAIL)) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
 		}
 
@@ -129,11 +129,11 @@ class P3_Model_Base {
 
 			if(!is_null($min) && strlen($this->_data[$field]) < $min) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be at least %d characters long', $field, $min));
+				$this->_addError($field, sprintf('%s must be at least %d characters long', str::toHuman($field), $min));
 			}
 			if(!is_null($max) && strlen($this->_data[$field]) > $max) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be less than %d characters long', $field, $max));
+				$this->_addError($field, sprintf('%s must be less than %d characters long', str::toHuman($field), $max));
 			}
 		}
 
@@ -144,7 +144,7 @@ class P3_Model_Base {
 
 			if(!preg_match('!^([0-9]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
 		}
 
@@ -155,7 +155,7 @@ class P3_Model_Base {
 
 			if(!preg_match('!^([a-zA-Z]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
 		}
 
@@ -166,7 +166,7 @@ class P3_Model_Base {
 
 			if(!preg_match('!^([a-zA-Z0-9]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
 		}
 
@@ -197,6 +197,20 @@ class P3_Model_Base {
 
 
 // Protected
+	/**
+	 * Adds error to model
+	 *
+	 * @param string $field Field error was raised on
+	 * @param string $str Error message
+	 */
+	protected function _addError($field, $str)
+	{
+		if(!is_array($this->_errors[$field]))
+			$this->_errors[$field] = array();
+
+		$this->_errors[$field][] = $str;
+	}
+
 	protected function _triggerEvent($event)
 	{
 		$funcs = $this->{'_'.$event};
@@ -243,7 +257,7 @@ class P3_Model_Base {
 	 */
 	public function  __set($name,  $value)
 	{
-		if($name != static::pk() && isset($this->_data[$name]) && (!is_null($this->_data[$name]) || ($value != $this->_data[$name])))
+		if($name != static::pk() && isset($this->_data[$name]) && (!is_null($this->_data[$name]) && ($value != $this->_data[$name])))
 			$this->_changed[] = $name;
 
 		$this->_data[$name] = $value;
