@@ -14,14 +14,14 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	 *
 	 * @var array
 	 */
-	public $_css = array();
+	protected $_styles = array();
 
 	/**
 	 * An Array of JS Files for the laout to include
 	 *
 	 * @var array
 	 */
-	public $_js = array();
+	protected $_scripts = array();
 
 	/**
 	 * Array of attributes
@@ -43,8 +43,6 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	 * @var string
 	 */
 	protected $_layout;
-
-	public $_models;
 
 	/**
 	 * True upon rendering a view
@@ -92,6 +90,26 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 			$this->_view->setLayout($this->_layout);
 		}
 
+		/* Add scripts to html helper */
+		foreach($this->_scripts as $k => $v) {
+			if($k !== strval($k)) {
+				html::addJs($v);
+			} else {
+				if(!isset($v['only']) || $routing_data['action'] == $v['only'] || (is_array($v['only']) && in_array($routing_data['action'], $v['only'])))
+					html::addJs($k);
+			}
+		}
+
+		/* Add styles to html helper */
+		foreach($this->_styles as $k => $v) {
+			if($k !== strval($k)) {
+				html::addCss($v);
+			} else {
+				if(!isset($v['only']) || $routing_data['action'] == $v['only'] || (is_array($v['only']) && in_array($routing_data['action'], $v['only'])))
+					html::addCss($k);
+			}
+		}
+
 		/* Call parent constructor (to run the method) */
 		parent::__construct($routing_data);
 
@@ -108,16 +126,6 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	 * @param string $page
 	 */
 	public function _display($page = null) {
-		if(!empty($this->_css[$this->_routing_data['action']])) {
-			foreach($this->_css[$this->_routing_data['action']] as $css_path) {
-				$this->_view->addStyleSheet($css_path);
-			}
-		}
-		if(!empty($this->_js[$this->_routing_data['action']])) {
-			foreach($this->_js[$this->_routing_data['action']] as $js_path) {
-				$this->_view->addJavascript($js_path);
-			}
-		}
 		$this->_view->display($page);
 		$this->_rendered = true;
 	}

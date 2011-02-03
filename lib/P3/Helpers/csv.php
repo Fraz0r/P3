@@ -5,7 +5,7 @@
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-abstract class csv
+abstract class csv extends P3_Helper
 {
 }
 ?>

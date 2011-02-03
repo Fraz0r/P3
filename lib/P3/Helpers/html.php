@@ -6,12 +6,26 @@
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
-abstract class html {
+abstract class html extends P3_Helper
+{
 	/**
 	 * Array of elements that close with '/>' instead of '>'
 	 * @var array
 	 */
 	public static $_specialClose = array('base', 'input', 'link', 'img');
+
+	private static $_jsFiles = array();
+	private static $_cssFiles = array();
+
+	public static function addCss($src)
+	{
+		self::$_cssFiles[] = $src;
+	}
+
+	public static function addJs($src)
+	{
+		self::$_jsFiles[] = $src;
+	}
 
 	/**
 	 * @todo Make base work in nested dirs
@@ -19,7 +33,39 @@ abstract class html {
 	public static function base()
 	{
 		$base = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].($_SERVER['SERVER_PORT'] != 80 ? ':'.$_SERVER['SERVER_PORT'] : '').'/';
-		echo '<base href="'.$base.'" />';
+		echo '<base href="'.$base.'" />'."\n";
+	}
+
+	public static function head()
+	{
+		self::base();
+		self::styles();
+		self::scripts();
+	}
+
+	/*
+	 * Renders scripts for controllers, use in <head>
+	 */
+	public static function scripts()
+	{
+		foreach(self::$_jsFiles as $src)
+			echo self::_t('script', array(
+				'type' => "text/javascript",
+				'src'  => $src
+			)).'</script>'."\n";
+	}
+
+	/*
+	 * Renders style links for controllers, use in <head>
+	 */
+	public static function styles()
+	{
+		foreach(self::$_cssFiles as $src)
+			echo self::_t('link', array(
+				'rel'  => 'stylesheet',
+				'type' => "text/css",
+				'href'  => $src
+			))."\n";
 	}
 
 	/**
@@ -35,6 +81,15 @@ abstract class html {
 		$select .= self::selectOptions($html_options, $options);
 		$select .= '</select>';
 		echo  $select;
+	}
+
+	/**
+	 * Renders title tag for page
+	 * @param string $title Title for <title>
+	 */
+	public static function title($title)
+	{
+		echo '<title>'.$title.'</title>'."\n";
 	}
 
 	/**

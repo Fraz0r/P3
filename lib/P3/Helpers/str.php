@@ -7,6 +7,8 @@
  */
 class str
 {
+	public static $_noCap = array('a', 'an', 'is', 'from', 'for', 'of', 'the');
+
  /**
    * Translates a camel case string into a string with underscores (e.g. firstName -&gt; first_name)
   *
@@ -22,16 +24,18 @@ class str
   /**
    * Titleizes (capitalizes each word in a string)
    *
-   * Note:  no check in place currently for words such as a, an, etc.
-   *
    * @param string $str String to titleize
    * @return string Titelized string
    */
-  public static function titleize($str)
+  public static function titleize($str, $ignore_predicates = true)
   {
 	  $ex = explode(' ', $str);
-	  foreach($ex as &$word)
-		  $word = ucfirst($word);
+	  $x = 0;
+	  foreach($ex as &$word) {
+		  //Only capitalize the word if it's not a predicate, unless it's the first word.  All words are capped if $ignore_predicates is false
+		  if(!$ignore_predicates || $x==0 || FALSE === array_search($word, static::$_noCap)) $word = ucfirst($word);
+		  $x++;
+	  }
 
 	  return implode(' ', $ex);
   }
@@ -52,7 +56,8 @@ class str
   }
 
   /**
-   * Converts string into human-friendly version (e.g. first_name -&gt; first name).  Capitlazises words if $titleize is true.
+   * Converts string into human-friendly version (e.g. first_name -&gt; first name, firstName -&gt; first name).
+   * Capitlazises words if $titleize is true.
    *
    * @param string $str String in camel case or underscore notation to convert.
    * @param boolean $titleize Titleizes string, if true

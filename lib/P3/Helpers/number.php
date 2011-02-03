@@ -5,7 +5,8 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-abstract class number {
+abstract class number extends P3_Helper
+{
 	/**
 	 * Returns an array containing the desired range
 	 *

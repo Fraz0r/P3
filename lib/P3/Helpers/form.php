@@ -4,7 +4,7 @@
 P3_Loader::loadHelper('str');
 P3_Loader::loadHelper('html');
 
-class form
+class form extends P3_Helper
 {
 	/**
 	 * Action
@@ -163,12 +163,15 @@ class form
 		$options['for'] = $this->_getFieldID($field);
 		$text = is_null($text) ? str::toHuman($field, true) : $text;
 
-		$class = $this->_modelClass;
-		if(isset($class::$_validatesPresence[$field]) || in_array($field, $class::$_validatesPresence)) {
+		$required = false;
+		if($this->_fieldRequired($field)) {
 			$options['class'] = isset($options['class']) ? $options['class'].' required' : 'required';
+			$required = true;
 		}
 
-		echo html::_t('label', $options).$text.'</label>';
+		$ret = html::_t('label', $options).$text.'</label>';
+
+		echo ($required ? '<span class="req-astr">*</span>':'').$ret;
 	}
 
 	/**
@@ -282,6 +285,12 @@ class form
 	}
 
 //Private
+	private function _fieldRequired($field)
+	{
+		$class = $this->_modelClass;
+		return(isset($class::$_validatesPresence[$field]) || in_array($field, $class::$_validatesPresence));
+	}
+
 	/**
 	 * Generates id attribute for form input
 	 *

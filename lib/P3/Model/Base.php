@@ -24,6 +24,12 @@ class P3_Model_Base {
 	public static $_validatesPresence = array();
 
 	/**
+	 * Holds class name for Model, need to switch rest of system off of get_class
+	 * @var string
+	 */
+	protected $_class = null;
+
+	/**
 	 * Array to store column data
 	 * @var array $_data
 	 */
@@ -31,6 +37,8 @@ class P3_Model_Base {
 
 	public function  __construct(array $record_array = null)
 	{
+		$this->_class = get_class($this);
+
 		if(!is_null($record_array)) {
 			foreach($record_array as $k => $v) {
 				$this->_data[$k] = $v;

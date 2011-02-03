@@ -20,18 +20,6 @@ class P3_Template
 	protected $_attributes;
 
 	/**
-	 * CSS files to include
-	 * @var array
-	 */
-	protected $_css = array();
-
-	/**
-	 * JS files to include
-	 * @var array
-	 */
-	protected $_js  = array();
-
-	/**
 	 * Layout to wrap view in
 	 * @var string
 	 */
@@ -79,22 +67,6 @@ class P3_Template
 				$this->setAttribute($attr, $val);
 			}
 		}
-	}
-
-	/**
-	 * Adds a js file to the view
-	 * @param string $path
-	 */
-	public function addJavascript($path) {
-		$this->_js[] = $path;
-	}
-
-	/**
-	 * Adds a css file to the class
-	 * @param string $path
-	 */
-	public function addStyleSheet($path) {
-		$this->_css[] = $path;
 	}
 
 	/**
@@ -151,30 +123,6 @@ class P3_Template
 	public function  __get($name)
 	{
 		return(!empty($this->_vars[$name]) ? $this->_vars[$name] : false);
-	}
-
-	/**
-	 * Echo's out the script tags for the assigned javascript files (Usually called by the layout)
-	 */
-	public function includeJavascripts()
-	{
-		if(count($this->_js)) {
-			foreach($this->_js as $path) {
-				echo vsprintf('<script type="text/javascript" src="%s"></script>', array($path));
-			}
-		}
-	}
-
-	/**
-	 * Echo's out the link tags for the assigned css files (Usually called by the layout)
-	 */
-	public function includeStyleSheets()
-	{
-		if(count($this->_css)) {
-			foreach($this->_css as $path) {
-				echo vsprintf('<link rel="stylesheet" type="text/css" href="%s" />', array($path));
-			}
-		}
 	}
 
 	/**

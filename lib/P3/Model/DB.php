@@ -515,6 +515,10 @@ abstract class P3_Model_DB extends P3_Model_Base
 		return $ret;
 	}
 
+	/**
+	 * Saves model's attachments
+	 * @return void
+	 */
 	public function saveAttachments()
 	{
 		$class = get_class($this);
