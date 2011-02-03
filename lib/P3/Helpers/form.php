@@ -164,7 +164,7 @@ class form extends P3_Helper
 		$text = is_null($text) ? str::toHuman($field, true) : $text;
 
 		$required = false;
-		if($this->_fieldRequired($field)) {
+		if($this->_fieldRequired($field) && !$this->_options['noValidate']) {
 			$options['class'] = isset($options['class']) ? $options['class'].' required' : 'required';
 			$required = true;
 		}
