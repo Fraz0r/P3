@@ -19,7 +19,7 @@ class P3_Loader
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
 			if(substr($class, -10) == "Controller") {
-				require_once(P3_APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'.php');
+				require_once(P3_APP_PATH.'/controllers/'.str::fromCamelCase($class).'.php');
 			} else {
 				self::loadModel($class);
 			}
@@ -72,14 +72,6 @@ class P3_Loader
 	}
 
 	/**
-	 * Returns either the basic loader, or Cli_Loader (If Cli Mode)
-	 */
-	public static function getLoader()
-	{
-		return self::isCli() ? 'P3_Cli_Loader' : 'P3_Loader';
-	}
-
-	/**
 	 * Returns true if being run from terminal, false if from apache
 	 *
 	 * @return bool is being run from terminal
@@ -119,16 +111,13 @@ class P3_Loader
 	{
 		self::loadHelper('str');
 
-		$name  = strtolower($controller);
+		$name  = strtolower($controller).'_controller';
 		$class = str::toCamelCase($controller, true).'Controller';
 
 
 		if(self::classExists($class)) return;
 
 		$path = P3_APP_PATH.'/controllers/';
-		if(self::isCli()) {
-			$path .= 'cli/';
-		}
 
 		if(is_readable($path.$name.'.php')) {
 			include_once($path.$name.'.php');
