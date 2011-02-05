@@ -108,7 +108,7 @@ abstract class Base {
 
 			if(empty($this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
 		}
 
@@ -119,7 +119,7 @@ abstract class Base {
 
 			if(FALSE === filter_var($this->_data[$field], Filter::FILTER_VALIDATE_EMAIL)) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
 		}
 
@@ -139,11 +139,11 @@ abstract class Base {
 
 			if(!is_null($min) && strlen($this->_data[$field]) < $min) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be at least %d characters long', str::toHuman($field), $min));
+				$this->_addError($field, sprintf('%s must be at least %d characters long', \str::toHuman($field), $min));
 			}
 			if(!is_null($max) && strlen($this->_data[$field]) > $max) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be less than %d characters long', str::toHuman($field), $max));
+				$this->_addError($field, sprintf('%s must be less than %d characters long', \str::toHuman($field), $max));
 			}
 		}
 
@@ -154,7 +154,7 @@ abstract class Base {
 
 			if(!preg_match('!^([0-9]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
 		}
 
@@ -165,7 +165,7 @@ abstract class Base {
 
 			if(!preg_match('!^([a-zA-Z]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
 		}
 
@@ -176,7 +176,7 @@ abstract class Base {
 
 			if(!preg_match('!^([a-zA-Z0-9]*)$!', $this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
 		}
 
@@ -215,7 +215,7 @@ abstract class Base {
 	 */
 	protected function _addError($field, $str)
 	{
-		if(!is_array($this->_errors[$field]))
+		if(!isset($this->_errors[$field]))
 			$this->_errors[$field] = array();
 
 		$this->_errors[$field][] = $str;

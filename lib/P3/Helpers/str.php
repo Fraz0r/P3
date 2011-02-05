@@ -66,10 +66,6 @@ class str
   public static function toHuman($str, $titleize = false)
   {
 	  if(FALSE !== strrpos($str, '_')) {
-	  /* From underscore */
-		if($capitalise_first_char) {
-		  $str[0] = strtoupper($str[0]);
-		}
 		$func = create_function('$c', 'return " ".$c[1];');
 		$ret = preg_replace_callback('/_([a-z])/', $func, $str);
 	  } else {
