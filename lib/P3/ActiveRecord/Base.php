@@ -862,7 +862,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		if($class != null) {
-			Loader::loadModel($class);
+			\P3\Loader::loadModel($class);
 
 
 			$value = $class::find($where, array("one" => $one));

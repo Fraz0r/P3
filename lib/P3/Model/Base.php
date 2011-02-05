@@ -251,7 +251,7 @@ abstract class Base {
 		}
 
 
-		if (isset($this->{$name})) {
+		if (isset($this->_data[$name])) {
 			return $this->_data[$name];
 		} else {
 			return null;

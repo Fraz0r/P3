@@ -260,9 +260,9 @@ class Router {
 				$args[$arg_c++] = $path[2][$i++];
 
 			/* If we got this far, the route matches */
-			$action     = !is_null($r->options['action'])     ? $r->options['action']     : $action;
-			$controller = !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
-			$dir        = isset($r->options['dir']) && !is_null($r->options['dir']) ? $r->options['dir'] : $dir;
+			$action     = isset($r->options['action'])    && !is_null($r->options['action'])     ? $r->options['action']     : $action;
+			$controller = isset($r->options['controller']) && !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
+			$dir        = isset($r->options['dir'])       && !is_null($r->options['dir'])        ? $r->options['dir']        : $dir;
 
 			/* Default to index if we have no action, to show if we have no action but an id */
 			if(empty($action)) {
