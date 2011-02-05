@@ -5,7 +5,9 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-class P3_Session extends ArrayObject
+namespace P3;
+
+class Session extends \ArrayObject
 {
 	static protected $instance;
 
@@ -13,7 +15,7 @@ class P3_Session extends ArrayObject
 	{
 		session_start();
 
-		parent::__construct($_SESSION, ArrayObject::ARRAY_AS_PROPS);
+		parent::__construct($_SESSION, \ArrayObject::ARRAY_AS_PROPS);
 		$_SESSION = $this;
 	}
 
@@ -41,7 +43,7 @@ class P3_Session extends ArrayObject
 	public static function singleton()
 	{
 		if(empty(self::$instance)) {
-			self::$instance = new P3_Session;
+			self::$instance = new Session;
 		}
 
 		return self::$instance;

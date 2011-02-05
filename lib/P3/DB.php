@@ -1,6 +1,8 @@
 <?php
 
-class P3_DB extends PDO
+namespace P3;
+
+class DB extends \PDO
 {
 	public function __construct(array $config, array $options = array())
 	{
@@ -41,7 +43,7 @@ class P3_DB extends PDO
 	 */
 	public function get ($class, $where='1', $force_single = false, $order_by = null)
 	{
-		P3_Loader::loadModel($class);
+		Loader::loadModel($class);
 
 		/* A little user checking never hurts... checking if user probably meant to send an (int)where */
 		if($where !== '1' && (int)$where > 0) {

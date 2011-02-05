@@ -5,7 +5,10 @@
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class P3_Model_Mailer extends P3_Model_Base
+
+namespace P3\ActiveMailer;
+
+class Base extends \P3\Model\Base
 {
 	/* Attributes */
 	const ATTR_MAIL_TYPE = 0;
@@ -89,9 +92,9 @@ class P3_Model_Mailer extends P3_Model_Base
 		static::$_body       = null;
 
 		static::$_attrs    = array();
-		static::$_routing_data = P3_Router::parseRoute();
+		static::$_routing_data = Router::parseRoute();
 		static::$_args    = static::$_routing_data['args'];
-		static::$_view    = new P3_Template;
+		static::$_view    = new Template;
 	}
 
 	public static function setAttr($attr, $val)

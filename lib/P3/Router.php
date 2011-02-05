@@ -5,7 +5,10 @@
  *
  * @author Tim <tim.frazier@gmail.com>
  */
-class P3_Router {
+
+namespace P3;
+
+class Router {
 
 	/**
 	 * Container for dispatched route
@@ -40,7 +43,7 @@ class P3_Router {
 	 */
 	public static function addRoute($path, array $options = array(), array $specific_options = array())
 	{
-		$o = new stdClass();
+		$o = new \stdClass();
 		$o->path    = $path;
 		$o->tokens  = self::tokenizePath($path);
 		$o->options = $options;
@@ -63,7 +66,7 @@ class P3_Router {
 	{
 		$routing_data = !is_array($routing_data) ? self::parseRoute($path) : $routing_data;
 		self::$_dispatchedRoute = $routing_data;
-		P3_Loader::loadController($routing_data['controller'], $routing_data);
+		Loader::loadController($routing_data['controller'], $routing_data);
 	}
 
 	/**
@@ -87,12 +90,12 @@ class P3_Router {
 				list($controller, $view) = explode('/', $partial);
 				$view = '_'.$view.'.tpl';
 			} else {
-				$controller = P3_Router::getController();
+				$controller = Router::getController();
 				$view = '_'.$partial.'.tpl';
 			}
 
 			$path = $controller.'/'.$view;
-			require(P3_APP_PATH.'/views/'.$path);
+			require(APP_PATH.'/views/'.$path);
 		}
 	}
 
@@ -142,7 +145,7 @@ class P3_Router {
 	 *
 	 * Note: Global, meaning setting both an action && a controller
 	 *
-	 * @return stdClass Global Route
+	 * @return \stdClass Global Route
 	 */
 	public static function getGlobalRoute()
 	{
@@ -275,7 +278,7 @@ class P3_Router {
 
 		/* Raise Exception if we have no controller to route too */
 		if(is_null($controller)) {
-			throw new P3_Exception("P3_Router:  No controller was matched in the route.", '', 501);
+			throw new Exception("Router:  No controller was matched in the route.", '', 501);
 		}
 
 		return array(

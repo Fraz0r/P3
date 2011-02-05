@@ -1,10 +1,12 @@
 <?php
 
 
-P3_Loader::loadHelper('str');
-P3_Loader::loadHelper('html');
+\P3\Loader::loadHelper('str');
+\P3\Loader::loadHelper('html');
 
-class form extends P3_Helper
+use P3\Router as Router;
+
+class form extends P3\Helper
 {
 	/**
 	 * Action
@@ -45,7 +47,7 @@ class form extends P3_Helper
 	private $_uri = null;
 
 //Public
-	public function  __construct(P3_Model_DB $model, array $options = array())
+	public function  __construct(\P3\ActiveRecord\Base $model, array $options = array())
 	{
 		$this->_model   = $model;
 
@@ -321,7 +323,7 @@ class form extends P3_Helper
 	private function _getUri()
 	{
 		if(empty($this->_uri)) {
-			$uri = P3_Router::getGlobalRoute()->path;
+			$uri = Router::getGlobalRoute()->path;
 			$uri = str_replace(':controller', $this->_model->getController(), $uri);
 
 			$uri = preg_replace("!\[?/:action\]?!", '/'.$this->_action, $uri);
@@ -365,7 +367,7 @@ class form extends P3_Helper
 	 * @param bool $print
 	 * @return form 
 	 */
-	public static function forModel(P3_Model_DB $model, array $options = array(), $print = true)
+	public static function forModel(\P3\ActiveRecord\Base $model, array $options = array(), $print = true)
 	{
 		if($print)
 			$options = array_merge(array('print' => true), $options);

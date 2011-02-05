@@ -5,7 +5,7 @@
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class dir extends P3_Helper
+class dir extends P3\Helper
 {
 	const OPT_DESTROY_FILES_ON_DELETE = 1;
 	const OPT_RETURN_FULL_PATHS = 2;

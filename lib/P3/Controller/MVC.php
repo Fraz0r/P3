@@ -1,10 +1,13 @@
 <?php
 /**
- * Description of P3_Controller_MVC
+ * Description of MVC
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
-class P3_Controller_MVC extends P3_Controller_Abstract
+
+namespace P3\Controller;
+
+class MVC extends Base
 {
 	/* Attributes */
 	const ATTR_TEMPLATE_CLASS = 1;
@@ -54,7 +57,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 	/**
 	 * Template to use for rendering
 	 *
-	 * @var P3_Template
+	 * @var Template
 	 */
 	protected $_view;
 
@@ -69,7 +72,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 
 		/* Create a uri, if null was passed */
 		if(!count($routing_data)) {
-			$routing_data = P3_Router::parseRoute();
+			$routing_data = Router::parseRoute();
 		}
 
 		/* Save passed options */
@@ -82,7 +85,7 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 			$c = $this->getAttribute(self::ATTR_TEMPLATE_CLASS);
 			$this->_view = new $c($routing_data);
 		} else {
-			$this->_view = new P3_Template($routing_data);
+			$this->_view = new \P3\Template($routing_data);
 		}
 
 		/* Set our layout */
@@ -93,20 +96,20 @@ class P3_Controller_MVC extends P3_Controller_Abstract
 		/* Add scripts to html helper */
 		foreach($this->_scripts as $k => $v) {
 			if($k !== strval($k)) {
-				html::addJs($v);
+				\html::addJs($v);
 			} else {
 				if(!isset($v['only']) || $routing_data['action'] == $v['only'] || (is_array($v['only']) && in_array($routing_data['action'], $v['only'])))
-					html::addJs($k);
+					\html::addJs($k);
 			}
 		}
 
 		/* Add styles to html helper */
 		foreach($this->_styles as $k => $v) {
 			if($k !== strval($k)) {
-				html::addCss($v);
+				\html::addCss($v);
 			} else {
 				if(!isset($v['only']) || $routing_data['action'] == $v['only'] || (is_array($v['only']) && in_array($routing_data['action'], $v['only'])))
-					html::addCss($k);
+					\html::addCss($k);
 			}
 		}
 

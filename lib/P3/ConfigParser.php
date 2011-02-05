@@ -1,6 +1,8 @@
 <?php
 
-class P3_ConfigParser
+namespace P3;
+
+class ConfigParser
 {
 	protected $_config = array();
 

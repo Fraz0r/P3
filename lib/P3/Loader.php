@@ -1,11 +1,14 @@
 <?php
 
 /**
- * P3_Loader
+ * Loader
  *
  * Handles loading anything and everything throughout P3
  */
-class P3_Loader
+
+namespace P3;
+
+class Loader
 {
 	/**
 	 * Magic AutoLoad function attems to Load class when
@@ -14,12 +17,12 @@ class P3_Loader
 	 * @param string $class Class being searched for by PHP
 	 */
 	public static function autoload($class){
-		if(count(explode('_', $class)) > 1) {
+		if(count(explode('\\', $class)) > 1) {
 			self::loadClass($class);
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
 			if(substr($class, -10) == "Controller") {
-				require_once(P3_APP_PATH.'/controllers/'.str::fromCamelCase($class).'.php');
+				require_once(APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'.php');
 			} else {
 				self::loadModel($class);
 			}
@@ -51,7 +54,7 @@ class P3_Loader
 	public static function createURI(array $location = null, array $arguments = null, array $get = array())
 	{
 		if($location == null) {
-			return '/'.P3_PATH_PREFIX;
+			return '/'.PATH_PREFIX;
 		} else {
 			$controller = $location[0];
 			if(count($location) == 2) {
@@ -67,8 +70,16 @@ class P3_Loader
 				}
 			}
 
-			return '/'.P3_PATH_PREFIX.$controller.'/'.$action.(($arguments != null) ? implode('/', $arguments) : '').((!empty($get_args) ? '?'.implode('&', $get_args) : ''));
+			return '/'.PATH_PREFIX.$controller.'/'.$action.(($arguments != null) ? implode('/', $arguments) : '').((!empty($get_args) ? '?'.implode('&', $get_args) : ''));
 		}
+	}
+
+	/**
+	 * Returns either the basic loader, or Cli_Loader (If Cli Mode)
+	 */
+	public static function getLoader()
+	{
+		return self::isCli() ? 'Cli_Loader' : 'Loader';
 	}
 
 	/**
@@ -88,45 +99,48 @@ class P3_Loader
 	 */
 	public static function loadBootstrap($file = null){
 		if(empty($file)){
-			if(!defined('P3_APP_PATH'))
-				throw new P3_Exception('P3_APP_PATH not defined, cannot locate bootstrap.');
+			if(!defined('\P3\APP_PATH'))
+				throw new Exception('APP_PATH not defined, cannot locate bootstrap.');
 			else
-				$file = P3_APP_PATH.'/bootstrap.php';
+				$file = APP_PATH.'/bootstrap.php';
 		}
 
 		if(!is_readable($file))
-			throw new P3_Exception('Unable to load bootstrap file "%s"', array($file));
+			throw new Exception('Unable to load bootstrap file "%s"', array($file));
 
 		require($file);
 	}
 
 	/**
-	 * Loads P3_Controller
+	 * Loads Controller
 	 *
 	 * @param string $controller
 	 * @param array $routing_data
-	 * @return P3_Controller
+	 * @return Controller
 	 */
 	public static function loadController($controller, array $routing_data = array())
 	{
 		self::loadHelper('str');
 
-		$name  = strtolower($controller).'_controller';
-		$class = str::toCamelCase($controller, true).'Controller';
+		$name  = strtolower($controller);
+		$class = \str::toCamelCase($controller, true).'Controller';
 
 
 		if(self::classExists($class)) return;
 
-		$path = P3_APP_PATH.'/controllers/';
+		$path = APP_PATH.'/controllers/';
+		if(self::isCli()) {
+			$path .= 'cli/';
+		}
 
 		if(is_readable($path.$name.'.php')) {
 			include_once($path.$name.'.php');
 		} else {
-			throw new P3_Exception('The controller "%s" failed to load', array($class), 404);
+			throw new Exception('The controller "%s" failed to load', array($class), 404);
 		}
 
 		if(!self::classExists($class)) {
-			throw new P3_Exception('The controller "%s" failed to load', array($class), 500);
+			throw new Exception('The controller "%s" failed to load', array($class), 500);
 		}
 
 		return new $class($routing_data);
@@ -148,19 +162,18 @@ class P3_Loader
 		/**
 		 * Attempt to Load Class File
 		 */
-
 		include_once(self::getClassPath($class));
 
 		/**
 		 *  If class still doesn't exist, we have a problem
 		 */
 		if(!class_exists($class, false) && !interface_exists($class, false))
-			throw new P3_Exception('The class "%s" failed to load', array($class));
+			throw new Exception('The class "%s" failed to load', array($class));
 
 	}
 
 	/**
-	 * This function will set P3_APP_PATH (if it's not set), update the PHP Include path (unless $set_include_path is false), register auto-load, load the bootstrap, and load the routes
+	 * This function will set APP_PATH (if it's not set), update the PHP Include path (unless $set_include_path is false), register auto-load, load the bootstrap, and load the routes
 	 */
 	public static function loadEnv(array $options = array())
 	{
@@ -168,10 +181,9 @@ class P3_Loader
 		$start_session    = isset($options['start_session']) ? $options['start_session'] : true;
 
 
-
 		/* Attempt to set up app paths if we dont have them */
-		if(!defined("P3_ROOT"))     define("P3_ROOT", realpath(dirname(__FILE__).'/../..'));
-		if(!defined("P3_APP_PATH")) define("P3_APP_PATH", P3_ROOT.'/app');
+		if(!defined("P3\ROOT"))     define("P3\ROOT", realpath(dirname(__FILE__).'/../..'));
+		if(!defined("P3\APP_PATH")) define("P3\APP_PATH", ROOT.'/app');
 
 		/* Include lib */
 		if($set_include_path)
@@ -181,7 +193,7 @@ class P3_Loader
 		self::registerAutoload();
 
 		if($start_session)
-			P3_Session::singleton();
+			Session::singleton();
 
 		/* Load Bootstrap */
 		self::loadBootstrap();
@@ -198,15 +210,15 @@ class P3_Loader
 		$path = dirname(__FILE__).'/Helpers/'.$helper.'.php';
 
 		if(!is_readable($path)) {
-			self::loadClass('P3_Exception');
-			throw new P3_Exception('Couldn\'t read Helper "%s" into the system', array($helper));
+			self::loadClass('\P3\Exception');
+			throw new Exception('Couldn\'t read Helper "%s" into the system', array($helper));
 		}
 
 		require_once($path);
 
 		if(!self::classExists($helper)) {
-			self::loadClass('P3_Exception');
-			throw new P3_Exception('Couldn\'t read Helper "%s" into the system', array($helper));
+			self::loadClass('\P3\Exception');
+			throw new Exception('Couldn\'t read Helper "%s" into the system', array($helper));
 		}
 
 	}
@@ -223,10 +235,11 @@ class P3_Loader
 				return;
 			}
 
-			$path = P3_APP_PATH.'/models/'.$model.'.php';
+			$path = APP_PATH.'/models/'.$model.'.php';
 
+			self::loadClass('\P3\Exception');
 			if(!is_readable($path)) {
-				throw new P3_Exception('Couldn\'t read Model "%s" into the system', array($model));
+				throw new Exception('Couldn\'t read Model "%s" into the system', array($model));
 			}
 
 			require_once($path);
@@ -234,19 +247,19 @@ class P3_Loader
 	}
 
 	/**
-	 * Loads Routes into P3_Router
+	 * Loads Routes into Router
 	 * @param string $file File containing routing statements.  Default path is attempted if left null.
 	 */
 	public static function loadRoutes($file = null)
 	{
 		if(is_null($file)) {
-			if(!defined('P3_APP_PATH'))
-				throw new P3_Exception('P3_APP_PATH not defined, cannot locate routes.');
+			if(!defined('\P3\APP_PATH'))
+				throw new Exception('APP_PATH not defined, cannot locate routes.');
 			else
-				$file = P3_APP_PATH.'/routes.php';
+				$file = APP_PATH.'/routes.php';
 		}
 		if(!is_readable($file))
-			throw new P3_Exception('Unable to load routes file "%s"', array($file));
+			throw new Exception('Unable to load routes file "%s"', array($file));
 
 		require($file);
 	}
@@ -260,11 +273,13 @@ class P3_Loader
 	public static function getClassPath($class){
 		self::loadHelper('str');
 
-		$exp = explode('_', $class);
-		$file = ucfirst(str::toCamelCase(array_pop($exp), true).'.php');
+		$exp = explode('\\', ltrim($class, '\\'));
+		$file = ucfirst(\str::toCamelCase(array_pop($exp), true).'.php');
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
-		return $dir.DIRECTORY_SEPARATOR.$file;
+		$path = $dir.DIRECTORY_SEPARATOR.$file;
+
+		return $path;
 	}
 
 	/**
@@ -274,7 +289,7 @@ class P3_Loader
 	 */
 	public static function redirect($location = '', $hash = null)
 	{
-		$loc = '/'.P3_PATH_PREFIX;
+		$loc = '/'.PATH_PREFIX;
 		if(is_array($location)) {
 			$loc .= $location[0].'/';
 			if(!empty($location[1])) {
@@ -296,14 +311,14 @@ class P3_Loader
 	 *
 	 * @param string $class AutoLoading Class [must contain autoload, like self]
 	 */
-	public static function registerAutoload($class = 'P3_Loader'){
+	public static function registerAutoload($class = '\P3\Loader'){
 		if(!function_exists('spl_autoload_register'))
-			throw new P3_Exception('spl_autoload does not exist in this PHP Installation');
+			throw new Exception('spl_autoload does not exist in this PHP Installation');
 
 		self::loadClass($class);
 
 		if(!in_array('autoload', get_class_methods($class)))
-			throw new P3_Exception('The class "%s" does not have an autoload() method', array($class));
+			throw new Exception('The class "%s" does not have an autoload() method', array($class));
 
 		/* Regiser AutoLoad funtion */
 		spl_autoload_register(array($class, 'autoload'));

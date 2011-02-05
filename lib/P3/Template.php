@@ -1,10 +1,13 @@
 <?php
 /**
- * P3_Template
+ * Template
  *
  * Template class used to render views
  */
-class P3_Template
+
+namespace P3;
+
+class Template
 {
 	/* Attributes */
 	const ATTR_CONTENT_TYPE           = 1;
@@ -57,7 +60,7 @@ class P3_Template
 		$this->_routing_data = $routing_data;
 
 		if(empty($path)) {
-			$path = P3_APP_PATH.'/views';
+			$path = \P3\APP_PATH.'/views';
 		}
 
 		$this->_path = realpath($path);
@@ -136,7 +139,7 @@ class P3_Template
 		$file = $this->_path.'/'.$page;
 
 		if(!is_readable($file))
-			throw new P3_Exception('Template "%s" is not readable', array($file));
+			throw new Exception('Template "%s" is not readable', array($file));
 
 		extract($this->_vars);
 		try{
@@ -148,7 +151,7 @@ class P3_Template
 				$rendered = $content;
 			} else {
 				ob_start();
-				include(P3_APP_PATH.'/layouts/'.$this->_layout);
+				include(APP_PATH.'/layouts/'.$this->_layout);
 				$rendered = ob_get_clean();
 			}
 

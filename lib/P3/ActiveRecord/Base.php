@@ -15,7 +15,9 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-abstract class P3_Model_DB extends P3_Model_Base
+namespace P3\ActiveRecord;
+
+abstract class Base extends \P3\Model\Base
 {
 //Attributes
 	const ATTR_ATTACHMENT_PATH = 1;
@@ -115,7 +117,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	/**
 	 * Database for models to use
 	 *
-	 * @var P3_DB
+	 * @var DB
 	 */
 	public static $_db = null;
 
@@ -139,7 +141,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * Note: This is only for ManyToMany relationships
 	 *
-	 * @param P3_Model_DB $related_model
+	 * @param Model_DB $related_model
 	 * @param array $options Options
 	 */
 	public function addModelToMany($related_model, array $options = array())
@@ -148,7 +150,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
-					P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
+					Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
 			}
 		}
 	}
@@ -181,7 +183,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$path_type = is_null($path_type) ? self::ATTACHMENT_PATH_SYSTEM : $path_type;
 
 		$opts = static::$_hasAttachment[$attachment];
-		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(P3_ROOT, '/') : '';
+		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(ROOT, '/') : '';
 		$path .= rtrim($opts['path'], '/').'/'.$this->id().'/'.$this->_data[$opts['field']];
 
 		return $path;
@@ -228,7 +230,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * @param string $model_name Name of model to build
 	 * @param array $record_array Array of field/vals for new model
-	 * @return P3_Model_DB
+	 * @return Model_DB
 	 */
 	public function build($model_name, array $record_array = array())
 	{
@@ -260,7 +262,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 				$pk = $this->_data[self::pk()];
 
 				/* This looks rough, but all it does is binds a save handler to the returning model (To insert the join record upon save) */
-				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	P3_Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
+				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
 			}
 		}
 	}
@@ -308,7 +310,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		$class = get_class($this);
 
 		foreach($class::$_hasAttachment as $accsr => $opts) {
-			$dir = P3_ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
+			$dir = ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
 			if(is_dir($dir)) {
 				$objects = scandir($dir);
 				foreach($objects as $object) {
@@ -461,7 +463,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	/**
 	 * Removes passed model from Many-to-Many relationship
 	 *
-	 * @param P3_Model_DB $related_model
+	 * @param Model_DB $related_model
 	 */
 	public function removeModelFromMany($related_model)
 	{
@@ -536,12 +538,12 @@ abstract class P3_Model_DB extends P3_Model_Base
 					break;
 				}
 
-				$path = P3_ROOT.'/htdocs'.$opts['path'];
+				$path = ROOT.'/htdocs'.$opts['path'];
 
 				if(!is_dir($path)) {
 					$ret = false;
 					$this->delete();
-					throw new P3_Exception("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
+					throw new Exception("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
 				}
 
 				$path .= '/'.$this->id();
@@ -697,7 +699,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	 *
 	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
 	 * @param array $options List of options for the query
-	 * @return P3_Model_DB
+	 * @return Model_DB
 	 */
 	public static function find($where, array $options = array())
 	{
@@ -732,7 +734,8 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 
 		$stmnt = static::db()->query($sql);
-		$stmnt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
+		$stmnt->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
+
 
 		return $only_one ? $stmnt->fetch() : $stmnt->fetchAll();
 	}
@@ -740,7 +743,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 	/**
 	 * Gets or Sets Database to use for models
 	 *
-	 * @param P3_DB $db
+	 * @param DB $db
 	 * @return mixed Returns Database object if get()
 	 */
 	public static function db($db = null)
@@ -859,7 +862,7 @@ abstract class P3_Model_DB extends P3_Model_Base
 		}
 
 		if($class != null) {
-			P3_Loader::loadModel($class);
+			Loader::loadModel($class);
 
 
 			$value = $class::find($where, array("one" => $one));

@@ -5,7 +5,9 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-class P3_Controller_CLI extends P3_Controller_Abstract
+namespace P3\Controller;
+
+class CLI extends Base
 {
 	/**
 	 * Cli Indexer (Overidable if not wanted)

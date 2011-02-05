@@ -5,7 +5,10 @@
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class P3_Helper {
+
+namespace P3;
+
+class Helper {
 	protected $_opts = array();
 
 	public function  __construct(array $options = array())

@@ -6,7 +6,7 @@
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
-abstract class html extends P3_Helper
+abstract class html extends P3\Helper
 {
 	/**
 	 * Array of elements that close with '/>' instead of '>'

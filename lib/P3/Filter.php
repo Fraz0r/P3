@@ -10,7 +10,10 @@
  *
  * The filter class is an OOP wrapper for PHP's filter extension
  */
-class P3_Filter
+
+namespace P3;
+
+class Filter
 {
 	// <editor-fold defaultstate="collapsed" desc="Constants">
 	const INPUT_POST = 0;
@@ -79,7 +82,7 @@ class P3_Filter
 	public function  __construct($input = null)
 	{
 		if(!extension_loaded('filter'))
-			throw new P3_Exception('P3_Filters Require PHP\'s Fitler Extension', null);
+			throw new Exception('P3 Filters Require PHP\'s Fitler Extension', null);
 
 		if($input == null) {
 			$input = self::INPUT_REQUEST;

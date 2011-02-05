@@ -5,7 +5,9 @@
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
 
-class P3_Model_Base {
+namespace P3\Model;
+
+abstract class Base {
 	/**
 	 * List of field aliases.  Ex: array("fname" => "first_name")
 	 *
@@ -115,7 +117,7 @@ class P3_Model_Base {
 			$field = (!is_array($opts) ? $opts : $k);
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be a valid email address';
 
-			if(FALSE === filter_var($this->_data[$field], P3_Filter::FILTER_VALIDATE_EMAIL)) {
+			if(FALSE === filter_var($this->_data[$field], Filter::FILTER_VALIDATE_EMAIL)) {
 				$flag = false;
 				$this->_addError($field, sprintf($msg, str::toHuman($field)));
 			}
@@ -124,7 +126,7 @@ class P3_Model_Base {
 		/* length (REQUIRES options) */
 		foreach(static::$_validatesLength as $k => $opts) {
 			if(!is_array($opts) || !count($opts)) {
-				throw new P3_Exception('_validatesLength requires options', array(), 500);
+				throw new Exception('_validatesLength requires options', array(), 500);
 			}
 
 			$field = $k;
@@ -224,7 +226,7 @@ class P3_Model_Base {
 		$funcs = $this->{'_'.$event};
 
 		if(is_null($funcs))
-			throw new P3_Exception("'%s' is not a bindable Event", array($event));
+			throw new Exception("'%s' is not a bindable Event", array($event));
 
 		foreach($funcs as $func)
 			$func($this);
