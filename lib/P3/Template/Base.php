@@ -5,9 +5,9 @@
  * Template class used to render views
  */
 
-namespace P3;
+namespace P3\Template;
 
-class Template
+class Base
 {
 	/* Attributes */
 	const ATTR_CONTENT_TYPE           = 1;
@@ -139,7 +139,7 @@ class Template
 		$file = $this->_path.'/'.$page;
 
 		if(!is_readable($file))
-			throw new Exception('Template "%s" is not readable', array($file));
+			throw new Exception\ViewException('Template "%s" is not readable', array($file));
 
 		extract($this->_vars);
 		try{
@@ -151,7 +151,7 @@ class Template
 				$rendered = $content;
 			} else {
 				ob_start();
-				include(APP_PATH.'/layouts/'.$this->_layout);
+				include(\P3\APP_PATH.'/layouts/'.$this->_layout);
 				$rendered = ob_get_clean();
 			}
 

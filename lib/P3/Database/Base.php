@@ -1,8 +1,8 @@
 <?php
 
-namespace P3;
+namespace P3\Database;
 
-class DB extends \PDO
+class Base extends \PDO
 {
 	public function __construct(array $config, array $options = array())
 	{

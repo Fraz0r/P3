@@ -82,7 +82,7 @@ class Filter
 	public function  __construct($input = null)
 	{
 		if(!extension_loaded('filter'))
-			throw new Exception('P3 Filters Require PHP\'s Fitler Extension', null);
+			throw new Exception\FilterException('P3 Filters Require PHP\'s Fitler Extension', null);
 
 		if($input == null) {
 			$input = self::INPUT_REQUEST;

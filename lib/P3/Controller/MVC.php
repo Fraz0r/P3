@@ -57,7 +57,7 @@ class MVC extends Base
 	/**
 	 * Template to use for rendering
 	 *
-	 * @var Template
+	 * @var \P3\Template\Base
 	 */
 	protected $_view;
 
@@ -85,7 +85,7 @@ class MVC extends Base
 			$c = $this->getAttribute(self::ATTR_TEMPLATE_CLASS);
 			$this->_view = new $c($routing_data);
 		} else {
-			$this->_view = new \P3\Template($routing_data);
+			$this->_view = new \P3\Template\Base($routing_data);
 		}
 
 		/* Set our layout */

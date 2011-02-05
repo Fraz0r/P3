@@ -100,13 +100,13 @@ class Loader
 	public static function loadBootstrap($file = null){
 		if(empty($file)){
 			if(!defined('\P3\APP_PATH'))
-				throw new Exception('APP_PATH not defined, cannot locate bootstrap.');
+				throw new Exception\LoaderException('APP_PATH not defined, cannot locate bootstrap.');
 			else
 				$file = APP_PATH.'/bootstrap.php';
 		}
 
 		if(!is_readable($file))
-			throw new Exception('Unable to load bootstrap file "%s"', array($file));
+			throw new Exception\LoaderException('Unable to load bootstrap file "%s"', array($file));
 
 		require($file);
 	}
@@ -137,11 +137,11 @@ class Loader
 		if(is_readable($path.$name.'_controller.php')) {
 			include_once($path.$name.'_controller.php');
 		} else {
-			throw new Exception('The controller "%s" failed to load', array($class), 404);
+			throw new Exception\LoaderException('The controller "%s" failed to load', array($class), 404);
 		}
 
 		if(!self::classExists($class)) {
-			throw new Exception('The controller "%s" failed to load', array($class), 500);
+			throw new Exception\LoaderException('The controller "%s" failed to load', array($class), 500);
 		}
 
 		return new $class($routing_data);
@@ -169,7 +169,7 @@ class Loader
 		 *  If class still doesn't exist, we have a problem
 		 */
 		if(!class_exists($class, false) && !interface_exists($class, false))
-			throw new Exception('The class "%s" failed to load', array($class));
+			throw new Exception\LoaderException('The class "%s" failed to load', array($class));
 
 	}
 
@@ -208,18 +208,18 @@ class Loader
 	 */
 	public static function loadHelper($helper)
 	{
-		$path = dirname(__FILE__).'/Helpers/'.$helper.'.php';
+		$path = dirname(__FILE__).'/Helper/helpers/'.$helper.'.php';
 
 		if(!is_readable($path)) {
-			self::loadClass('\P3\Exception');
-			throw new Exception('Couldn\'t read Helper "%s" into the system', array($helper));
+			self::loadClass('\P3\Exception\LoaderException');
+			throw new Exception\LoaderException('Couldn\'t read Helper "%s" into the system', array($helper));
 		}
 
 		require_once($path);
 
 		if(!self::classExists($helper)) {
-			self::loadClass('\P3\Exception');
-			throw new Exception('Couldn\'t read Helper "%s" into the system', array($helper));
+			self::loadClass('\P3\Exception\LoaderException');
+			throw new Exception\LoaderException('Couldn\'t read Helper "%s" into the system', array($helper));
 		}
 
 	}
@@ -238,9 +238,9 @@ class Loader
 
 			$path = APP_PATH.'/models/'.$model.'.php';
 
-			self::loadClass('\P3\Exception');
+			self::loadClass('\P3\Exception\LoaderException');
 			if(!is_readable($path)) {
-				throw new Exception('Couldn\'t read Model "%s" into the system', array($model));
+				throw new Exception\LoaderException('Couldn\'t read Model "%s" into the system', array($model));
 			}
 
 			require_once($path);
@@ -255,12 +255,12 @@ class Loader
 	{
 		if(is_null($file)) {
 			if(!defined('\P3\APP_PATH'))
-				throw new Exception('APP_PATH not defined, cannot locate routes.');
+				throw new Exception\LoaderException('APP_PATH not defined, cannot locate routes.');
 			else
 				$file = APP_PATH.'/routes.php';
 		}
 		if(!is_readable($file))
-			throw new Exception('Unable to load routes file "%s"', array($file));
+			throw new Exception\LoaderException('Unable to load routes file "%s"', array($file));
 
 		require($file);
 	}
@@ -314,12 +314,12 @@ class Loader
 	 */
 	public static function registerAutoload($class = '\P3\Loader'){
 		if(!function_exists('spl_autoload_register'))
-			throw new Exception('spl_autoload does not exist in this PHP Installation');
+			throw new Exception\LoaderException('spl_autoload does not exist in this PHP Installation');
 
 		self::loadClass($class);
 
 		if(!in_array('autoload', get_class_methods($class)))
-			throw new Exception('The class "%s" does not have an autoload() method', array($class));
+			throw new Exception\LoaderException('The class "%s" does not have an autoload() method', array($class));
 
 		/* Regiser AutoLoad funtion */
 		spl_autoload_register(array($class, 'autoload'));

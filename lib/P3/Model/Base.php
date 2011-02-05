@@ -126,7 +126,7 @@ abstract class Base {
 		/* length (REQUIRES options) */
 		foreach(static::$_validatesLength as $k => $opts) {
 			if(!is_array($opts) || !count($opts)) {
-				throw new Exception('_validatesLength requires options', array(), 500);
+				throw new Exception\ModelException('_validatesLength requires options', array(), 500);
 			}
 
 			$field = $k;
@@ -226,7 +226,7 @@ abstract class Base {
 		$funcs = $this->{'_'.$event};
 
 		if(is_null($funcs))
-			throw new Exception("'%s' is not a bindable Event", array($event));
+			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
 
 		foreach($funcs as $func)
 			$func($this);

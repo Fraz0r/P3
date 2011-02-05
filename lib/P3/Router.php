@@ -278,7 +278,7 @@ class Router {
 
 		/* Raise Exception if we have no controller to route too */
 		if(is_null($controller)) {
-			throw new Exception("Router:  No controller was matched in the route.", '', 501);
+			throw new Exception\RoutingException("Router:  No controller was matched in the route.", '', 501);
 		}
 
 		return array(

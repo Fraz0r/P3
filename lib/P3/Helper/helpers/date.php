@@ -1,6 +1,6 @@
 <?php
 
-abstract class date extends P3\Helper
+abstract class date extends P3\Helper\Base
 {
 	private static $_months = array(
 		'January',

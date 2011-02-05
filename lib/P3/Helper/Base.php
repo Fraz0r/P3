@@ -6,9 +6,9 @@
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
 
-namespace P3;
+namespace P3\Helper;
 
-class Helper {
+class Base {
 	protected $_opts = array();
 
 	public function  __construct(array $options = array())

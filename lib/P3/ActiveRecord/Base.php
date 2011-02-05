@@ -543,7 +543,7 @@ abstract class Base extends \P3\Model\Base
 				if(!is_dir($path)) {
 					$ret = false;
 					$this->delete();
-					throw new Exception("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
+					throw new Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
 				}
 
 				$path .= '/'.$this->id();

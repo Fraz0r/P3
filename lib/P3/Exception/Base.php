@@ -1,8 +1,8 @@
 <?php
 
-namespace P3;
+namespace P3\Exception;
 
-class Exception extends \Exception
+class Base extends \Exception
 {
 	public function __construct($msg, $args = array(), $code = 0){
 		parent::__construct(vsprintf($msg, $args), $code);

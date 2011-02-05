@@ -6,7 +6,7 @@
 
 use P3\Router as Router;
 
-class form extends P3\Helper
+class form extends P3\Helper\Base
 {
 	/**
 	 * Action
