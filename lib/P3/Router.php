@@ -64,7 +64,7 @@ class Router {
 	 */
 	public static function dispatch($routing_data = null)
 	{
-		$routing_data = !is_array($routing_data) ? self::parseRoute($path) : $routing_data;
+		$routing_data = !is_array($routing_data) ? self::parseRoute($routing_data) : $routing_data;
 		self::$_dispatchedRoute = $routing_data;
 		Loader::loadController($routing_data['controller'], $routing_data);
 	}
@@ -262,7 +262,7 @@ class Router {
 			/* If we got this far, the route matches */
 			$action     = !is_null($r->options['action'])     ? $r->options['action']     : $action;
 			$controller = !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
-			$dir        = !is_null($r->options['dir'])        ? $r->options['dir']        : $dir;
+			$dir        = isset($r->options['dir']) && !is_null($r->options['dir']) ? $r->options['dir'] : $dir;
 
 			/* Default to index if we have no action, to show if we have no action but an id */
 			if(empty($action)) {

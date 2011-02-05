@@ -18,7 +18,7 @@ class DB extends \PDO
 
 	public function buildDSN(array $config)
 	{
-		return $config['driver'].':'.'host='.$config['host'].((!empty($config['port'])) ? (';port='.$config['port']) : '').';dbname='.$config['database'];
+		return $config['driver'].':'.'host='.(isset($config['host']) ? $config['host'] : 'localhost').((!empty($config['port'])) ? (';port='.$config['port']) : '').';dbname='.$config['database'];
 	}
 
 

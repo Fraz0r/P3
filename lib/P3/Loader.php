@@ -22,7 +22,7 @@ class Loader
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
 			if(substr($class, -10) == "Controller") {
-				require_once(APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'.php');
+				require_once(APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'_controller.php');
 			} else {
 				self::loadModel($class);
 			}
@@ -126,6 +126,7 @@ class Loader
 		$class = \str::toCamelCase($controller, true).'Controller';
 
 
+
 		if(self::classExists($class)) return;
 
 		$path = APP_PATH.'/controllers/';
@@ -133,8 +134,8 @@ class Loader
 			$path .= 'cli/';
 		}
 
-		if(is_readable($path.$name.'.php')) {
-			include_once($path.$name.'.php');
+		if(is_readable($path.$name.'_controller.php')) {
+			include_once($path.$name.'_controller.php');
 		} else {
 			throw new Exception('The controller "%s" failed to load', array($class), 404);
 		}
