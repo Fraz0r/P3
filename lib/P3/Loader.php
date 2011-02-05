@@ -75,14 +75,6 @@ class Loader
 	}
 
 	/**
-	 * Returns either the basic loader, or Cli_Loader (If Cli Mode)
-	 */
-	public static function getLoader()
-	{
-		return self::isCli() ? 'Cli_Loader' : 'Loader';
-	}
-
-	/**
 	 * Returns true if being run from terminal, false if from apache
 	 *
 	 * @return bool is being run from terminal
@@ -130,9 +122,6 @@ class Loader
 		if(self::classExists($class)) return;
 
 		$path = APP_PATH.'/controllers/';
-		if(self::isCli()) {
-			$path .= 'cli/';
-		}
 
 		if(is_readable($path.$name.'_controller.php')) {
 			include_once($path.$name.'_controller.php');
