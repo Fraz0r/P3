@@ -587,14 +587,16 @@ abstract class Base extends \P3\Model\Base
 		$flag = parent::valid();
 
 		/* unique */
-		foreach(static::$_validatesUnique as $k => $opts) {
-			$field = (!is_array($opts) ? $opts : $k);
-			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
+		if($this->isNew()) {
+			foreach(static::$_validatesUnique as $k => $opts) {
+				$field = (!is_array($opts) ? $opts : $k);
+				$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
 
-			$class = get_class($this);
-			if(FALSE !== $class::find($field.' = \''.$this->_data[$field].'\'', array('one' => true))) {
-				$flag = false;
-				$this->_addError($field, sprintf($msg, $field));
+				$class = get_class($this);
+				if(FALSE !== $class::find($field.' = \''.$this->_data[$field].'\'', array('one' => true))) {
+					$flag = false;
+					$this->_addError($field, sprintf($msg, $field));
+				}
 			}
 		}
 
