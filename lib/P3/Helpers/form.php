@@ -51,8 +51,7 @@ class form extends P3\Helper
 	{
 		$this->_model   = $model;
 
-		foreach($options as $k => $v)
-			$this->_options[$k] = $v;
+		$this->_options = $options;
 
 		$this->_inspect();
 
@@ -247,9 +246,14 @@ class form extends P3\Helper
 	 * @param string $display Value for button
 	 * @param array $options
 	 */
-	public function submitField($display, array $options = array())
+	public function submitField($display, $submitting_text = null, array $options = array())
 	{
 		$options['value'] = $display;
+		if($submitting_text != null) {
+			$js = "$(this).val('{$submitting_text}'); this.disabled = true; this.form.submit();";
+			$options['onclick'] = isset($options['onclick']) ? $js.' '.$options['onclick'] : $js;
+		}
+
 		echo html::_t('input',
 				array_merge(array(
 					'type'  => 'submit',
@@ -279,8 +283,9 @@ class form extends P3\Helper
 
 			if(!isset($this->_options['onsubmit']))
 				$this->_options['onsubmit'] = str_replace('"', '\'', $js);
-			else
+			else {
 				$this->_options['onsubmit'] = $this->_options['onsubmit'].' '.str_replace('"', '\'', $js);
+			}
 		}
 
 		self::tag($this->_getUri(), $this->_options);
