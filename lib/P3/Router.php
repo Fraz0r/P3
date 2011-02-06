@@ -8,7 +8,7 @@
 
 namespace P3;
 
-class Router {
+abstract class Router {
 
 	/**
 	 * Container for dispatched route

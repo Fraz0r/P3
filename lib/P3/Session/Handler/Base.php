@@ -8,5 +8,5 @@
 
 namespace P3\Session\Handler;
 
-class Base { }
+abstract class Base { }
 ?>
