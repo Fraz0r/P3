@@ -5,9 +5,9 @@
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
 
-namespace P3\Controller;
+namespace P3\ActionController;
 
-class MVC extends Base
+class Base extends \P3\Controller\Base
 {
 	/* Attributes */
 	const ATTR_TEMPLATE_CLASS = 1;
