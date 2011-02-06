@@ -45,36 +45,6 @@ class Loader
 	}
 
 	/**
-	 * Create a link based from (controller, action)
-	 * Including Defined Path Prefix
-	 *
-	 * @param array $location
-	 * @return string
-	 */
-	public static function createURI(array $location = null, array $arguments = null, array $get = array())
-	{
-		if($location == null) {
-			return '/'.PATH_PREFIX;
-		} else {
-			$controller = $location[0];
-			if(count($location) == 2) {
-				$action = $location[1].'/';
-			} else {
-				$action = '';
-			}
-
-			if(count($get)) {
-				$get_args = array();
-				foreach($get as $k => $v) {
-					$get_args[] = "{$k}={$v}";
-				}
-			}
-
-			return '/'.PATH_PREFIX.$controller.'/'.$action.(($arguments != null) ? implode('/', $arguments) : '').((!empty($get_args) ? '?'.implode('&', $get_args) : ''));
-		}
-	}
-
-	/**
 	 * Returns true if being run from terminal, false if from apache
 	 *
 	 * @return bool is being run from terminal
@@ -270,30 +240,6 @@ class Loader
 		$path = $dir.DIRECTORY_SEPARATOR.$file;
 
 		return $path;
-	}
-
-	/**
-	 * Redirects to location
-	 *
-	 * @param string,array(controller, action) $location
-	 */
-	public static function redirect($location = '', $hash = null)
-	{
-		$loc = '/'.PATH_PREFIX;
-		if(is_array($location)) {
-			$loc .= $location[0].'/';
-			if(!empty($location[1])) {
-				$loc .= $location[1].'/';
-			}
-		} else {
-			$loc .= ltrim($location, '/');
-		}
-
-		if($hash !== null) {
-			$loc .= '#'.$hash;
-		}
-
-		header("Location: {$loc}");
 	}
 
 	/**
