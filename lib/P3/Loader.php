@@ -138,7 +138,7 @@ class Loader
 	public static function loadEnv(array $options = array())
 	{
 		$set_include_path = isset($options['set_include_path']) ? $options['set_include_path'] : true;
-		$start_session    = isset($options['start_session']) ? $options['start_session'] : true;
+		$start_session    = isset($options['start_session']) ? $options['start_session'] : false;
 
 
 		/* Attempt to set up app paths if we dont have them */
@@ -152,8 +152,7 @@ class Loader
 		/* Set up Auto Loading */
 		self::registerAutoload();
 
-		if($start_session)
-			Session::singleton();
+		if($start_session) Session\Base::singleton();
 
 		/* Load Bootstrap */
 		self::loadBootstrap();
