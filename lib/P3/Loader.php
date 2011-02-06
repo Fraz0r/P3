@@ -8,7 +8,7 @@
 
 namespace P3;
 
-class Loader
+final class Loader
 {
 	/**
 	 * Magic AutoLoad function attems to Load class when
