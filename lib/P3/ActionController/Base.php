@@ -7,7 +7,7 @@
 
 namespace P3\ActionController;
 
-class Base extends \P3\Controller\Base
+abstract class Base extends \P3\Controller\Base
 {
 	/* Attributes */
 	const ATTR_TEMPLATE_CLASS = 1;
