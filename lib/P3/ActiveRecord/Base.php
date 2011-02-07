@@ -524,7 +524,7 @@ abstract class Base extends \P3\Model\Base
 	public function saveAttachments()
 	{
 		$class = get_class($this);
-		$model_field = str::fromCamelCase($class);
+		$model_field = \str::fromCamelCase($class);
 
 		foreach(static::$_hasAttachment as $accsr => $opts) {
 			$field = $opts['field'];
