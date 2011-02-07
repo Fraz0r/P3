@@ -117,7 +117,7 @@ abstract class Base {
 			$field = (!is_array($opts) ? $opts : $k);
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be a valid email address';
 
-			if(FALSE === filter_var($this->_data[$field], Filter::FILTER_VALIDATE_EMAIL)) {
+			if(FALSE === filter_var($this->_data[$field], \P3\Filter::FILTER_VALIDATE_EMAIL)) {
 				$flag = false;
 				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
