@@ -179,7 +179,7 @@ abstract class Router {
 	public static function parseRoute($path_str = null)
 	{
 		//header("Content-type: text/plain");
-		$path_str = !is_null($path_str) ? $path_str : $_SERVER['REQUEST_URI'];
+		$path_str = !is_null($path_str) ? $path_str : (Loader::isCli() ? '/' : $_SERVER['REQUEST_URI']);
 
 		/* Tokenize path for comparing */
 		$path = self::tokenizePath($path_str);

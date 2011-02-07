@@ -822,6 +822,7 @@ abstract class Base extends \P3\Model\Base
 
 			if(isset(static::$_hasMany[$name])) {
 				$class = isset(static::$_hasMany[$name]['class']) ? static::$_hasMany[$name]['class'] : $name;
+				$order = isset(static::$_hasMany[$name]['class']) ? static::$_hasMany[$name]['class'] : $name;
 
 				if(isset(static::$_hasMany[$name]['fk'])) {
 					$where = static::$_hasMany[$name]['fk'].'='.$this->_data[static::pk()];
