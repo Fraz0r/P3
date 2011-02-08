@@ -74,7 +74,6 @@ class Base extends \P3\Model\Base
 		static::_prepareMail($msg, $vars);
 
 		foreach(static::$_recipients as $to) {
-			var_dump(static::$_body);
 			mail($to, static::$_subject, static::$_body, static::$_headers);
 		}
 	}

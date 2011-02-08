@@ -275,7 +275,7 @@ abstract class Base {
 
 	public function  __toString()
 	{
-		$str = '#{'.get_class($this).':P3_Model ';
+		$str = '#{'.$this->_class.':P3_Model ';
 		$attrs = array();
 		foreach($this->_data as $k => $v) $attrs[] = "{$k}: {$v}";
 		$str .= implode(', ', $attrs).'}';

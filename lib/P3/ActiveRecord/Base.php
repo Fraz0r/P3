@@ -183,7 +183,7 @@ abstract class Base extends \P3\Model\Base
 		$path_type = is_null($path_type) ? self::ATTACHMENT_PATH_SYSTEM : $path_type;
 
 		$opts = static::$_hasAttachment[$attachment];
-		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(ROOT, '/') : '';
+		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(\P3\ROOT, '/') : '';
 		$path .= rtrim($opts['path'], '/').'/'.$this->id().'/'.$this->_data[$opts['field']];
 
 		return $path;
@@ -307,10 +307,10 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function destroyAttachments()
 	{
-		$class = get_class($this);
+		$class = $this->_class;
 
 		foreach($class::$_hasAttachment as $accsr => $opts) {
-			$dir = ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
+			$dir = \P3\ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
 			if(is_dir($dir)) {
 				$objects = scandir($dir);
 				foreach($objects as $object) {
@@ -347,7 +347,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function getController()
 	{
-		return empty($this->controller) ? get_class($this).'s' : $this->controller;
+		return empty($this->controller) ? $this->_class.'s' : $this->controller;
 	}
 
 	/**
@@ -523,7 +523,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function saveAttachments()
 	{
-		$class = get_class($this);
+		$class = $this->_class;
 		$model_field = \str::fromCamelCase($class);
 
 		foreach(static::$_hasAttachment as $accsr => $opts) {
@@ -538,7 +538,7 @@ abstract class Base extends \P3\Model\Base
 					break;
 				}
 
-				$path = ROOT.'/htdocs'.$opts['path'];
+				$path = \P3\ROOT.'/htdocs'.$opts['path'];
 
 				if(!is_dir($path)) {
 					$ret = false;
@@ -592,7 +592,7 @@ abstract class Base extends \P3\Model\Base
 				$field = (!is_array($opts) ? $opts : $k);
 				$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
 
-				$class = get_class($this);
+				$class = $this->_class;
 				if(FALSE !== $class::find($field.' = \''.$this->_data[$field].'\'', array('one' => true))) {
 					$flag = false;
 					$this->_addError($field, sprintf($msg, $field));
@@ -619,13 +619,14 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
-			$fields[] = $f;
-			$values[] = "'$v'";
+			$fields[] = "{$f}";
+			$values[] = ":{$f}";
+			$ex[":{$f}"] = $v;
 		}
 
 		$sql .= '('.implode(',', $fields).') VALUES('.implode(',', $values).')';
 		$stmnt = static::db()->prepare($sql);
-		$stmnt->execute($values);
+		$stmnt->execute($ex);
 
 		$this->{$pk} = static::db()->lastInsertId();
 		return((bool)$stmnt->rowCount());

@@ -189,6 +189,15 @@ class form extends P3\Helper\Base
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
+	public function stateSelect($field, array $options = array())
+	{
+		$val_format = isset($options['valFormat']) ? $options['valFormat'] : geo::STATE_FORMAT_ABR;
+		$disp_format = isset($options['dispFormat']) ? $options['dispFormat'] : geo::STATE_FORMAT_FULL;
+
+		$select_options = array_combine(geo::getStates($val_format), geo::getStates($disp_format));
+		$this->select($field, $select_options, $options);
+	}
+
 	/**
 	 * Renders <textarea> for field in model
 	 *
@@ -273,8 +282,8 @@ class form extends P3\Helper\Base
 			$validate = true;
 		}
 
-		if($validate) {
-			$class = $this->_modelClass;
+		$class = $this->_modelClass;
+		if($validate && count($class::$_validatesPresence)) {
 			$js    = "var flag = true; ";
 			$js    .= "var req = ".json_encode($class::$_validatesPresence).'; ';
 			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ flag = false; $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
@@ -289,6 +298,11 @@ class form extends P3\Helper\Base
 		}
 
 		self::tag($this->_getUri(), $this->_options);
+	}
+
+	public function setFieldName($name)
+	{
+		$this->_modelField = $name;
 	}
 
 //Private
