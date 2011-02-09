@@ -7,6 +7,8 @@
  */
 final class P3
 {
+	public static $VERSION = '0.9.0';
+
 	private static $_env = null;
 
 	public static function getEnv()
