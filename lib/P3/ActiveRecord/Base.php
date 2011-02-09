@@ -624,7 +624,7 @@ abstract class Base extends \P3\Model\Base
 			$ex[":{$f}"] = $v;
 		}
 
-		$sql .= '('.implode(',', $fields).') VALUES('.implode(',', $values).')';
+		$sql .= '('.implode(', ', $fields).') VALUES('.implode(', ', $values).')';
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($ex);
 
