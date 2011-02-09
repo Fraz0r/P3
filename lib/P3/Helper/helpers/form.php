@@ -284,9 +284,10 @@ class form extends P3\Helper\Base
 
 		$class = $this->_modelClass;
 		if($validate && count($class::$_validatesPresence)) {
+			$scrollError = (isset($this->_options['errorScrolling']) && $this->_options['errorScrolling']) ? true : false;
 			$js    = "var flag = true; ";
-			$js    .= "var req = ".json_encode($class::$_validatesPresence).'; ';
-			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ flag = false; $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
+			$js    .= "var req = ".json_encode($class::$_validatesPresence).'; var e = 0; ';
+			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ e++; flag = false; ".(($scrollError) ? "if(e==1) $.scrollTo($(this.elements[1]), {duration: 1000});" : "")." $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
 			$js    .= "if(!flag) alert('Please fill in required fields (*)'); ";
 			$js    .= "return flag;";
 

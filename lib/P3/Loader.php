@@ -8,6 +8,7 @@
 
 namespace P3;
 
+require_once(dirname(__FILE__).'/P3.php');
 final class Loader
 {
 	/**
