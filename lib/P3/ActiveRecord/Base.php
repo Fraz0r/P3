@@ -543,7 +543,7 @@ abstract class Base extends \P3\Model\Base
 				if(!is_dir($path)) {
 					$ret = false;
 					$this->delete();
-					throw new Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
+					throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
 				}
 
 				$path .= '/'.$this->id();
@@ -613,13 +613,13 @@ abstract class Base extends \P3\Model\Base
 	protected  function _insert()
 	{
 		$pk = static::pk();
-		$sql = 'INSERT INTO '.static::$_table.' ';
+		$sql = 'INSERT INTO `'.static::$_table.'` ';
 		$fields = array();
 		$values = array();
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
-			$fields[] = "{$f}";
+			$fields[] = "`{$f}`";
 			$values[] = ":{$f}";
 			$ex[":{$f}"] = $v;
 		}

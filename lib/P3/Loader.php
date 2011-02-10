@@ -120,10 +120,19 @@ final class Loader
 		if(class_exists($class, false) || interface_exists($class, false))
 			return;
 
+
+		$path = self::getClassPath($class);
+
+
+		/**
+		 * Make sure File is readable before trying to include it
+		 */
+		if(!\is_readable($path)) throw new Exception\LoaderException("Path to class doesn't exist [%s]", array($path));
+
 		/**
 		 * Attempt to Load Class File
 		 */
-		include_once(self::getClassPath($class));
+		include_once($path);
 
 		/**
 		 *  If class still doesn't exist, we have a problem
@@ -145,6 +154,7 @@ final class Loader
 		/* Attempt to set up app paths if we dont have them */
 		if(!defined("P3\ROOT"))     define("P3\ROOT", realpath(dirname(__FILE__).'/../..'));
 		if(!defined("P3\APP_PATH")) define("P3\APP_PATH", ROOT.'/app');
+		if(!defined("P3\LIB_PATH")) define("P3\LIB_PATH", ROOT.'/lib');
 
 		/* Include lib */
 		if($set_include_path)
@@ -237,7 +247,7 @@ final class Loader
 		$file = ucfirst(\str::toCamelCase(array_pop($exp), true).'.php');
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
-		$path = $dir.DIRECTORY_SEPARATOR.$file;
+		$path = \P3\LIB_PATH.'/'.$dir.DIRECTORY_SEPARATOR.$file;
 
 		return $path;
 	}

@@ -12,5 +12,5 @@
 
 namespace P3\Exception;
 
-class LoaderException extends Base { }
+class LoaderException extends \P3\Exception\Base { }
 ?>
