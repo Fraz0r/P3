@@ -62,6 +62,7 @@ class Base
 		if(empty($path)) {
 			$path = \P3\APP_PATH.'/views';
 		}
+		if(!is_null($routing_data['namespace'])) $path .= '/'.$routing_data['namespace'];
 
 		$this->_path = realpath($path);
 
@@ -113,7 +114,6 @@ class Base
 			header("Content-type: {$content_type}");
 		}
 
-
 		echo $display;
 	}
 
@@ -139,7 +139,7 @@ class Base
 		$file = $this->_path.'/'.$page;
 
 		if(!is_readable($file))
-			throw new Exception\ViewException('Template "%s" is not readable', array($file));
+			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
 
 		extract($this->_vars);
 		try{

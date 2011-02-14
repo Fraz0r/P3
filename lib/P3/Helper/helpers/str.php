@@ -48,6 +48,7 @@ class str
    * @return string $str translated into camel caps
    */
   public static function toCamelCase($str, $capitalise_first_char = false) {
+	if(strlen($str) < 1) return $str;
     if($capitalise_first_char) {
       $str[0] = strtoupper($str[0]);
     }

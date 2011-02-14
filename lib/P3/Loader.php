@@ -94,6 +94,8 @@ final class Loader
 
 		$path = APP_PATH.'/controllers/';
 
+		if(!is_null($routing_data['namespace'])) $path .= $routing_data['namespace'].'/';
+
 		if(is_readable($path.$name.'_controller.php')) {
 			include_once($path.$name.'_controller.php');
 		} else {

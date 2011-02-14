@@ -49,7 +49,7 @@ abstract class Router {
 		$o->options = $options;
 		$o->specific_options = $specific_options;
 
-		if(is_null(self::$_globalRoute) && (FALSE !== strpos($path, ':controller') && FALSE !== strpos($path, ':action'))) {
+		if(is_null(self::$_globalRoute) && (!isset($options['namespace']) && FALSE === strpos($path, ':namespace') && FALSE !== strpos($path, ':controller') && FALSE !== strpos($path, ':action'))) {
 			self::$_globalRoute = $o;
 		}
 
@@ -185,7 +185,7 @@ abstract class Router {
 		$path = self::tokenizePath($path_str);
 
 		/* Setup routing vars */
-		$dir        = "";
+		$namespace  = null;
 		$controller = null;
 		$action     = null;
 		$args       = array();
@@ -216,17 +216,20 @@ abstract class Router {
 			/* Potential match, loop through tokens and verify */
 			$j = 0;
 			for($i = 0; $i < count($route[2]) - 1; $i++) {
+
 				switch($route[2][$i]) {
 					case ':controller':
 						$controller = $path[2][$j];
 						break;
 					case ':action':
+						if(!isset($path[2][$j])) continue;
 						$action = $path[2][$j];
 						break;
-					case ':dir':
-						$dir = $path[2][$j];
+					case ':namespace':
+						$namespace = $path[2][$j];
 						break;
 					case ':id':
+						if(!isset($path[2][$j])) continue;
 						if(!intval($path[2][$j]) && $route[0][$j] == '[/:id]') {
 							$j--;
 							continue;
@@ -259,10 +262,13 @@ abstract class Router {
 			while($i < count($path[2]) -1 ) 
 				$args[$arg_c++] = $path[2][$i++];
 
+			/* This sucks, but for now it works */
+			$controller = strlen($controller) ? $controller : 'default';
+
 			/* If we got this far, the route matches */
-			$action     = isset($r->options['action'])    && !is_null($r->options['action'])     ? $r->options['action']     : $action;
+			$action     = isset($r->options['action'])     && !is_null($r->options['action'])     ? $r->options['action']     : $action;
 			$controller = isset($r->options['controller']) && !is_null($r->options['controller']) ? $r->options['controller'] : $controller;
-			$dir        = isset($r->options['dir'])       && !is_null($r->options['dir'])        ? $r->options['dir']        : $dir;
+			$namespace  = isset($r->options['namespace'])  && !is_null($r->options['namespace'])  ? $r->options['namespace']  : $namespace;
 
 			/* Default to index if we have no action, to show if we have no action but an id */
 			if(empty($action)) {
@@ -285,7 +291,7 @@ abstract class Router {
 			'controller' => $controller,
 			'action'     => $action,
 			'path'       => $path,
-			'dir'        => $dir,
+			'namespace'        => $namespace,
 			'args'       => $args
 		);
 	}

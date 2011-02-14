@@ -81,7 +81,7 @@ abstract class Base
 
 		/* Throw a 404 Error if the "page" wasn't found */
 		if(!method_exists($this, $this->_action))
-			throw new n(sprintf('Method "%s" not found in controller "%s"', $this->_action, $routing_data['controller']), 404);
+			throw new \P3\Exception\ControllerException(sprintf('Method "%s" not found in controller "%s"', $this->_action, $routing_data['controller']), 404);
 
 		/* Run the action, and store the output */
 		$this->_actionReturn = $this->{$this->_action}();
