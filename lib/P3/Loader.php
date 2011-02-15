@@ -96,10 +96,12 @@ final class Loader
 
 		if(!is_null($routing_data['namespace'])) $path .= $routing_data['namespace'].'/';
 
-		if(is_readable($path.$name.'_controller.php')) {
-			include_once($path.$name.'_controller.php');
+		$path = $path.$name.'_controller.php';
+
+		if(is_readable($path)) {
+			include_once($path);
 		} else {
-			throw new Exception\LoaderException('The controller "%s" failed to load', array($class), 404);
+			throw new Exception\LoaderException('[%s] is not readable or doesn\'t exist', array($path), 404);
 		}
 
 		if(!self::classExists($class)) {

@@ -41,7 +41,7 @@ class Parser
 			$ret[$file] = $bool;
 
 			if(!$bool) {
-				throw new P3_Exception('Unable to parse "%s" into the config', array($file));
+				throw new \P3\Exception\IOException('Unable to parse "%s" into the config', array($file));
 			} else {
 				$this->_config = array_merge($config, $this->_config);
 			}
