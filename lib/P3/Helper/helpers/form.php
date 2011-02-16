@@ -16,7 +16,7 @@ class form extends P3\Helper\Base
 
 	/**
 	 * Model
-	 * @var P3_Model_DB
+	 * @var P3\ActiveRecord\Base
 	 */
 	private $_model = null;
 
@@ -382,7 +382,7 @@ class form extends P3\Helper\Base
 	/**
 	 * Returns form helper for model
 	 *
-	 * @param P3_Model_DB $model
+	 * @param P3\ActiveRecord\Base $model
 	 * @param array $options
 	 * @param bool $print
 	 * @return form 

@@ -3,7 +3,7 @@
  * **REQUIRES PHP 5.3+ [Late Static Bindings]**
  *
  * Note:  This class Requires a PDO attached.
- *      Call P3_Model_DB::db() with a desired PDO or Extension
+ *      Call P3\ActiveRecord\Base::db() with a desired PDO or Extension
  *      prior to using Models.  [Bootstraps a good spot]
  *
  *       Belongs To:  $_belongsTo[accessor]  = (:class => Model, :fk => foreign_key)
@@ -141,7 +141,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * Note: This is only for ManyToMany relationships
 	 *
-	 * @param Model_DB $related_model
+	 * @param P3\ActiveRecord\Base $related_model
 	 * @param array $options Options
 	 */
 	public function addModelToMany($related_model, array $options = array())
@@ -230,7 +230,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $model_name Name of model to build
 	 * @param array $record_array Array of field/vals for new model
-	 * @return Model_DB
+	 * @return P3\ActiveRecord\Base
 	 */
 	public function build($model_name, array $record_array = array())
 	{
@@ -262,7 +262,7 @@ abstract class Base extends \P3\Model\Base
 				$pk = $this->_data[self::pk()];
 
 				/* This looks rough, but all it does is binds a save handler to the returning model (To insert the join record upon save) */
-				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	Model_DB::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
+				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
 			}
 		}
 	}
@@ -463,7 +463,7 @@ abstract class Base extends \P3\Model\Base
 	/**
 	 * Removes passed model from Many-to-Many relationship
 	 *
-	 * @param Model_DB $related_model
+	 * @param P3\ActiveRecord\Base $related_model
 	 */
 	public function removeModelFromMany($related_model)
 	{
@@ -702,7 +702,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
 	 * @param array $options List of options for the query
-	 * @return Model_DB
+	 * @return P3\ActiveRecord\Base
 	 */
 	public static function find($where, array $options = array())
 	{
