@@ -7,7 +7,7 @@
  */
 final class P3
 {
-	public static $VERSION = '0.9.2';
+	public static $VERSION = '0.9.3';
 
 	private static $_env = null;
 
