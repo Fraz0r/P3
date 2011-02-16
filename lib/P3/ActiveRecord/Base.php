@@ -740,7 +740,7 @@ abstract class Base extends \P3\Model\Base
 		$stmnt->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
 
 
-		return $only_one ? $stmnt->fetch() : $stmnt->fetchAll();
+		return $only_one ? $stmnt->fetch() : new Collection\Base($stmnt->fetchAll());
 	}
 
 	/**

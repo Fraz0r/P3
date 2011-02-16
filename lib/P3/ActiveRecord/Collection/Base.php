@@ -6,11 +6,11 @@
  */
 
 namespace P3\ActiveRecord\Collection;
-class Base extends \ArrayIterator
+class Base extends \ArrayObject
 {
-	public function __construct(array $array = array())
+	public function __construct($input)
 	{
-	 parent::__construct($array);
+		parent::__construct($input, \ArrayObject::STD_PROP_LIST, '\P3\ActiveRecord\Collection\Iterator');
 	}
 }
 ?>
