@@ -14,20 +14,41 @@ abstract class html extends P3\Helper\Base
 	 */
 	public static $_specialClose = array('base', 'input', 'link', 'img');
 
+	/**
+	 * @var array Array of script filepaths
+	 */
 	private static $_jsFiles = array();
+
+	/**
+	 * @var array Array of stylesheet filepaths
+	 */
 	private static $_cssFiles = array();
 
+	/**
+	 * Adds a stylesheet to helper
+	 *
+	 * @param tring $src href for stylesheet
+	 */
 	public static function addCss($src)
 	{
 		self::$_cssFiles[] = $src;
 	}
 
+	/**
+	 * Adds a script to helper
+	 *
+	 * @param tring $src src for script
+	 */
 	public static function addJs($src)
 	{
 		self::$_jsFiles[] = $src;
 	}
 
 	/**
+	 * Renders <base> tag using _SERVER superglobal
+	 *
+	 * @return void
+	 *
 	 * @todo Make base work in nested dirs
 	 */
 	public static function base()
@@ -36,6 +57,11 @@ abstract class html extends P3\Helper\Base
 		echo '<base href="'.$base.'" />'."\n";
 	}
 
+	/**
+	 * Renders base, styles, and scripts
+	 *
+	 * @return void
+	 */
 	public static function head()
 	{
 		self::base();
@@ -45,6 +71,8 @@ abstract class html extends P3\Helper\Base
 
 	/*
 	 * Renders scripts for controllers, use in <head>
+	 *
+	 * @return void
 	 */
 	public static function scripts()
 	{
@@ -57,6 +85,8 @@ abstract class html extends P3\Helper\Base
 
 	/*
 	 * Renders style links for controllers, use in <head>
+	 *
+	 * @return void
 	 */
 	public static function styles()
 	{
@@ -115,6 +145,13 @@ abstract class html extends P3\Helper\Base
 		return $options_str;
 	}
 
+	/**
+	 * Creates HTML tag (string) using passed tagName and html_attrs
+	 *
+	 * @param string $tagName HTML tag to create
+	 * @param array $html_attrs HTML attributes to add to tag
+	 * @return string Formatted HTML tag
+	 */
 	public static function _t($tagName, array $html_attrs = array())
 	{
 		$tagName = strtolower($tagName);
