@@ -189,6 +189,12 @@ class form extends P3\Helper\Base
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
+	/**
+	 * Renders a state drop down menu
+	 *
+	 * @param string $field Field in model to set value
+	 * @param array $options Options - valFormat (geo::STATE_FORMAT_*): format for <option> value.  dispFormat: format for display of <option>
+	 */
 	public function stateSelect($field, array $options = array())
 	{
 		$val_format = isset($options['valFormat']) ? $options['valFormat'] : geo::STATE_FORMAT_ABR;
