@@ -4,6 +4,12 @@ namespace P3\Database;
 
 class Base extends \PDO
 {
+	/**
+	 * Creates new instance of PDO
+	 *
+	 * @param array $config Config array for connection
+	 * @param array $options Options
+	 */
 	public function __construct(array $config, array $options = array())
 	{
 		/* Build our DSN if it's not in the config */
@@ -16,6 +22,14 @@ class Base extends \PDO
 		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
 	}
 
+	/**
+	 * Builds PDO DSN with passed config array
+	 *
+	 * Uses: driver, host, port, & database
+	 *
+	 * @param array $config Config array containing fields for DSN
+	 * @return string PDO DSN
+	 */
 	public function buildDSN(array $config)
 	{
 		return $config['driver'].':'.'host='.(isset($config['host']) ? $config['host'] : 'localhost').((!empty($config['port'])) ? (';port='.$config['port']) : '').';dbname='.$config['database'];
