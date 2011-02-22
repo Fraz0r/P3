@@ -17,7 +17,9 @@ class Base extends \P3\Model\Base
 	const ATTR_MAIL_TYPE = 0;
 	const MAIL_TYPE_PLAINTEXT = 0;
 	const MAIL_TYPE_HTML      = 1;
+	const MAIL_TYPE_BOTH      = 2;
 
+	const ATTR_MULTIPART = 1;
 
 	/**
 	 * @var array Container for class attributes
@@ -36,7 +38,27 @@ class Base extends \P3\Model\Base
 	protected static $_args = null;
 	protected static $_view = null;
 
+	/* MIME/Multipart */
+	protected static $_attachments  = array();
+	protected static $_mixedBoundry = 'P3-mixed-';
+	protected static $_altBoundry   = 'P3-alt-';
+	protected static $_mimeHash     = null;
+
 //Static
+
+	/**
+	 * Adds attachment to email
+	 *
+	 * @param string $file_path Full path to file attachment
+	 */
+	public static function addAttachment($file_path)
+	{
+		$contents = \file_get_contents($file_path);
+
+		if(!$contents) return false;
+
+		static::$_attachments[$file_path] = \chunk_split(\base64_encode($contents));
+	}
 
 	/**
 	 * Retrieves class Attribute
@@ -49,6 +71,8 @@ class Base extends \P3\Model\Base
 		switch($attr) {
 			case self::ATTR_MAIL_TYPE:
 				return (isset(static::$_attrs[$attr]) ? static::$_attrs[$attr] : self::MAIL_TYPE_HTML);
+			case self::ATTR_MULTIPART:
+				return (isset(static::$_attrs[$attr]) ? static::$_attrs[$attr] : false);
 			default:
 				return (isset(static::$_attrs[$attr]) ? static::$_attrs[$attr] : null);
 		}
@@ -110,14 +134,21 @@ class Base extends \P3\Model\Base
 
 		static::$_recipients = !is_array(static::$_recipients) ? explode(',', static::$_recipients) : static::$_recipients;
 		static::$_body = empty(static::$_body) && $ret !== FALSE ? static::_render($msg) : static::$_body;
+		static::$_mimeHash = md5(date('r'), time());
 
-		if(static::getAttr(self::ATTR_MAIL_TYPE) == self::MAIL_TYPE_HTML) {
-			static::_addHeader("MIME-Version: 1.0");
-			static::_addHeader("Content-type: text/html; charset=iso-8859-1");
-		}
+		static::_addHeader("MIME-Version: 1.0");
 
 		if(!empty(static::$_from)) {
 			static::_addHeader("From: ".static::$_from);
+		}
+
+		switch(static::getAttr(self::ATTR_MAIL_TYPE)) {
+			case self::MAIL_TYPE_HTML:
+					break;
+			case self::MAIL_TYPE_PLAINTEXT:
+					break;
+			case self::MAIL_TYPE_BOTH:
+					break;
 		}
 	}
 
@@ -127,16 +158,70 @@ class Base extends \P3\Model\Base
 	 * @param string $msg Action being called on extending ActiveMailer class (used to find template file)
 	 * @param array $options Options
 	 * @return string Body for email
+	 *
+	 * @todo Need to look for .txt and .html layouts.  not just one
+	 * @todo Need to add attahment mime types... just have application/zip as a placeholder for now
 	 */
 	protected static function _render($msg, array $options = array())
 	{
-		$path = 'notifier/'.$msg;
-		$path .= (static::getAttr(self::ATTR_MAIL_TYPE) == self::MAIL_TYPE_HTML) ? '.html' : '.txt';
-		$path .= '.tpl';
-
+		$rendered = '';
+		$path     = 'notifier/'.$msg;
 		$template = static::$_view;
 		$template->setLayout(static::$_layout);
-		return $template->render($path);
+
+		if(count(static::$_attachments)) {
+			$rendered .= "Content-Type: multipart/mixed; boundary=\"".static::$_mixedBoundry.static::$_mimeHash."\"\r\n";
+			$rendered .= '--'.static::$_mixedBoundry.static::$_mimeHash."\r\n";
+		}
+
+		switch(static::getAttr(self::ATTR_MAIL_TYPE)) {
+			case self::MAIL_TYPE_BOTH:
+
+				$rendered .= "Content-Type: multipart/alternative; boundary=\"".static::$_altBoundry.static::$_mimeHash."\"\r\n";
+
+				$html_path  = $path.'.html.tpl';
+				$plain_path = $path.'.txt.tpl';
+
+				$rendered .= '--'.static::$_altBoundry.static::$_mimeHash."\r\n";
+				$rendered .= "Content-Type: text/plain; charset=\"iso-8859-1\r\n";
+				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+				$rendered .= $template->render($plain_path);
+
+				$rendered .= '--'.static::$_altBoundry.static::$_mimeHash."\r\n";
+				$rendered .= "Content-Type: text/html; charset=\"iso-8859-1\r\n";
+				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+				$rendered .= $template->render($html_path);
+
+				$rendered .= '--'.static::$_altBoundry.static::$_mimeHash."--\r\n";
+				break;
+
+			case self::MAIL_TYPE_HTML:
+				$path     .= '.html.tpl';
+				$rendered .= "Content-Type: text/html; charset=\"iso-8859-1\r\n";
+				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+				$rendered .= $template->render($path);
+				break;
+
+			case self::MAIL_TYPE_PLAINTEXT:
+				$path     .= '.txt.tpl';
+				$rendered .= "Content-Type: text/plain; charset=\"iso-8859-1\r\n";
+				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+				$rendered .= $template->render($path);
+				break;
+		}
+
+		if(count(static::$_attachments)) {
+			foreach(static::$_attachments as $path => $attachment) {
+				$rendered .= '--'.static::$_mixedBoundry.static::$_mimeHash."\r\n";
+				$rendered .= "Content-Type: application/zip; name=\"".basename($path)."\r\n";
+				$rendered .= "Content-Transfer-Encoding: base64\r\n";
+				$rendered .= "Content-Disposition: attachment\r\n\r\n";
+			}
+
+			$rendered .= '--'.static::$_mixedBoundry.static::$_mimeHash."--\r\n";
+		}
+
+		return $rendered;
 	}
 
 	/**
