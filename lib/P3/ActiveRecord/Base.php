@@ -251,7 +251,8 @@ abstract class Base extends \P3\Model\Base
 				$class = $opts['class'];
 				$pk = static::pk();
 				$fk = $opts['fk'];
-				return new $class(array($fk => $this->{$pk}));
+				$fields = array_merge($record_array, array($fk => $this->{$pk}));
+				return new $class($fields);
 			}
 		}
 
