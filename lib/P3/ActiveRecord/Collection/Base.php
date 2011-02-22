@@ -23,8 +23,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		if(count($input)) $this->_contentClass    = \get_class($input[0]);
 
 		$this->_data = $input;
-
-		parent::__construct($input, \ArrayObject::STD_PROP_LIST, '\P3\ActiveRecord\Collection\Iterator');
 	}
 
 	public function count()
