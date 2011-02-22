@@ -820,11 +820,17 @@ abstract class Base extends \P3\Model\Base
 		} else {
 			$class = null;
 			$where = null;
-			$one   = false;
+			$opts  = array();
 
 			if(isset(static::$_hasMany[$name])) {
 				$class = isset(static::$_hasMany[$name]['class']) ? static::$_hasMany[$name]['class'] : $name;
-				$order = isset(static::$_hasMany[$name]['class']) ? static::$_hasMany[$name]['class'] : $name;
+
+				if(isset(static::$_hasMany[$name]['sort'])) {
+					$opts['order'] = static::$_hasMany[$name]['sort'];
+				}
+				if(isset(static::$_hasMany[$name]['order'])) {
+					$opts['order'] = static::$_hasMany[$name]['order'];
+				}
 
 				if(isset(static::$_hasMany[$name]['fk'])) {
 					$where = static::$_hasMany[$name]['fk'].'='.$this->_data[static::pk()];
@@ -840,7 +846,7 @@ abstract class Base extends \P3\Model\Base
 					$where = strtolower(get_called_class()).'_id ='.$this->_data[static::pk()];
 				}
 
-				$one = true;
+				$opts['one'] = true;
 			} elseif(isset(static::$_belongsTo[$name])) {
 				$class = isset(static::$_belongsTo[$name]['class']) ? static::$_belongsTo[$name]['class'] : $name;
 
@@ -848,16 +854,25 @@ abstract class Base extends \P3\Model\Base
 					$where = (int)$this->_data[static::$_belongsTo[$name]['fk']];
 				}
 
-				$one = true;
+				$opts['one'] = true;
 			} elseif(isset(static::$_hasManyThrough[$name])) {
 				$class = static::$_hasManyThrough[$name]['class'];
 				$join_table = static::$_hasManyThrough[$name]['joinTable'];
 				$fk = static::$_hasManyThrough[$name]['fk'];
 				$efk = static::$_hasManyThrough[$name]['efk'];
+				$order = null;
+
+				if(isset(static::$_hasMany[$name]['sort'])) {
+					$order = static::$_hasMany[$name]['sort'];
+				}
+				if(isset(static::$_hasMany[$name]['order'])) {
+					$order = static::$_hasMany[$name]['order'];
+				}
 
 				$sql = "SELECT b.* FROM `{$join_table}` a";
 				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
 				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
+				$sql .= (!empty($order) ? " ORDER BY {$order}" : '');
 
 				$stmnt = static::db()->query($sql);
 				$stmnt->setFetchMode(PDO::FETCH_CLASS, $class);
@@ -870,7 +885,7 @@ abstract class Base extends \P3\Model\Base
 			\P3\Loader::loadModel($class);
 
 
-			$value = $class::find($where, array("one" => $one));
+			$value = $class::find($where, $opts);
 			$this->_data[$name] = $value;
 
 			return $value;
