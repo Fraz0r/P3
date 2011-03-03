@@ -209,7 +209,7 @@ final class Loader
 				return;
 			}
 
-			$path = APP_PATH.'/models/'.$model.'.php';
+			$path = APP_PATH.'/models/'.strtolower(\str::fromCamelCase($model)).'.php';
 
 			self::loadClass('\P3\Exception\LoaderException');
 			if(!is_readable($path)) {
