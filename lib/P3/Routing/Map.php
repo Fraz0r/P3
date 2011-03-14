@@ -26,10 +26,22 @@ class Map
 	 */
 	protected $_options = array();
 
-//public
-	public function connect()
+	public function  __construct($parent = null, $router = null)
 	{
-		return $this;
+		$router = is_null($router) ? \P3::getRouter() : $router;
+
+		$this->_router = $router;
+		$this->_parent = $parent;
+	}
+
+//public
+	public function connect($path, array $options = array())
+	{
+		$router = $this->_router;
+		$route = new Route($path, $options, $this);
+
+		$router::add($route);
+		return $route;
 	}
 
 	public function named($name, $options)
@@ -42,14 +54,58 @@ class Map
 		return $this;
 	}
 
-	public function resources()
+	public function resources($controller, array $options = array())
 	{
+		$prefix = $this->_getPrefix($controller);
+
+		/* Index */
+		$index = $this->connect($prefix.'/', array('controller' => $controller, 'action' => 'index'));  //  \url\<model>s
+
+		/* Create */
+		$this->connect($prefix.'/', array('controller' => $controller, 'action' => 'create', 'method' => 'post'));  //  \url\models()
+
+		/* New */
+		$this->connect($prefix.'/new', array('controller' => $controller, 'action' => 'add'));
+		$this->connect($prefix.'/add', array('controller' => $controller, 'action' => 'add'));  //  \url\new_model()
+
+		/* Edit */
+		$this->connect($prefix.'/:id/edit', array('controller' => $controller, 'action' => 'edit')); // \url\edit_model(:id)
+
+		/* Show */
+		$show = $this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'show')); // \url\model(:id)
+
+		/* Update */
+		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'update', 'method' => 'put'));  //  \url\model(:id)
+
+		/* Delete */
+		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'delete', 'method' => 'delete'));  //  \url\model(:id)
+
+		/* Members */
+		if(isset($options['member'])) {
+			foreach($options['member'] as $member => $method){
+				$show->connect('/'.$member, array('action' => $member, 'method' => $method));
+			}
+		}
+
+		/* Collections */
+		if(isset($options['collection'])) {
+			foreach($options['collection'] as $collection => $method){
+				$index->connect('/'.$collection, array('action' => $collection, 'method' => $method));
+			}
+		}
+
+		/* Process do "block" */
+		if(isset($options['do'])) {
+			$func = $options['do'];
+			$func($show);
+		}
+
 		return $this;
 	}
 
-	public function root()
+	public function root(array $options = array())
 	{
-		return $this;
+		return $this->connect('/', $options);
 	}
 
 	public function withOptions()
@@ -58,8 +114,9 @@ class Map
 	}
 
 //protected
-	protected function _mapREST($controller)
+	protected function _getPrefix($controller)
 	{
+		return '/'.$controller;
 	}
 
 //magic

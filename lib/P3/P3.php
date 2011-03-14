@@ -7,9 +7,22 @@
  */
 final class P3
 {
-	public static $VERSION = '0.9.3';
+	public static $VERSION = '1.0.0-experimental';
 
 	private static $_env = null;
+
+	private static $_routingClass = '\P3\Router';
+
+	/**
+	 * Boots app
+	 */
+	public static function boot()
+	{
+		P3\Loader::loadEnv();
+
+		$router = self::$_routingClass;
+		$router::dispatch();
+	}
 
 	/**
 	 * Returns current development environment
@@ -20,6 +33,15 @@ final class P3
 		if(is_null(self::$_env)) self::$_env = self::_determineEnv();
 
 		return self::$_env;
+	}
+
+	/**
+	 * Returns Routing class
+	 * @return string Routing class
+	 */
+	public static function getRouter()
+	{
+		return self::$_routingClass;
 	}
 
 	/**
@@ -38,6 +60,15 @@ final class P3
 	public static function production()
 	{
 		return self::$_env == 'production' || self::$_env == 'prod';
+	}
+
+	/**
+	 * Sets default routing class
+	 * @param string $routingClass Class to use as default router
+	 */
+	public static function setRouter($routingClass)
+	{
+		self::$_routingClass = $routingClass;
 	}
 
 	/**
