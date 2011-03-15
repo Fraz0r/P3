@@ -101,6 +101,11 @@ class Route {
 		return $this->_controller;
 	}
 
+	public function getMethod()
+	{
+		return $this->_method;
+	}
+
 	public function getControllerClass()
 	{
 		return ucfirst(\str::toCamelCase($this->_controller)).'Controller';
@@ -173,7 +178,7 @@ class Route {
 		$ret = preg_match_all(sprintf('!%s!', self::$_tokenRegEx), $str, $m);
 
 		if($ret) {
-			self:$_tokenCache[$str] = $m;
+			self::$_tokenCache[$str] = $m;
 			return $m;
 		} else {
 			return false;

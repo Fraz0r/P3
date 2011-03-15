@@ -31,14 +31,20 @@ abstract class Base {
 	 * List of routes in order of priority
 	 * @var array
 	 */
-	private static $_routes = array();
+	private static $_routes = array(
+		'any' => array(),
+		'get' => array(),
+		'put' => array(),
+		'post' => array(),
+		'delete' => array(),
+	);
 
 	/**
 	 * Adds route to parse list
 	 */
 	public static function add($route)
 	{
-		self::$_routes[] = $route;
+		self::$_routes[$route->getMethod()][] = $route;
 	}
 
 	/**
@@ -167,14 +173,16 @@ abstract class Base {
 	{
 		if(!count(self::$_routes)) return false;
 
+		$routes = array_merge(self::$_routes['any'], self::$_routes[strtolower($_SERVER['REQUEST_METHOD'])]);
+
 		$match = false;
 		$x     = 0;
-		$len   = count(self::$_routes);
+		$len   = count($routes);
 
 
-		$route = self::$_routes[$x];
+		$route = $routes[$x];
 		while($x < $len && FALSE === ($match = $route->match($path)))
-			$route = self::$_routes[++$x];
+			$route = $routes[++$x];
 
 		return $match;
 	}
