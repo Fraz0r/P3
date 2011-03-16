@@ -7,6 +7,8 @@
 
 namespace P3\ActionController;
 
+use P3\Router;
+
 abstract class Base extends \P3\Controller\Base
 {
 	/* Attributes */
@@ -27,20 +29,6 @@ abstract class Base extends \P3\Controller\Base
 	protected $_scripts = array();
 
 	/**
-	 * Array of attributes
-	 * 
-	 * @var array
-	 */
-	protected $_attributes = array();
-
-	/**
-	 * True, if in an AJAX call
-	 *
-	 * @var boolean
-	 */
-	protected $_isXHR;
-
-	/**
 	 * Layout to render
 	 *
 	 * @var string
@@ -52,14 +40,16 @@ abstract class Base extends \P3\Controller\Base
 	 *
 	 * @var boolean
 	 */
-	protected $_rendered;
+	protected $_rendered = false;
+
+	protected $_processed = false;
 
 	/**
 	 * Template to use for rendering
 	 *
 	 * @var \P3\Template\Base
 	 */
-	protected $_view;
+	protected $_view = null;
 
 	/**
 	 * Constructor
@@ -67,25 +57,45 @@ abstract class Base extends \P3\Controller\Base
 	 * @param array $routing_data
 	 * @param array $options 
 	 */
-	public function  __construct($routing_data = null, array $options = array())
+	public function  __construct($route = null, array $options = array())
 	{
-
-		/* Create a uri, if null was passed */
-		if(!count($routing_data)) {
-			$routing_data = Router::parseRoute();
-		}
+		parent::__construct($route);
 
 		/* Save passed options */
 		foreach ($options as $k => $v) {
-			$this->setattribute($k, $v);
+			$this->setAttribute($k, $v);
 		}
 
+		$this->_prepareView();
+
+	}
+
+	public function process($action = null)
+	{
+		if(!$this->_processed) {
+			$action = is_null($action) ? $this->_route->getAction() : $action;
+			$this->_actionReturn = $this->{$action}();
+		}
+
+		return $this->_actionReturn;
+	}
+
+
+	public function render()
+	{
+		$this->_view->display();
+		$this->_rendered = true;
+	}
+
+//protected
+	protected function _prepareView()
+	{
 		/* Define a new instance of our template class */
 		if (isset($this->_attributes[self::ATTR_TEMPLATE_CLASS])) {
 			$c = $this->getAttribute(self::ATTR_TEMPLATE_CLASS);
-			$this->_view = new $c($routing_data);
+			$this->_view = new $c($this->_route);
 		} else {
-			$this->_view = new \P3\Template\Base($routing_data);
+			$this->_view = new \P3\Template\Base($this->_route);
 		}
 
 		/* Set our layout */
@@ -112,47 +122,17 @@ abstract class Base extends \P3\Controller\Base
 					\html::addCss($k);
 			}
 		}
-
-		/* Call parent constructor (to run the method) */
-		parent::__construct($routing_data);
-
-		/* If the method didnt render, and didnt return false... Auto-Render */
-		if(!$this->_rendered && (is_null($this->_actionReturn) || (bool)$this->_actionReturn)) {
-			$this->_display();
-		}
-
 	}
 
+//Magic
 	/**
-	 * Renders a page
+	 * Called by php if function is missing.  Put this here to avoid the necessity
+	 * of the action having to be in the controller
 	 *
-	 * @param string $page
+	 * @param string $func
+	 * @param array $args
 	 */
-	public function _display($page = null) {
-		$this->_view->display($page);
-		$this->_rendered = true;
-	}
-
-	/**
-	 * Retrives an attribute
-	 *
-	 * @param int $attr
-	 * @return <unknown>
-	 */
-	public function getAttribute($attr)
-	{
-		return(isset($this->_attributes[$attr])? $this->_attributes[$attr] : null);
-	}
-
-	/**
-	 * Sets an attribute
-	 *
-	 * @param int $attr
-	 * @param <unknown> $value
-	 */
-	public function setattribute($attr, $value)
-	{
-		$this->_attributes[$attr] = $value;
+	public function __call($func, $args) {
 	}
 }
 

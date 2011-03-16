@@ -8,8 +8,17 @@
 
 namespace P3\Controller;
 
+use P3\Router;
+
 abstract class Base
 {
+
+	/**
+	 * Array of attributes
+	 *
+	 * @var array
+	 */
+	protected $_attributes = array();
 	/**
 	 * The method to call within the controller
 	 *
@@ -25,18 +34,11 @@ abstract class Base
 	protected $_args = array();
 
 	/**
-	 * Routing Data Array
+	 * Route
 	 *
-	 * @var array
+	 * @var \P3\Routing\Route
 	 */
-	protected $_routing_data;
-
-	/**
-	 * Map (To name arguments)
-	 *
-	 * @var array
-	 */
-	protected $_argMap;
+	protected $_route;
 
 	/**
 	 * Holds whatever was returned by the action
@@ -57,35 +59,36 @@ abstract class Base
 	 *
 	 * @param array $routing_data
 	 */
-	public function __construct($routing_data = array())
+	public function __construct($route = null)
 	{
-		/* If $uri is null, use current Uri (By creating one) */
-		if(!count($routing_data)) {
-			$routing_data = parseRoute();
-		}
+		$route = is_null($route) ? Router::getRoute() : $route;
 
-		/* Store vars (for controller use) */
-		$this->_routing_data = $routing_data;
-		$this->_action = $routing_data['action'];
-		$this->_args   = $routing_data['args'];
-
-		/* If arguments are mapped, set up access by named keys */
-		if(!empty($this->_argMap) && isset($this->_argMap[$this->_action])) {
-			foreach($this->_argMap[$this->_action] as $k => $v) {
-				$this->_args[$v] = $this->_args[$k];
-			}
-		}
+		$this->_route = $route;
 
 		/* Call init */
 		$this->_init();
+	}
 
-		/* Throw a 404 Error if the "page" wasn't found */
-		if(!method_exists($this, $this->_action))
-			throw new \P3\Exception\ControllerException(sprintf('Method "%s" not found in controller "%s"', $this->_action, $routing_data['controller']), 404);
+	/**
+	 * Retrives an attribute
+	 *
+	 * @param int $attr
+	 * @return <unknown>
+	 */
+	public function getAttribute($attr)
+	{
+		return(isset($this->_attributes[$attr])? $this->_attributes[$attr] : null);
+	}
 
-		/* Run the action, and store the output */
-		$this->_actionReturn = $this->{$this->_action}();
-
+	/**
+	 * Sets an attribute
+	 *
+	 * @param int $attr
+	 * @param <unknown> $value
+	 */
+	public function setAttribute($attr, $value)
+	{
+		$this->_attributes[$attr] = $value;
 	}
 
 //Static

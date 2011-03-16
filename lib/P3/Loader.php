@@ -81,34 +81,23 @@ final class Loader
 	 * @param array $routing_data
 	 * @return Controller
 	 */
-	public static function loadController($controller, array $routing_data = array())
+	public static function loadController($controller)
 	{
 		self::loadHelper('str');
 
-		$name  = strtolower($controller);
-		$class = \str::toCamelCase($controller, true).'Controller';
 
 
-
-		if(self::classExists($class)) return;
+		if(self::classExists($controller)) return;
 
 		$path = APP_PATH.'/controllers/';
-
-		if(!is_null($routing_data['namespace'])) $path .= $routing_data['namespace'].'/';
-
-		$path = $path.$name.'_controller.php';
+		$name  = strtolower(\str::fromCamelCase($controller));
+		$path = $path.$name.'.php';
 
 		if(is_readable($path)) {
 			include_once($path);
 		} else {
 			throw new Exception\LoaderException('[%s] is not readable or doesn\'t exist', array($path), 404);
 		}
-
-		if(!self::classExists($class)) {
-			throw new Exception\LoaderException('The controller "%s" failed to load', array($class), 500);
-		}
-
-		return new $class($routing_data);
 	}
 
 	/**
@@ -173,7 +162,7 @@ final class Loader
 		self::loadBootstrap();
 
 		/* Load Routes */
-		self::loadRoutes();
+		self::loadRouter();
 	}
 
 	/**
@@ -224,8 +213,11 @@ final class Loader
 	 * Loads Routes into Router
 	 * @param string $file File containing routing statements.  Default path is attempted if left null.
 	 */
-	public static function loadRoutes($file = null)
+	public static function loadRouter($file = null)
 	{
+		$router = \P3::getRouter();
+		$map    =  $router::getMap();
+
 		if(is_null($file)) {
 			if(!defined('\P3\APP_PATH'))
 				throw new Exception\LoaderException('APP_PATH not defined, cannot locate routes.');

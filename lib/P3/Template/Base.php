@@ -41,10 +41,9 @@ class Base
 	protected $_path;
 
 	/**
-	 * URI dispatched
-	 * @var P3_Uri
+	 * Route dispatched
 	 */
-	protected $_routing_data;
+	protected $_route;
 
 	/**
 	 * Vars being passed to view
@@ -55,16 +54,16 @@ class Base
 	/**
 	 * Constructor
 	 */
-	public function __construct ($routing_data = null, $path = null, array $options = array())
+	public function __construct ($route = null, $path = null, array $options = array())
 	{
-		$this->_routing_data = $routing_data;
+		$this->_route = $route;
 
 		if(empty($path)) {
 			$path = \P3\APP_PATH.'/views';
 		}
 		if(!is_null($routing_data['namespace'])) $path .= '/'.$routing_data['namespace'];
 
-		$this->_path = realpath($path);
+		$this->_path = $path;
 
 		if(!empty($options)) {
 			foreach( $options as $attr => $val ) {
@@ -95,14 +94,14 @@ class Base
 	/**
 	 * Calls render, and echos the return
 	 *
-	 * @param string $page Page to render.  Null if using URI
+	 * @param string $path Page to render.  Null if using URI
 	 */
-	public function display($page = null)
+	public function display($path = null)
 	{
-		if(is_null($page))
-			$page = $this->_routing_data['controller'].'/'.$this->_routing_data['action'].'.tpl';
+		if(is_null($path))
+			$path = $this->_route->getViewPath();
 
-		$display =  $this->render($page);
+		$display =  $this->render($path);
 
 		if(isset($this->_attributes[self::ATTR_DOWNLOAD_AS_ATTACHMENT])) {
 			header('Content-Disposition: attachment; filename="'.$this->getAttribute(self::ATTR_DOWNLOAD_AS_ATTACHMENT).'"');
@@ -131,12 +130,12 @@ class Base
 	/**
 	 * Returns rendered template
 	 *
-	 * @param string $page Page to render
+	 * @param string $path Page to render
 	 * @return string
 	 */
-	public function render($page)
+	public function render($path)
 	{
-		$file = $this->_path.'/'.$page;
+		$file = $this->_path.'/'.$path;
 
 		if(!is_readable($file))
 			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
