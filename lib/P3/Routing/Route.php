@@ -30,11 +30,14 @@ class Route {
 
 	protected static $_tokenRegEx = '(\[?/)([^/]*)\]?';
 
-	public function __construct($path, $options, $map = null)
+	public function __construct($path, $options, $method = null)
 	{
-		$this->_map = $map;
+		if(isset($options['method'])) {
+			$this->_method = $options['method'];
+		} else {
+			$this->_method = is_null($method) ? 'any' : $method;
+		}
 
-		if(isset($options['method'])) $this->_method = $options['method'];
 
 		if(isset($options['to'])) {
 			$ex = explode('#', $options['to']);
@@ -78,9 +81,11 @@ class Route {
 			}
 		}
 
-		printf("<br /><br /><b>Dispatched In: </b>%0.4fms (%d routes)", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000, \P3\Router::numRoutes());
-		printf("<br /><br /><b>Rendered In: </b>%0.4fms", (\APP\RENDER_TIME - \APP\DISPATCH_TIME) * 1000);
-		printf("<br /><br /><b>Total: </b>%0.4fms", (\APP\RENDER_TIME - \APP\START_TIME) * 1000);
+		if(defined('\APP\START_TIME')) {
+			printf("<br /><br /><b>Dispatched In: </b>%0.4fms", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
+			printf("<br /><br /><b>Rendered In: </b>%0.4fms", (\APP\RENDER_TIME - \APP\DISPATCH_TIME) * 1000);
+			printf("<br /><br /><b>Total: </b>%0.4fms", (\APP\RENDER_TIME - \APP\START_TIME) * 1000);
+		}
 	}
 
 	public function fillGET()
@@ -99,6 +104,11 @@ class Route {
 	public function getController()
 	{
 		return $this->_controller;
+	}
+
+	public function getNamespace()
+	{
+		return '';
 	}
 
 	public function getMethod()

@@ -52,12 +52,9 @@ abstract class Base {
 	 *
 	 * @param string $path URI for dispatch
 	 */
-	public static function dispatch(\P3\Routing\Route $route = null)
+	public static function dispatch($path = null)
 	{
-		$route = !is_array($routing_data) ? self::getRoute($routing_data) : $routing_data;
-
-		//var_dump($route);
-		//die;
+		$route = self::getRoute($path);
 
 		if(!$route) throw new \P3\Exception\RoutingException('No route was matched', array(), 404);
 		$route->dispatch();
@@ -171,9 +168,10 @@ abstract class Base {
 	 */
 	public static function matchRoute($path)
 	{
-		if(!count(self::$_routes)) return false;
+		$routes = array_merge(self::$_routes[strtolower($_SERVER['REQUEST_METHOD'])], self::$_routes['any']);
 
-		$routes = array_merge(self::$_routes['any'], self::$_routes[strtolower($_SERVER['REQUEST_METHOD'])]);
+		if(!count($routes)) return false;
+
 
 		$match = false;
 		$x     = 0;

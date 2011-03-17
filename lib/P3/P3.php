@@ -63,6 +63,37 @@ final class P3
 	}
 
 	/**
+	 * Renders bases on options (Partial or full loads)
+	 *
+	 * @param array $options
+	 * @return null
+	 */
+	public static function render($options = null)
+	{
+		$router = \P3::getRouter();
+		$options = is_null($options) ? self::parseRoute() : $options;
+
+		if(isset($options['controller'])) {
+			self::dispatch($options);
+		} elseif(isset($options['partial'])) {
+			$partial = $options['partial'];
+			if(isset($options['locals'])) {
+			 extract($options['locals']);
+			}
+			if(strpos($partial, '/')) {
+				list($controller, $view) = explode('/', $partial);
+				$view = '_'.$view.'.tpl';
+			} else {
+				$controller = Router::getController();
+				$view = '_'.$partial.'.tpl';
+			}
+
+			$path = $controller.'/'.$view;
+			require(P3\APP_PATH.'/views/'.$path);
+		}
+	}
+
+	/**
 	 * Sets default routing class
 	 * @param string $routingClass Class to use as default router
 	 */

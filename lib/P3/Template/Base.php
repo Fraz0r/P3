@@ -56,12 +56,20 @@ class Base
 	 */
 	public function __construct ($route = null, $path = null, array $options = array())
 	{
+		if(is_null($route)) {
+			$router = \P3::getRouter();
+			$route = \P3\Router::getDispatched();
+		}
+
 		$this->_route = $route;
 
 		if(empty($path)) {
 			$path = \P3\APP_PATH.'/views';
 		}
-		if(!is_null($routing_data['namespace'])) $path .= '/'.$routing_data['namespace'];
+
+		if(!is_null($route)) {
+			$path .= '/'.$route->getNamespace();
+		}
 
 		$this->_path = $path;
 

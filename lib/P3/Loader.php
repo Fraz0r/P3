@@ -23,7 +23,7 @@ final class Loader
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
 			if(substr($class, -10) == "Controller") {
-				require_once(APP_PATH.'/controllers/'.strtolower(substr($class, 0, -10)).'_controller.php');
+				self::loadController($class);
 			} else {
 				self::loadModel($class);
 			}
