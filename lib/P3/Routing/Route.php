@@ -60,6 +60,7 @@ class Route {
 
 	public function dispatch()
 	{
+
 		$this->fillGET();
 
 		$controller_class = $this->getControllerClass();
@@ -69,16 +70,17 @@ class Route {
 		$controller = new $controller_class;
 
 		$ret = $controller->process($this->getAction());
-		if(defined('\APP\START_TIME'))
-			define('APP\DISPATCH_TIME', microtime(true));
 
 
 		if($ret !== FALSE && !$controller->rendered()) {
 			$controller->render();
 			if(defined('\APP\START_TIME')) {
 				define('APP\RENDER_TIME', microtime(true));
-				define('APP\TOTAL_TIME',  microtime(true) - \APP\START_TIME);
 			}
+		}
+
+		if(defined('\APP\START_TIME')) {
+			define('APP\TOTAL_TIME',  microtime(true) - \APP\START_TIME);
 		}
 
 		if(defined('\APP\START_TIME')) {
@@ -123,7 +125,7 @@ class Route {
 
 	public function getViewPath()
 	{
-		return $this->_controller.'/'.$this->_action.'.tpl';
+		return $this->_controller.'/'.$this->_action;
 	}
 
 	public function match($path, $method = null)
@@ -143,9 +145,15 @@ class Route {
 		return false;
 	}
 
-	public function resources($controller, $options)
+
+	public function reverseMatch($controller, $action, $method)
 	{
+		return
+			($this->_controller == $controller
+				&& $this->_action == $action
+				&& ($method == 'any' || $this->_method == $method)) ? $this : false;
 	}
+
 
 //protected
 	protected function _matchTokens($path)
@@ -204,6 +212,11 @@ class Route {
 	public function __call($func, $args)
 	{
 		$this->_map->{$func}($args[0], isset($args[1]) ? $args[1] : array());
+	}
+
+	public function __invoke($args)
+	{
+		return str_replace(':id', $args[0], $this->_path);
 	}
 }
 ?>

@@ -56,7 +56,9 @@ class Map
 
 	public function resources($controller, array $options = array())
 	{
-		$prefix = $this->_getPrefix($controller);
+		$front = isset($options['as']) ? $options['as'] : $controller;
+
+		$prefix = $this->_getPrefix($front);
 
 		/* Index */
 		$index = $this->connect($prefix.'/', array('controller' => $controller, 'action' => 'index'), 'get');  //  \url\<model>s

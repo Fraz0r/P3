@@ -54,6 +54,9 @@ abstract class Base {
 	 */
 	public static function dispatch($path = null)
 	{
+		if(defined('\APP\START_TIME'))
+			define('APP\DISPATCH_TIME', microtime(true));
+
 		$route = self::getRoute($path);
 
 		if(!$route) throw new \P3\Exception\RoutingException('No route was matched', array(), 404);
@@ -143,6 +146,12 @@ abstract class Base {
 		self::addRoute('/:controller[/:id]/:action');
 	}
 
+
+	public static function getAllRoutes()
+	{
+		return array_merge(self::$_routes['any'], self::$_routes['get'], self::$_routes['put'], self::$_routes['post'], self::$_routes['delete']);
+	}
+
 	/**
 	 * Returns first matched route for given controller/action
 	 *
@@ -154,6 +163,11 @@ abstract class Base {
 		$path = !is_null($path) ? $path : (Loader::isCli() ? '/' : $_SERVER['REQUEST_URI']);
 
 		return self::matchRoute($path);
+	}
+
+	public static function getFilteredRoutes($method = 'any')
+	{
+		return $method == 'any' ? self::getAllRoutes() : array_merge(self::$_routes[$method], self::$_routes['any']);
 	}
 
 	public static function numRoutes()
@@ -168,7 +182,7 @@ abstract class Base {
 	 */
 	public static function matchRoute($path)
 	{
-		$routes = array_merge(self::$_routes[strtolower($_SERVER['REQUEST_METHOD'])], self::$_routes['any']);
+		$routes = self::getFilteredRoutes(strtolower($_SERVER['REQUEST_METHOD']));
 
 		if(!count($routes)) return false;
 
@@ -180,6 +194,24 @@ abstract class Base {
 
 		$route = $routes[$x];
 		while($x < $len && FALSE === ($match = $route->match($path)))
+			$route = $routes[++$x];
+
+		return $match;
+	}
+
+	public function reverseLookup($controller, $action = 'index', $method = 'any')
+	{
+		$routes = self::getFilteredRoutes($method);
+
+		$match  = false;
+		$x      = 0;
+		$len   = count($routes);
+
+		if(!count($routes)) return false;
+
+		$route = $routes[$x];
+
+		while($x < $len-1 && FALSE === ($match = $route->reverseMatch($controller, $action, $method)))
 			$route = $routes[++$x];
 
 		return $match;

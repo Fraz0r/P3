@@ -71,7 +71,7 @@ class Base
 			$path .= '/'.$route->getNamespace();
 		}
 
-		$this->_path = $path;
+		$this->_path = rtrim($path, '/');
 
 		if(!empty($options)) {
 			foreach( $options as $attr => $val ) {
@@ -143,7 +143,14 @@ class Base
 	 */
 	public function render($path)
 	{
-		$file = $this->_path.'/'.$path;
+		$partial = false;
+		$parts   = explode('/', $path);
+
+		if($parts[count($parts)-1][0] == '_') {
+			$partial = true;
+		}
+
+		$file = $this->_path.'/'.$path.'.tpl';
 
 		if(!is_readable($file))
 			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
@@ -154,8 +161,11 @@ class Base
 			include($file);
 			$content = ob_get_clean();
 
-			if(is_null($this->_layout)) {
+			if($partial || is_null($this->_layout)) {
 				$rendered = $content;
+
+				/* Change this one day */
+				if($partial) echo $content;
 			} else {
 				ob_start();
 				include(\P3\APP_PATH.'/layouts/'.$this->_layout);

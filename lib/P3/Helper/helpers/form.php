@@ -10,7 +10,7 @@ class form extends P3\Helper\Base
 {
 	/**
 	 * Action
-	 * @var string 
+	 * @var string
 	 */
 	private $_action = null;
 
@@ -349,11 +349,10 @@ class form extends P3\Helper\Base
 	private function _getUri()
 	{
 		if(empty($this->_uri)) {
-			$uri = Router::getGlobalRoute()->path;
-			$uri = str_replace(':controller', $this->_model->getController(), $uri);
+			$router = P3::getRouter();
+			$route  = $router::reverseLookup($this->_model->controller, $this->_model->isNew() ? 'create' : 'update');
 
-			$uri = preg_replace("!\[?/:action\]?!", '/'.$this->_action, $uri);
-			$uri = preg_replace("!\[?/:id\]?!", ($this->_action == 'create') ? '' : "/".$this->_model->id(), $uri);
+			$uri = $route($this->_model->id());
 
 			$this->_uri = $uri;
 		}
@@ -391,7 +390,7 @@ class form extends P3\Helper\Base
 	 * @param P3\ActiveRecord\Base $model
 	 * @param array $options
 	 * @param bool $print
-	 * @return form 
+	 * @return form
 	 */
 	public static function forModel(\P3\ActiveRecord\Base $model, array $options = array(), $print = true)
 	{
