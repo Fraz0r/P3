@@ -84,12 +84,29 @@ abstract class Base {
 		}
 	}
 
+	public function pluralize()
+	{
+		return \str::pluralize(lcfirst($this->_class));
+	}
+
 	/**
 	 * returns Data encoded as JSON
 	 */
 	public function toJSON()
 	{
 		return json_encode($this->_data);
+	}
+
+	/**
+	 * Update multiple fields of the model in one go
+	 *
+	 * @param array $values  List of "field => value"'s
+	 */
+	public function update(array $values)
+	{
+		foreach($values as $k => $v) {
+			$this->{$k} = $v;
+		}
 	}
 
 	/**
@@ -183,28 +200,6 @@ abstract class Base {
 		return $flag;
 	}
 
-	/**
-	 * Update multiple fields of the model in one go
-	 *
-	 * @param array $values  List of "field => value"'s
-	 */
-	public function update(array $values)
-	{
-		foreach($values as $k => $v) {
-			$this->{$k} = $v;
-		}
-	}
-
-	/**
-	 * Magic Isset: Override isset to include relations
-	 * @param string $name Field to check
-	 * @return bool True if exists in model, false otherwise
-	 */
-	public function  __isset($name)
-	{
-		return(isset($this->_data[$name]));
-	}
-
 
 // Protected
 	/**
@@ -256,6 +251,16 @@ abstract class Base {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Magic Isset: Override isset to include relations
+	 * @param string $name Field to check
+	 * @return bool True if exists in model, false otherwise
+	 */
+	public function  __isset($name)
+	{
+		return(isset($this->_data[$name]));
 	}
 
 	/**
