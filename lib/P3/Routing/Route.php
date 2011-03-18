@@ -133,7 +133,7 @@ class Route {
 	public function match($path, $method = null)
 	{
 
-		//printf("Checking Route: [%s] %s#%s<br />", $this->_method, $this->_controller, $this->_action);
+		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
 
 		$path = rtrim($path, '/');
 		$method = is_null($method) ? strtolower($_SERVER['REQUEST_METHOD']) : $method;
@@ -188,6 +188,12 @@ class Route {
 				}
 			}
 		}
+
+		if(isset($this->_params['controller'])) $this->_controller = $this->_params['controller'];
+		if(isset($this->_params['action']))     $this->_action     = $this->_params['action'];
+
+		//if(isset($this->_options['only']))
+				//var_dump($this);
 
 		return true;
 	}

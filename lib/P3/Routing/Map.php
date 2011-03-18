@@ -35,8 +35,12 @@ class Map
 	}
 
 //public
-	public function connect($path, array $options = array(), $method = 'any')
+	public function connect($path, array $options = array(), $method = 'any', $accept_format = false)
 	{
+		if($accept_format) {
+			rtrim($path, '/').'[.:format]';
+		}
+
 		$router = $this->_router;
 		$route = new Route($path, $options, $method, $this);
 
@@ -64,23 +68,23 @@ class Map
 		//$index = $this->connect($prefix.'/', array('controller' => $controller, 'action' => 'index'), 'get');  //  \url\<model>s
 
 		/* Create */
-		$this->connect($prefix, array('controller' => $controller, 'action' => 'create'), 'post'); 
+		$this->connect($prefix, array('controller' => $controller, 'action' => 'create'), 'post', true);
 
 		/* New */
-		$this->connect($prefix.'new', array('controller' => $controller, 'action' => 'add'), 'get');
-		$this->connect($prefix.'add', array('controller' => $controller, 'action' => 'add'), 'get'); 
+		$this->connect($prefix.'new', array('controller' => $controller, 'action' => 'add'), 'get', true);
+		$this->connect($prefix.'add', array('controller' => $controller, 'action' => 'add'), 'get', true);
 
 		/* Edit */
-		$this->connect($prefix.'edit', array('controller' => $controller, 'action' => 'edit'), 'get'); 
+		$this->connect($prefix.'edit', array('controller' => $controller, 'action' => 'edit'), 'get', true);
 
 		/* Show */
-		$show = $this->connect($prefix, array('controller' => $controller, 'action' => 'show'), 'get');
+		$show = $this->connect($prefix, array('controller' => $controller, 'action' => 'show'), 'get', true);
 
 		/* Update */
-		$this->connect($prefix, array('controller' => $controller, 'action' => 'update'), 'put');
+		$this->connect($prefix, array('controller' => $controller, 'action' => 'update'), 'put', true);
 
 		/* Delete */
-		$this->connect($prefix, array('controller' => $controller, 'action' => 'delete'), 'delete');
+		$this->connect($prefix, array('controller' => $controller, 'action' => 'delete'), 'delete', true);
 
 		return $show;
 	}
@@ -95,26 +99,26 @@ class Map
 		$prefix .=  $front.'/';
 
 		/* Index */
-		$index = $this->connect($prefix, array('controller' => $controller, 'action' => 'index'), 'get');  //  \url\<model>s
+		$index = $this->connect($prefix, array('controller' => $controller, 'action' => 'index'), 'get', true);
 
 		/* Create */
-		$this->connect($prefix, array('controller' => $controller, 'action' => 'create'), 'post');  //  \url\models()
+		$this->connect($prefix, array('controller' => $controller, 'action' => 'create'), 'post', true);
 
 		/* New */
-		$this->connect($prefix.'new', array('controller' => $controller, 'action' => 'add'), 'get');
-		$this->connect($prefix.'add', array('controller' => $controller, 'action' => 'add'), 'get');  //  \url\new_model()
+		$this->connect($prefix.'new', array('controller' => $controller, 'action' => 'add'), 'get', true);
+		$this->connect($prefix.'add', array('controller' => $controller, 'action' => 'add'), 'get', true);
 
 		/* Edit */
-		$this->connect($prefix.':id/edit', array('controller' => $controller, 'action' => 'edit'), 'get'); // \url\edit_model(:id)
+		$this->connect($prefix.':id/edit', array('controller' => $controller, 'action' => 'edit'), 'get', true);
 
 		/* Show */
-		$show = $this->connect($prefix.':id', array('controller' => $controller, 'action' => 'show'), 'get'); // \url\model(:id)
+		$show = $this->connect($prefix.':id', array('controller' => $controller, 'action' => 'show'), 'get', true);
 
 		/* Update */
-		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'update'), 'put');  //  \url\model(:id)
+		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'update'), 'put', true);
 
 		/* Delete */
-		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'delete'), 'delete');  //  \url\model(:id)
+		$this->connect($prefix.'/:id', array('controller' => $controller, 'action' => 'delete'), 'delete', true);
 
 		/* Members */
 		if(isset($options['member'])) {

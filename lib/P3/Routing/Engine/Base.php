@@ -172,8 +172,13 @@ abstract class Base {
 
 		if(!$len) return false;
 
-		foreach($routes as $route)
-			if(FALSE !== ($match = $route->match($path))) break;
+		foreach($routes as $route) {
+			if(FALSE !== ($match = $route->match($path))) {
+				/* WTF PHP!!!!  PHP is ignoring the break;  This WILL print the dump, AND STILL continue the loop */
+				//var_dump("HIT");
+				break;
+			}
+		}
 		
 		return $match;
 	}

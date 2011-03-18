@@ -81,9 +81,9 @@ abstract class Base extends \P3\Controller\Base
 	}
 
 
-	public function render()
+	public function render($path = null)
 	{
-		$this->_view->display();
+		$this->_view->display($path);
 		$this->_rendered = true;
 	}
 
