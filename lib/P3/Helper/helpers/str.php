@@ -21,6 +21,21 @@ class str
     return preg_replace_callback('/([A-Z])/', $func, $str);
   }
 
+  public static function pluralize($str)
+  {
+	  $flag = 0;
+
+	  $str = preg_replace('/s$/', 'ses', $str, 1, $flag);
+
+	  if(!$flag)
+		  $str = preg_replace('/y$/', 'ies', $str, 1, $flag);
+
+	  if(!$flag)
+		  $str .= 's';
+
+	  return $str;
+  }
+
   /**
    * Titleizes (capitalizes each word in a string)
    *
