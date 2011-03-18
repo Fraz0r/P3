@@ -8,14 +8,5 @@
 
 namespace P3;
 
-final class Router extends Routing\Engine\Base
-{
-	public static function add($route)
-	{
-		if(FALSE !== $route->match($_SERVER['REQUEST_URI']))
-			$route->dispatch();
-
-		parent::add($route);
-	}
-}
+final class Router extends Routing\Engine\Base { }
 ?>

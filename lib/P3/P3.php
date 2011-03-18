@@ -20,6 +20,7 @@ final class P3
 	public static function boot()
 	{
 		P3\Loader::loadEnv();
+		P3\Router::dispatch();
 	}
 
 	/**
