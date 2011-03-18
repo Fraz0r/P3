@@ -168,20 +168,24 @@ class Route {
 	{
 		$self        = $this->_tokens;
 		$self_tokens = $self[2];
-		$self_sep    = $self[1];
+		$self_seps   = $self[1];
 		$self_len    = count($self_tokens);
 
 		$passed        = $this->_tokenize($path);
 		$passed_tokens = $passed[2];
-		$passed_sep    = $passed[1];
+		$passed_seps   = $passed[1];
 		$passed_len    = count($passed_tokens);
 
 		/* Cant do this anymore, added optional params */
 		//if(count($self_tokens) !== $passed_len) return false;
 
 		for($x = 0; $x < $self_len; $x++) {
-			$passed_token = $passed_tokens[$x];
 			$self_token   = $self_tokens[$x];
+			$passed_token = isset($passed_tokens[$x]) ? $passed_tokens[$x] : false;
+
+			/* If we are missing the token, and it's not optional - then we're done here */
+			if(!$passed_token && $self_seps[$x][0] !== '[')
+				return false;
 
 			if($self_token != $passed_token) {
 				if(!preg_match('/^:([^\/]*)/', $self_token, $m)) {
