@@ -14,13 +14,13 @@ use P3\Exception\RouteException as Exception;
 class Route {
 	protected $_action     = null;
 	protected $_controller = null;
-	protected $_params  = array();
-	protected $_prefix   = '/';
-	protected $_method  = 'any';
-	protected $_options = array();
-	protected $_path    = null;
-	protected $_map    = null;
-	protected $_tokens = array();
+	protected $_map        = null;
+	protected $_method     = 'any';
+	protected $_options    = array();
+	protected $_path       = null;
+	protected $_params     = array();
+	protected $_prefix     = '/';
+	protected $_tokens     = array();
 
 	/**
 	 * Holds tokenized strings, so the regex only runs once (for performance)
@@ -28,7 +28,7 @@ class Route {
 	 */
 	public static $_tokenCache = array();
 
-	protected static $_tokenRegEx = '(\[?/)([^/]*)\]?';
+	protected static $_tokenRegEx = '(\[?[/\.])([^/^\.^\]^\[]*)\]?';
 
 	public function __construct($path, $options, $method = null, $map = null)
 	{
@@ -76,9 +76,6 @@ class Route {
 
 		if($ret !== FALSE && !$controller->rendered()) {
 			$controller->render();
-			if(defined('\APP\START_TIME')) {
-				define('APP\RENDER_TIME', microtime(true));
-			}
 		}
 
 		if(defined('\APP\START_TIME')) {
@@ -108,6 +105,11 @@ class Route {
 	public function getController()
 	{
 		return $this->_controller;
+	}
+
+	public function getFormat()
+	{
+		return $this->_params['format'];
 	}
 
 	public function getNamespace()
@@ -153,6 +155,7 @@ class Route {
 
 	public function reverseMatch($controller, $action, $method)
 	{
+		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
 		return
 			($this->_controller == $controller
 				&& $this->_action == $action
@@ -173,8 +176,8 @@ class Route {
 		$passed_sep    = $passed[1];
 		$passed_len    = count($passed_tokens);
 
-		/* Match number of tokens, before checking them */
-		if(count($self_tokens) !== $passed_len) return false;
+		/* Cant do this anymore, added optional params */
+		//if(count($self_tokens) !== $passed_len) return false;
 
 		for($x = 0; $x < $self_len; $x++) {
 			$passed_token = $passed_tokens[$x];
@@ -192,8 +195,7 @@ class Route {
 		if(isset($this->_params['controller'])) $this->_controller = $this->_params['controller'];
 		if(isset($this->_params['action']))     $this->_action     = $this->_params['action'];
 
-		//if(isset($this->_options['only']))
-				//var_dump($this);
+		$this->_params['format'] = isset($this->_params['format']) ? $this->_params['format'] : 'html';
 
 		return true;
 	}

@@ -38,7 +38,7 @@ class Map
 	public function connect($path, array $options = array(), $method = 'any', $accept_format = false)
 	{
 		if($accept_format) {
-			rtrim($path, '/').'[.:format]';
+			$path = rtrim($path, '/').'[.:format]';
 		}
 
 		$router = $this->_router;

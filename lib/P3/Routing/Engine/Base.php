@@ -54,12 +54,14 @@ abstract class Base {
 	 */
 	public static function dispatch($path = null)
 	{
-		if(defined('\APP\START_TIME'))
-			define('APP\DISPATCH_TIME', microtime(true));
 
 		$route = self::getRoute($path);
 
 		if(!$route) throw new \P3\Exception\RoutingException('No route was matched', array(), 404);
+
+		if(defined('\APP\START_TIME'))
+			define('APP\DISPATCH_TIME', microtime(true));
+
 		$route->dispatch();
 
 		self::$_dispatchedRoute = $route;
@@ -173,11 +175,8 @@ abstract class Base {
 		if(!$len) return false;
 
 		foreach($routes as $route) {
-			if(FALSE !== ($match = $route->match($path))) {
-				/* WTF PHP!!!!  PHP is ignoring the break;  This WILL print the dump, AND STILL continue the loop */
-				//var_dump("HIT");
+			if(FALSE !== ($match = $route->match($path)))
 				break;
-			}
 		}
 		
 		return $match;
@@ -202,15 +201,19 @@ abstract class Base {
 
 	public function reverseLookup($controller, $action = 'index', $method = 'any')
 	{
+		if(is_null($controller))
+			throw new \P3\Exception\RoutingException("You asked me to look for a route with a <null> contoller?");
+
 		$routes = self::getFilteredRoutes($method);
 
 		$match  = false;
 		$len   = count($routes);
 
-		if($len) return false;
+		if(!$len) return false;
 
 		foreach($routes as $route)
-			if(FALSE !== ($match = $route->reverseMatch($controller, $action, $method))) break;
+			if(FALSE !== ($match = $route->reverseMatch($controller, $action, $method)))
+				break;
 
 		return $match;
 	}
