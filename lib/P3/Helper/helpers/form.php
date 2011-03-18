@@ -350,7 +350,16 @@ class form extends P3\Helper\Base
 	{
 		if(empty($this->_uri)) {
 			$router = P3::getRouter();
-			$route  = $router::reverseLookup($this->_model->controller, $this->_model->isNew() ? 'create' : 'update');
+			$controller = $this->_model->getController();
+
+			if(!$controller)
+				throw new \P3\Exception\HelperException("Cant build URI for form because I don't know what controller belongs to %s", array($this->_model));
+
+			$action = $this->_model->isNew() ? 'create' : 'update';
+			$route  = $router::reverseLookup($controller, $action);
+
+			if(!$route)
+				throw new \P3\Exception\HelperException("Cant build URI for form because there is no create route for %s#%s.  Create one in routes.php", array($controller, $action));
 
 			$uri = $route($this->_model->id());
 
