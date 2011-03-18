@@ -184,16 +184,14 @@ abstract class Base {
 	{
 		$routes = self::getFilteredRoutes(strtolower($_SERVER['REQUEST_METHOD']));
 
-		if(!count($routes)) return false;
-
 		$match = false;
-		$x     = 0;
 		$len   = count($routes);
 
-		$route = $routes[$x];
-		while($x < $len-1 && FALSE === ($match = $route->match($path)))
-			$route = $routes[++$x];
+		if(!$len) return false;
 
+		foreach($routes as $route)
+			if(FALSE !== ($match = $route->match($path))) break;
+		
 		return $match;
 	}
 
@@ -202,15 +200,12 @@ abstract class Base {
 		$routes = self::getFilteredRoutes($method);
 
 		$match  = false;
-		$x      = 0;
 		$len   = count($routes);
 
-		if(!count($routes)) return false;
+		if($len) return false;
 
-		$route = $routes[$x];
-
-		while($x < $len-1 && FALSE === ($match = $route->reverseMatch($controller, $action, $method)))
-			$route = $routes[++$x];
+		foreach($routes as $route)
+			if(FALSE !== ($match = $route->reverseMatch($controller, $action, $method))) break;
 
 		return $match;
 	}

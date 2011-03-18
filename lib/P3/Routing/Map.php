@@ -35,7 +35,7 @@ class Map
 	}
 
 //public
-	public function connect($path, array $options = array(), $method = null)
+	public function connect($path, array $options = array(), $method = 'any')
 	{
 		$router = $this->_router;
 		$route = new Route($path, $options, $method, $this);
@@ -87,6 +87,7 @@ class Map
 
 	public function resources($controller, array $options = array())
 	{
+
 		$front = isset($options['as']) ? $options['as'] : $controller;
 
 		$prefix = isset($options['prefix']) ? $options['prefix'] : '/';

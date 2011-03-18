@@ -51,7 +51,7 @@ class Route {
 			$this->_controller = $controller;
 			$this->_action     = isset($action) ? $action : 'index';
 		} else {
-			$this->_controller = $options['controller'];
+			$this->_controller = isset($options['controller']) ? $options['controller'] : null;
 			$this->_action = isset($options['action']) ? $options['action'] : 'index';
 		}
 
@@ -132,6 +132,9 @@ class Route {
 
 	public function match($path, $method = null)
 	{
+
+		//printf("Checking Route: [%s] %s#%s<br />", $this->_method, $this->_controller, $this->_action);
+
 		$path = rtrim($path, '/');
 		$method = is_null($method) ? strtolower($_SERVER['REQUEST_METHOD']) : $method;
 
