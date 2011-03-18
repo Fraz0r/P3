@@ -342,13 +342,11 @@ abstract class Base extends \P3\Model\Base
 	/**
 	 * Returns controller model uses for CRUD.  Attempts to guess if it's not set
 	 *
-	 * Note:  Guessing is very basic, it's best to set this in your models
-	 *
 	 * @return string Controller model uses for CRUD
 	 */
 	public function getController()
 	{
-		return empty($this->controller) ? $this->_class.'s' : $this->controller;
+		return empty(static::$_controller) ? $this->pluralize() : static::$_controller;
 	}
 
 	/**
@@ -893,6 +891,13 @@ abstract class Base extends \P3\Model\Base
 		} else {
 			return null;
 		}
+	}
+
+	public function __toString()
+	{
+		return $this->isNew() ?
+					'<new>'.$this->_class :
+					$this->_class.'<'.$this->id().'>';
 	}
 }
 
