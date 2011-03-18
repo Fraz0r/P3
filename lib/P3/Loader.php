@@ -9,6 +9,9 @@
 namespace P3;
 
 require_once(dirname(__FILE__).'/P3.php');
+
+Loader::loadHelper('str');
+
 final class Loader
 {
 	/**
@@ -83,9 +86,6 @@ final class Loader
 	 */
 	public static function loadController($controller)
 	{
-		self::loadHelper('str');
-
-
 
 		if(self::classExists($controller)) return;
 
@@ -237,7 +237,6 @@ final class Loader
 	 * @return string Classes relative path (from include path)
 	 */
 	public static function getClassPath($class){
-		self::loadHelper('str');
 
 		$exp = explode('\\', ltrim($class, '\\'));
 		$file = ucfirst(\str::toCamelCase(array_pop($exp), true).'.php');

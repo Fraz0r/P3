@@ -30,8 +30,10 @@ class Route {
 
 	protected static $_tokenRegEx = '(\[?/)([^/]*)\]?';
 
-	public function __construct($path, $options, $method = null)
+	public function __construct($path, $options, $method = null, $map = null)
 	{
+		$this->_map = $map;
+
 		if(isset($options['method'])) {
 			$this->_method = $options['method'];
 		} else {
@@ -176,7 +178,7 @@ class Route {
 			$self_token   = $self_tokens[$x];
 
 			if($self_token != $passed_token) {
-				if(!preg_match('/:([^\/]*)/', $self_token, $m)) {
+				if(!preg_match('/^:([^\/]*)/', $self_token, $m)) {
 					return false;
 				} else {
 					$this->_params[$m[1]] = $passed_token;
@@ -211,7 +213,10 @@ class Route {
 //Magic
 	public function __call($func, $args)
 	{
-		$this->_map->{$func}($args[0], isset($args[1]) ? $args[1] : array());
+		$options = isset($args[1]) ? $args[1] : array();
+		$options['prefix'] = $this->_path.'/';
+
+		return $this->_map->{$func}($args[0], $options);
 	}
 
 	public function __invoke($args)

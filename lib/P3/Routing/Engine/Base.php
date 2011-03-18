@@ -186,14 +186,12 @@ abstract class Base {
 
 		if(!count($routes)) return false;
 
-
 		$match = false;
 		$x     = 0;
 		$len   = count($routes);
 
-
 		$route = $routes[$x];
-		while($x < $len && FALSE === ($match = $route->match($path)))
+		while($x < $len-1 && FALSE === ($match = $route->match($path)))
 			$route = $routes[++$x];
 
 		return $match;
