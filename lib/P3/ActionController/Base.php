@@ -85,6 +85,14 @@ abstract class Base extends \P3\Controller\Base
 	{
 		$this->_view->display($path);
 		$this->_rendered = true;
+		if(defined('\APP\START_TIME')) {
+			define('APP\RENDER_TIME', microtime(true));
+		}
+	}
+
+	public function rendered()
+	{
+		return $this->_rendered;
 	}
 
 //protected
