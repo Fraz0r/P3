@@ -20,9 +20,6 @@ final class P3
 	public static function boot()
 	{
 		P3\Loader::loadEnv();
-
-		$router = self::$_routingClass;
-		$router::dispatch();
 	}
 
 	/**

@@ -66,18 +66,6 @@ abstract class Base {
 	}
 
 	/**
-	 * URL Redirect [302]
-	 *
-	 * Note:  This is basic for now.  Will come back and add route based redirects
-	 *
-	 * @param string $path Path to redirect to
-	 */
-	public static function redirect($path) {
-		header("Location: {$path}");
-		exit;
-	}
-
-	/**
 	 * Returns current dispatched action
 	 *
 	 * @return string Current routed action
@@ -85,6 +73,16 @@ abstract class Base {
 	public static function getAction()
 	{
 		return self::$_dispatchedRoute['action'];
+	}
+
+	public static function getAllRoutes()
+	{
+		return array_merge(self::$_routes['any'], self::$_routes['get'], self::$_routes['put'], self::$_routes['post'], self::$_routes['delete']);
+	}
+
+	public static function getFilteredRoutes($method = 'any')
+	{
+		return $method == 'any' ? self::getAllRoutes() : array_merge(self::$_routes[$method], self::$_routes['any']);
 	}
 
 	/**
@@ -128,6 +126,19 @@ abstract class Base {
 		return self::$_map;
 	}
 
+	/**
+	 * Returns first matched route for given controller/action
+	 *
+	 * @param string $path URI for routing
+	 * @return \P3\Routing\Route Route
+	 */
+	public static function getRoute($path = null)
+	{
+		$path = !is_null($path) ? $path : (Loader::isCli() ? '/' : $_SERVER['REQUEST_URI']);
+
+		return self::matchRoute($path);
+	}
+
 	public static function isXHR()
 	{
 		return(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
@@ -147,34 +158,6 @@ abstract class Base {
 	}
 
 
-	public static function getAllRoutes()
-	{
-		return array_merge(self::$_routes['any'], self::$_routes['get'], self::$_routes['put'], self::$_routes['post'], self::$_routes['delete']);
-	}
-
-	/**
-	 * Returns first matched route for given controller/action
-	 *
-	 * @param string $path URI for routing
-	 * @return \P3\Routing\Route Route 
-	 */
-	public static function getRoute($path = null)
-	{
-		$path = !is_null($path) ? $path : (Loader::isCli() ? '/' : $_SERVER['REQUEST_URI']);
-
-		return self::matchRoute($path);
-	}
-
-	public static function getFilteredRoutes($method = 'any')
-	{
-		return $method == 'any' ? self::getAllRoutes() : array_merge(self::$_routes[$method], self::$_routes['any']);
-	}
-
-	public static function numRoutes()
-	{
-		return count(self::$_routes);
-	}
-
 	/**
 	 * Finds and returns route matching path
 	 * @param string $path Path to match
@@ -193,6 +176,23 @@ abstract class Base {
 			if(FALSE !== ($match = $route->match($path))) break;
 		
 		return $match;
+	}
+
+	public static function numRoutes()
+	{
+		return count(self::$_routes);
+	}
+
+	/**
+	 * URL Redirect [302]
+	 *
+	 * Note:  This is basic for now.  Will come back and add route based redirects
+	 *
+	 * @param string $path Path to redirect to
+	 */
+	public static function redirect($path) {
+		header("Location: {$path}");
+		exit;
 	}
 
 	public function reverseLookup($controller, $action = 'index', $method = 'any')
