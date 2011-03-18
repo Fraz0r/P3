@@ -11,9 +11,10 @@ use P3\Router;
 
 abstract class Base extends \P3\Controller\Base
 {
-	/* Attributes */
+//- ATTRIBUTES
 	const ATTR_TEMPLATE_CLASS = 1;
 
+//- attr-protected
 	/**
 	 * An Array of CSS Files for the layout to include
 	 *
@@ -36,12 +37,17 @@ abstract class Base extends \P3\Controller\Base
 	protected $_layout;
 
 	/**
-	 * True upon rendering a view
+	 * Whether or not controller has been rendered
 	 *
 	 * @var boolean
 	 */
 	protected $_rendered = false;
 
+	/**
+	 * Whether or not controller has been processed
+	 *
+	 * @var boolean
+	 */
 	protected $_processed = false;
 
 	/**
@@ -51,11 +57,12 @@ abstract class Base extends \P3\Controller\Base
 	 */
 	protected $_view = null;
 
+//- Public
 	/**
 	 * Constructor
-	 * 
-	 * @param array $routing_data
-	 * @param array $options 
+	 *
+	 * @param P3\Routing\Route $route Dispatched Route (this needs to be gone)
+	 * @param array $option Options for controller
 	 */
 	public function  __construct($route = null, array $options = array())
 	{
@@ -70,6 +77,13 @@ abstract class Base extends \P3\Controller\Base
 
 	}
 
+	/**
+	 * Process action and returns result
+	 *
+	 * @param string $action
+	 *
+	 * @return void
+	 */
 	public function process($action = null)
 	{
 		if(!$this->_processed) {
@@ -81,6 +95,13 @@ abstract class Base extends \P3\Controller\Base
 	}
 
 
+	/**
+	 * Renders controller#action view, or other disired view
+	 *
+	 * @param string $path path to view to render
+	 *
+	 * @return void
+	 */
 	public function render($path = null)
 	{
 		$this->_view->display($path);
@@ -90,12 +111,22 @@ abstract class Base extends \P3\Controller\Base
 		}
 	}
 
+	/**
+	 * Determines whether or not controller has been rendered
+	 *
+	 * @return boolean
+	 */
 	public function rendered()
 	{
 		return $this->_rendered;
 	}
 
-//protected
+//- Protected
+	/**
+	 * Prepares controller's view
+	 *
+	 * @return P3\Template\Base
+	 */
 	protected function _prepareView()
 	{
 		/* Define a new instance of our template class */
@@ -130,12 +161,16 @@ abstract class Base extends \P3\Controller\Base
 					\html::addCss($k);
 			}
 		}
+
+		return $this->_view;
 	}
 
-//Magic
+//- Magic
 	/**
 	 * Called by php if function is missing.  Put this here to avoid the necessity
 	 * of the action having to be in the controller
+	 *
+	 * THIS WILL BE GONE, I dont like it
 	 *
 	 * @param string $func
 	 * @param array $args

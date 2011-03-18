@@ -1,14 +1,13 @@
 <?php
+
+namespace P3\Session;
+use       P3\Exception\SessionException as Error;
+
 /**
  * Description of Session
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
-
-namespace P3\Session;
-
-use P3\Exception\SessionException as Error;
-
 class Base extends \ArrayObject
 {
 	/**

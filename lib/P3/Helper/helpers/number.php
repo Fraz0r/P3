@@ -4,14 +4,14 @@
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
  */
-
 abstract class number extends P3\Helper\Base
 {
 	/**
 	 * Returns an array containing the desired range
 	 *
 	 * @param int $start
-	 * @param int $end 
+	 * @param int $end
+	 *
 	 * @return array
 	 */
 	public static function range($start, $end)
@@ -30,6 +30,7 @@ abstract class number extends P3\Helper\Base
 	 *
 	 * @param float $number Number to format
 	 * @param integer $decimals Number of decimal places to include
+	 *
 	 * @return string Formatted number string
 	 */
 	public static function toMoney($number, $decimals = 2)
@@ -41,6 +42,7 @@ abstract class number extends P3\Helper\Base
 	 * Formats integer with english extension (e.g. 1 -&gt; 1st)
 	 *
 	 * @param int $number Number to format
+	 *
 	 * @return string Formatted number string
 	 */
 	public static function withEnglishExtension($number)

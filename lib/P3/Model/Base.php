@@ -1,22 +1,14 @@
 <?php
+
+namespace P3\Model;
+
 /**
  * Description of Base
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-
-namespace P3\Model;
-
 abstract class Base {
-	/**
-	 * List of field aliases.  Ex: array("fname" => "first_name")
-	 *
-	 * @var array
-	 */
-	protected static $_alias = array();
-
-	protected $_errors  = array();
-
+//- attr-static-public
 	/* Validaters */
 	public static $_validatesAlpha    = array();
 	public static $_validatesAlphaNum = array();
@@ -25,6 +17,14 @@ abstract class Base {
 	public static $_validatesNum      = array();
 	public static $_validatesPresence = array();
 
+//- attr-static-protected
+	/**
+	 * List of field aliases.  Ex: array("fname" => "first_name")
+	 * @var array
+	 */
+	protected static $_alias = array();
+
+//- attr-protected
 	/**
 	 * Holds class name for Model, need to switch rest of system off of get_class
 	 * @var string
@@ -37,6 +37,9 @@ abstract class Base {
 	 */
 	protected $_data = array();
 
+	protected $_errors  = array();
+
+//- Public
 	public function  __construct(array $record_array = null)
 	{
 		$this->_class = get_class($this);
@@ -201,7 +204,7 @@ abstract class Base {
 	}
 
 
-// Protected
+//- Protected
 	/**
 	 * Adds error to model
 	 *
@@ -227,9 +230,9 @@ abstract class Base {
 			$func($this);
 	}
 
-// Static
+//- Static
 
-// Magic
+//- Magic
 	/**
 	 * Magic Get:  Retrieve Model Value
 	 *

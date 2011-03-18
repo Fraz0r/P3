@@ -1,39 +1,30 @@
 <?php
-/**
- * **REQUIRES PHP 5.3+ [Late Static Bindings]**
- *
- * Note:  This class Requires a PDO attached.
- *      Call P3\ActiveRecord\Base::db() with a desired PDO or Extension
- *      prior to using Models.  [Bootstraps a good spot]
- *
- *       Belongs To:  $_belongsTo[accessor]  = (:class => Model, :fk => foreign_key)
- *          Has One:  $_hasOne[accessor]  = (:class => Model, :fk => foreign_key)
- *         Has Many:  $_hasMany[accessor] = (:class => Model, :fk => foreign_key)
- * Has Many Through:  $_hasManyThrough[accessor] = (:class => Model, :joinTable => db_table, :fk => owners_key, :efk => childs_key)
- *
- *
- * @author Tim Frazier <tim.frazier@gmail.com>
- */
 
 namespace P3\ActiveRecord;
 
+/**
+ * P3\ActiveRecord\Base
+ *
+ * P3's Database Model Class
+ *
+ * @author Tim Frazier <tim.frazier@gmail.com>
+ */
 abstract class Base extends \P3\Model\Base
 {
-//Attributes
+//- ATTRIBUTES
 	const ATTR_ATTACHMENT_PATH = 1;
 
 	const ATTACHMENT_PATH_PUBLIC = 1;
 	const ATTACHMENT_PATH_SYSTEM = 2;
 
-//Public
+//- attr-public
 	/**
 	 * Controller to use for model (When generating links)
 	 * @var string
 	 */
 	public $controller = null;
 
-//Protected
-
+//- attr-protected
 	/**
 	 * Stores class attributes
 	 * @var array
@@ -55,9 +46,7 @@ abstract class Base extends \P3\Model\Base
 	protected $_afterDestroy  = array();
 
 
-//Static
-
-	/* Validaters */
+//- attr-static
 	public static $_validatesUnique   = array();
 
 	/**
@@ -123,9 +112,10 @@ abstract class Base extends \P3\Model\Base
 
 
 	/**
-	 * Use get() to fetch an array of models. But if you already have the array, you can use this __constructer
+	 * Use get() to fetch an array of models. But if you already have the
+	 * array, you can use this __constructer
 	 *
-	 * @param array $record_array an array of field => val
+	 * @param array $record_array An array of field => val to use for the new model
 	 */
 	public function  __construct(array $record_array = null, array $options = array())
 	{
@@ -143,6 +133,8 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param P3\ActiveRecord\Base $related_model
 	 * @param array $options Options
+	 *
+	 * @return void
 	 */
 	public function addModelToMany($related_model, array $options = array())
 	{
@@ -159,12 +151,22 @@ abstract class Base extends \P3\Model\Base
 	 * Adds error to model
 	 *
 	 * @param string $str
+	 *
+	 * @return void
 	 */
 	public function addError($str)
 	{
 		$this->_errors[] = $str;
 	}
 
+	/**
+	 * Binds error to database collumn
+	 *
+	 * @param string $field Name of Field
+	 * @param string $str Error message
+	 *
+	 * @return void
+	 */
 	public function addFieldError($field, $str)
 	{
 		if(!isset($this->_errors[$field])) $this->_errors[$field] = array();
@@ -176,6 +178,7 @@ abstract class Base extends \P3\Model\Base
 	 * Returns path for given attachment
 	 *
 	 * @param int $path_type Path type (Public or system)
+	 *
 	 * @return string Attachment Path
 	 */
 	public function attachmentPath($attachment, $path_type = null)
@@ -193,6 +196,7 @@ abstract class Base extends \P3\Model\Base
 	 * Returns URL for attachment
 	 *
 	 * @param string $attachment Attachment
+	 *
 	 * @return string Public URL for attachment
 	 */
 	public function attachmentURL($attachment)
@@ -202,7 +206,10 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Binds Listeners to model
+	 *
 	 * @param array $listeners Mult. Dim. Array of closures to be bound [per event]
+	 *
+	 * @return void
 	 */
 	protected function bindEventListeners(array $listeners = array())
 	{
@@ -225,11 +232,9 @@ abstract class Base extends \P3\Model\Base
 	/**
 	 * Returns a new relationship model, with fk(s) ready
 	 *
-	 * Note:  This does NOT work with _belongsTo.  You are doing
-	 * shit backwards if you need that functionaliy
-	 *
 	 * @param string $model_name Name of model to build
 	 * @param array $record_array Array of field/vals for new model
+	 *
 	 * @return P3\ActiveRecord\Base
 	 */
 	public function build($model_name, array $record_array = array())
@@ -270,6 +275,8 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Deletes Record from Database
+	 *
+	 * @return boolean Whether or not the delete was successfull
 	 */
 	public function delete()
 	{
@@ -292,6 +299,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $field Field to decrement
 	 * @param array $options
+	 *
 	 * @return int Decremented value
 	 */
 	public function decrement($field, array $options = array())
@@ -305,6 +313,8 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Destroys ALL attachments for model
+	 *
+	 * @return boolean Whether or not the destroy was successfull
 	 */
 	public function destroyAttachments()
 	{
@@ -322,6 +332,8 @@ abstract class Base extends \P3\Model\Base
 				rmdir($dir);
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -334,6 +346,13 @@ abstract class Base extends \P3\Model\Base
 		return $this->{$this->pk()};
 	}
 
+	/**
+	 * Returns requested attribute
+	 *
+	 * @param int $attr Attribute flag
+	 *
+	 * @return mixed Attribute value
+	 */
 	public function getAttr($attr)
 	{
 		return isset($this->_attr[$attr]) ? $this->_attr[$attr] : null;
@@ -353,6 +372,7 @@ abstract class Base extends \P3\Model\Base
 	 * Returns all, or requested fields as an associative array
 	 *
 	 * @param array $fields Array of fields requested
+	 *
 	 * @return array Array of field => val
 	 */
 	public function getFields(array $fields = array())
@@ -375,6 +395,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $field Field to increment
 	 * @param array $options
+	 *
 	 * @return int Incremented Value
 	 */
 	public function increment($field, array $options = array())
@@ -391,6 +412,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param mixed $class_or_object
 	 * @param integer $id
+	 *
 	 * @return boolean
 	 */
 	public function isInMany($class_or_object, $id = null)
@@ -433,6 +455,7 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Returns true if the record is new, False if existing
+	 *
 	 * @return bool
 	 */
 	public function isNew()
@@ -442,6 +465,8 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Loads all columns into model (Just pk is needed for this)
+	 *
+	 * @return void
 	 */
 	public function load()
 	{
@@ -463,6 +488,8 @@ abstract class Base extends \P3\Model\Base
 	 * Removes passed model from Many-to-Many relationship
 	 *
 	 * @param P3\ActiveRecord\Base $related_model
+	 *
+	 * @return int Number of rows affected
 	 */
 	public function removeModelFromMany($related_model)
 	{
@@ -489,6 +516,8 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Saves a record into the database
+	 *
+	 * @return boolean Whether or not save was successful
 	 */
 	public function save($options = null)
 	{
@@ -520,6 +549,7 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Saves model's attachments
+	 *
 	 * @return void
 	 */
 	public function saveAttachments()
@@ -572,6 +602,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param int $attr
 	 * @param mixed $val
+	 *
 	 * @return void
 	 */
 	public function setAttribute($attr, $val)
@@ -581,6 +612,7 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Returns true if record fields are valid
+	 *
 	 * @return bool
 	 */
 	public function valid()
@@ -604,8 +636,7 @@ abstract class Base extends \P3\Model\Base
 		return $flag;
 	}
 
-//Protected
-
+//- Protected
 	/**
 	 * Saves a new record to the database
 	 *
@@ -660,11 +691,12 @@ abstract class Base extends \P3\Model\Base
 	}
 
 
-//Static
+//- Static
 	/**
 	 * Returns all models
 	 *
 	 * @param array $options
+	 *
 	 * @return array Array of all models
 	 */
 	public static function all(array $options = array())
@@ -678,6 +710,8 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
 	 * @param array $options List of options for the query
+	 *
+	 * @return boolean Whether or not destory was successful
 	 */
 	public static function destroy($where, array $options = array())
 	{
@@ -703,6 +737,7 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
 	 * @param array $options List of options for the query
+	 *
 	 * @return P3\ActiveRecord\Base
 	 */
 	public static function find($where, array $options = array())
@@ -746,7 +781,8 @@ abstract class Base extends \P3\Model\Base
 	/**
 	 * Gets or Sets Database to use for models
 	 *
-	 * @param DB $db
+	 * @param P3\Database\Connection $db
+	 *
 	 * @return mixed Returns Database object if get()
 	 */
 	public static function db($db = null)
@@ -762,6 +798,7 @@ abstract class Base extends \P3\Model\Base
 	 * Gets or Sets PK Field for Model
 	 *
 	 * @param string $pk
+	 *
 	 * @return mixed Returns pk field if get()
 	 */
 	public static function pk($pk = null)
@@ -777,6 +814,7 @@ abstract class Base extends \P3\Model\Base
 	 * Gets or Sets the db table name for the Model
 	 *
 	 * @param string $table Table to set
+	 *
 	 * @return mixed Returns database table if get()
 	 */
 	public static function table($table = null)
@@ -788,13 +826,14 @@ abstract class Base extends \P3\Model\Base
 		}
 	}
 
-//Magic
+//- Magic
 	/**
 	 * Adds relations to isset check
 	 *
 	 * @param string $name Variable
-	 * @return boolean True if set, False if not
 	 * @magic
+	 *
+	 * @return boolean True if set, False if not
 	 */
 	public function  __isset($name)
 	{
@@ -809,8 +848,9 @@ abstract class Base extends \P3\Model\Base
 	 * Retrievse value from desired field, also handles relations
 	 *
 	 * @param string $name Field to retrieve
-	 * @return mixed Value in field
 	 * @magic
+	 *
+	 * @return mixed Value in field
 	 */
 	public function  __get($name)
 	{
@@ -893,6 +933,11 @@ abstract class Base extends \P3\Model\Base
 		}
 	}
 
+	/**
+	 * Returns an easily distinguishable string for Model
+	 *
+	 * @return string String representation of model
+	 */
 	public function __toString()
 	{
 		return $this->isNew() ?
