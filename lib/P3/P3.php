@@ -5,6 +5,7 @@
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
+require_once(dirname(__FILE__).'/Loader.php');
 final class P3
 {
 	public static $VERSION = '1.0.0-experimental';
