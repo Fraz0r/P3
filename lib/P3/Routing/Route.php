@@ -232,7 +232,9 @@ class Route {
 
 	public function __invoke($args)
 	{
-		return str_replace(':id', $args[0], $this->_path);
+		$ret = str_replace(':id', $args[0], $this->_path);
+		$ret = preg_replace('/\[.:format\]$/', '', $ret);
+		return $ret;
 	}
 }
 ?>
