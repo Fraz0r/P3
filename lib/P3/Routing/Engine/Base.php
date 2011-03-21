@@ -1,23 +1,26 @@
 <?php
+
+namespace P3\Routing\Engine;
+use       P3\Loader;
+
 /**
- * Description of Engine
+ * P3\Routing\Engine
+ *
+ * This is the base model for for P3\Router.  Handles Interpreting and dispatching
+ * P3\Routing\Route's
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-
-namespace P3\Routing\Engine;
-
-use P3\Loader;
-
 abstract class Base {
 	/**
 	 * Container for dispatched route
+	 * @var P3\Routing\Route
 	 */
 	private static $_dispatchedRoute = null;
 
 	/**
 	 * Holds routing_data for global route (if any)
-	 * @var stdClass $routing_data
+	 * @var P3\Routing\Route
 	 */
 	private static $_globalRoute = null;
 
@@ -41,6 +44,10 @@ abstract class Base {
 
 	/**
 	 * Adds route to parse list
+	 *
+	 * @param P3\Routing\Route $route Route to add to self for later interpretation
+	 *
+	 * @return void
 	 */
 	public static function add($route)
 	{
@@ -51,6 +58,8 @@ abstract class Base {
 	 * Dispatches passed URI to the proper controller/action
 	 *
 	 * @param string $path URI for dispatch
+	 *
+	 * @return P3\Routing\Route Dispatched Route
 	 */
 	public static function dispatch($path = null)
 	{
@@ -65,6 +74,8 @@ abstract class Base {
 		$route->dispatch();
 
 		self::$_dispatchedRoute = $route;
+
+		return $route;
 	}
 
 	/**
@@ -77,29 +88,29 @@ abstract class Base {
 		return self::$_dispatchedRoute['action'];
 	}
 
+	/**
+	 * Returns all routes, no matter the HTTP Method
+	 *
+	 * @return P3\Routing\Route[]
+	 */
 	public static function getAllRoutes()
 	{
 		return array_merge(self::$_routes['any'], self::$_routes['get'], self::$_routes['put'], self::$_routes['post'], self::$_routes['delete']);
 	}
 
+	/**
+	 * Returns routes filtered by HTTP Method
+	 *
+	 * @return P3\Routing\Route[]
+	 */
 	public static function getFilteredRoutes($method = 'any')
 	{
 		return $method == 'any' ? self::getAllRoutes() : array_merge(self::$_routes[$method], self::$_routes['any']);
 	}
 
 	/**
-	 * Returns current dispatched controller
-	 *
-	 * @return string current dispatched controller
-	 */
-	public static function getController()
-	{
-		return self::$_dispatchedRoute['controller'];
-	}
-
-	/**
 	 * Returns current dispatched route
-	 * @return string
+	 * @return P3\Routing\Route
 	 */
 	public static function getDispatched()
 	{
@@ -120,7 +131,8 @@ abstract class Base {
 
 	/**
 	 * Returns routing map
-	 * @return string Map
+	 *
+	 * @return P3\Routing\Map
 	 */
 	public static function getMap()
 	{
@@ -132,6 +144,7 @@ abstract class Base {
 	 * Returns first matched route for given controller/action
 	 *
 	 * @param string $path URI for routing
+	 *
 	 * @return \P3\Routing\Route Route
 	 */
 	public static function getRoute($path = null)
@@ -141,28 +154,21 @@ abstract class Base {
 		return self::matchRoute($path);
 	}
 
+	/**
+	 * Determines whether or not the request stemmed from an AJAX Request
+	 *
+	 * @return boolean True if AJAX, false otherwise
+	 */
 	public static function isXHR()
 	{
 		return(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 	}
 
 	/**
-	 * Loads two common routes, one for the default ("/") route, and another for the standard MVC layout ("/:controller/:action/:id")
-	 *
-	 * Note:  You'll want this to be the last call in your routes.php file, otherwise they will override your other calls
-	 * @param array $default_routing_data Routing data for the default route ("/").  Defaults to array('controller' => 'default');
-	 */
-	public static function loadDefaultRoutes(array $default_routing_data = array())
-	{
-		$default_routing_data = !count($default_routing_data) ? array('controller' => 'default') : $default_routing_data;
-		self::addRoute("/", $default_routing_data);
-		self::addRoute('/:controller[/:id]/:action');
-	}
-
-
-	/**
 	 * Finds and returns route matching path
+	 *
 	 * @param string $path Path to match
+	 *
 	 * @return \P3\Routing\Route
 	 */
 	public static function matchRoute($path)
@@ -182,6 +188,13 @@ abstract class Base {
 		return $match;
 	}
 
+	/**
+	 * Counts and returns number of Routes
+	 *
+	 * @return int Number of Routes
+	 *
+	 * @todo fix numRoutes
+	 */
 	public static function numRoutes()
 	{
 		return count(self::$_routes);
@@ -199,6 +212,16 @@ abstract class Base {
 		exit;
 	}
 
+	/**
+	 * Does the opposite of getRoute.  This will return a Route based on the desired
+	 * controller, action, and method
+	 *
+	 * @param string $controller Controller to match
+	 * @param string $action Action to match
+	 * @param string $method Method to match
+	 *
+	 * @return P3\Routing\Route Returns Route if succesful, false otherwise
+	 */
 	public function reverseLookup($controller, $action = 'index', $method = 'any')
 	{
 		if(is_null($controller))

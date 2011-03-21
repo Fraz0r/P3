@@ -1,13 +1,14 @@
 <?php
 
+namespace P3\Helper;
+
 /**
- * Description of Helper
+ * P3\Helper\Base
+ *
+ * Base class for helpers
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-
-namespace P3\Helper;
-
 class Base {
 	protected $_opts = array();
 

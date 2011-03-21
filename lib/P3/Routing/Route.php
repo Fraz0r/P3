@@ -1,35 +1,89 @@
 <?php
 
+namespace P3\Routing;
+use       P3\Loader;
+use       P3\Exception\RouteException as Exception;
+
 /**
- * Description of Route
+ * P3\Routing\Route
+ *
+ * A Route is a possible path to be routed into the Application.
+ * P3\Routing\Engine\Base is responsible for looping through and dispatching
+ * the approriate Route.
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-
-namespace P3\Routing;
-
-use P3\Loader;
-use P3\Exception\RouteException as Exception;
-
 class Route {
+//- attr-protected
+	/**
+	 * Route's Action
+	 * @var string
+	 */
 	protected $_action     = null;
+
+	/**
+	 * Route's Controller
+	 * @var string
+	 */
 	protected $_controller = null;
+
+	/**
+	 * Route's Map [if any]
+	 * @var P3\Routing\Map
+	 */
 	protected $_map        = null;
+
+	/**
+	 * Route's Method
+	 * @var string
+	 */
 	protected $_method     = 'any';
+
+	/**
+	 * Route's Options
+	 * @var array
+	 */
 	protected $_options    = array();
+
+	/**
+	 * Route's Path
+	 * @var string
+	 */
 	protected $_path       = null;
+
+	/**
+	 * Route's Params
+	 * @var array
+	 */
 	protected $_params     = array();
+
+	/**
+	 * Route's Controller
+	 * @var string
+	 */
 	protected $_prefix     = '/';
+
+	/**
+	 * Route's Tokens
+	 * @var array
+	 */
 	protected $_tokens     = array();
 
+//- attr-static-protected
+	/**
+	 *
+	 * @var <type>
+	 */
+	protected static $_tokenRegEx = '(\[?[/\.])([^/^\.^\]^\[]*)\]?';
+
+//- attr-static-public
 	/**
 	 * Holds tokenized strings, so the regex only runs once (for performance)
 	 * @var array
 	 */
 	public static $_tokenCache = array();
 
-	protected static $_tokenRegEx = '(\[?[/\.])([^/^\.^\]^\[]*)\]?';
-
+//- Public
 	public function __construct($path, $options, $method = null, $map = null)
 	{
 		$this->_map = $map;
@@ -60,6 +114,13 @@ class Route {
 		$this->_tokens =  $this->_tokenize();
 	}
 
+	/**
+	 * Dispatches self
+	 *
+	 * @return void
+	 *
+	 * @todo Remove Print statements from dispatch()
+	 */
 	public function dispatch()
 	{
 
@@ -89,6 +150,12 @@ class Route {
 		}
 	}
 
+	/**
+	 * Fills $_GET with containing parameters, including the action and
+	 * controller for the Route
+	 *
+	 * @return void
+	 */
 	public function fillGET()
 	{
 		$_GET = array_merge(array(
@@ -97,44 +164,88 @@ class Route {
 		), $this->_params, $_GET);
 	}
 
+	/**
+	 * Returns action for Route
+	 *
+	 * @return string Route's Action
+	 */
 	public function getAction()
 	{
 		return $this->_action;
 	}
 
+	/**
+	 * Returns controller for Route
+	 *
+	 * @return string Route's Controller
+	 */
 	public function getController()
 	{
 		return $this->_controller;
 	}
 
+	/**
+	 * Returns rendering format for Route
+	 *
+	 * @return string Route's Rendering Format
+	 */
 	public function getFormat()
 	{
 		return $this->_params['format'];
 	}
 
+	/**
+	 * Returns namespace for Route
+	 *
+	 * Note:  This is unfinished (just returns the default NS for now)
+	 *
+	 * @return string Route's Namespace
+	 */
 	public function getNamespace()
 	{
 		return '';
 	}
 
+	/**
+	 * Returns method for Route
+	 *
+	 * @return string Route's Method
+	 */
 	public function getMethod()
 	{
 		return $this->_method;
 	}
 
+	/**
+	 * Returns controller class for Route
+	 *
+	 * @return string Route's Controller Class
+	 */
 	public function getControllerClass()
 	{
 		return ucfirst(\str::toCamelCase($this->_controller)).'Controller';
 	}
 
+	/**
+	 * Returns view path for Route
+	 *
+	 * @return string Route's View Path
+	 */
 	public function getViewPath()
 	{
 		return $this->_controller.'/'.$this->_action;
 	}
 
+	/**
+	 * Determines if passed $path matches.  Also validates method if passed
+	 *
+	 * @param string $path Path to match
+	 * @param string $method HTTP Method
+	 *
+	 * @return P3\Routing\Route Returns self if matches, false otherwise.
+	 */
 	public function match($path, $method = null)
 	{
-
 		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
 
 		$path = rtrim($path, '/');
@@ -153,6 +264,15 @@ class Route {
 	}
 
 
+	/**
+	 * Opposite of match().  Matches controller/action/method instead of path
+	 *
+	 * @param string $controller Controller to match
+	 * @param string $action Action to match
+	 * @param string $method Method to match
+	 *
+	 * @return P3\Routing\Route Returns self if matches, false otherwise
+	 */
 	public function reverseMatch($controller, $action, $method)
 	{
 		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
@@ -163,43 +283,71 @@ class Route {
 	}
 
 
-//protected
+//- Protected
+	/**
+	 * Determines if the passed path(string) matches its own tokens
+	 *
+	 * @param string $path Path to attempt to match
+	 *
+	 * @return boolean Returns true if tokens match, false otherwise
+	 */
 	protected function _matchTokens($path)
 	{
+		/* Prepare self tokens */
 		$self        = $this->_tokens;
 		$self_tokens = $self[2];
-		$self_sep    = $self[1];
+		$self_seps   = $self[1];
 		$self_len    = count($self_tokens);
 
+		/* Prepare passed tokens */
 		$passed        = $this->_tokenize($path);
 		$passed_tokens = $passed[2];
-		$passed_sep    = $passed[1];
+		$passed_seps   = $passed[1];
 		$passed_len    = count($passed_tokens);
 
-		/* Cant do this anymore, added optional params */
-		//if(count($self_tokens) !== $passed_len) return false;
-
+		/* Loop through tokens and check'm out */
 		for($x = 0; $x < $self_len; $x++) {
-			$passed_token = $passed_tokens[$x];
 			$self_token   = $self_tokens[$x];
+			$passed_token = isset($passed_tokens[$x]) ? $passed_tokens[$x] : false;
 
+			/* If we are missing the token, and it's not optional - then we're done here */
+			if(!$passed_token && $self_seps[$x][0] !== '[')
+				return false;
+
+			/* If the tokens aren't an exact match, lets investigate */
 			if($self_token != $passed_token) {
+
+				/* If it's not a bindable parameter, it's a bad route */
 				if(!preg_match('/^:([^\/]*)/', $self_token, $m)) {
 					return false;
 				} else {
+					/* Otherwise, let's bind the Param */
+
 					$this->_params[$m[1]] = $passed_token;
 				}
 			}
 		}
 
+		/* Determine Controller */
 		if(isset($this->_params['controller'])) $this->_controller = $this->_params['controller'];
-		if(isset($this->_params['action']))     $this->_action     = $this->_params['action'];
 
+		/* Determine Action */
+		if(isset($this->_params['action'])) $this->_action = $this->_params['action'];
+
+		/* Determine Format */
 		$this->_params['format'] = isset($this->_params['format']) ? $this->_params['format'] : 'html';
 
+		/* My Tokens match */
 		return true;
 	}
 
+	/**
+	 * Attempts to tokenize passed string (for use with _matchTokens)
+	 *
+	 * @param string $str String to tokenize
+	 *
+	 * @return array Returns token array from preg_match_all if successfull, otherwise returns false
+	 */
 	protected function _tokenize($str = null)
 	{
 		$str = is_null($str) ? $this->_path : $str;
@@ -216,12 +364,30 @@ class Route {
 		}
 	}
 
+	/**
+	 * Validates whether or not Route's HTTP Method matches passed $method
+	 *
+	 * @param string $method Method to validate
+	 *
+	 * @return return boolean
+	 */
 	protected function _validateMethod($method)
 	{
 		return $this->_method == $method || $this->_method == 'any';
 	}
 
-//Magic
+//- Magic
+	/**
+	 * This is how netsted routing is achieved.  Any non existing method called
+	 * on self will be forwarded to it's map.
+	 *
+	 * @param string $func
+	 * @param array $args
+	 *
+	 * @return mixed
+	 *
+	 * @todo Add error handling to __call()
+	 */
 	public function __call($func, $args)
 	{
 		$options = isset($args[1]) ? $args[1] : array();
@@ -230,6 +396,14 @@ class Route {
 		return $this->_map->{$func}($args[0], $options);
 	}
 
+	/**
+	 * This is how URLs are generated for forms/links.  Calling the route as
+	 * a method with the appropriate model ids will return a usable URI
+	 * for the link or form
+	 *
+	 * @param array $args
+	 * @return string
+	 */
 	public function __invoke($args)
 	{
 		$ret = str_replace(':id', $args[0], $this->_path);

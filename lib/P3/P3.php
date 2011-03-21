@@ -1,11 +1,12 @@
 <?php
 
+require_once(dirname(__FILE__).'/Loader.php');
+
 /**
  * Description of P3
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-require_once(dirname(__FILE__).'/Loader.php');
 final class P3
 {
 	public static $VERSION = '1.0.0-experimental';
@@ -65,6 +66,7 @@ final class P3
 	 * Renders bases on options (Partial or full loads)
 	 *
 	 * @param array $options
+	 *
 	 * @return null
 	 */
 	public static function render($options = null)
@@ -76,7 +78,10 @@ final class P3
 
 	/**
 	 * Sets default routing class
+	 *
 	 * @param string $routingClass Class to use as default router
+	 *
+	 * @return void
 	 */
 	public static function setRouter($routingClass)
 	{
@@ -85,6 +90,7 @@ final class P3
 
 	/**
 	 * Determines Development Environment
+	 *
 	 * @return string Development Environment
 	 */
 	private static function _determineEnv()

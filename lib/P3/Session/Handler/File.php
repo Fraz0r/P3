@@ -1,13 +1,13 @@
 <?php
 
+
+namespace P3\Session\Handler;
+
 /**
  * Description of File
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-
-namespace P3\Session\Handler;
-
 class File extends Base
 {
 	private $_savePath = null;

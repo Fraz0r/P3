@@ -1,21 +1,22 @@
 <?php
+
+namespace P3\Template;
+
 /**
  * Template
  *
  * Template class used to render views
  */
-
-namespace P3\Template;
-
 class Base
 {
-	/* Attributes */
+//- Attributes
 	const ATTR_CONTENT_TYPE           = 1;
 	const ATTR_DOWNLOAD_AS_ATTACHMENT = 2;
 
 	const CONTENT_TYPE_HTML      = 'text/html; charset=utf-8';
 	const CONTENT_TYPE_PLAINTEXT = 'text/plain';
 
+//- attr-protected
 	/**
 	 * Holds set attributes
 	 * @var array
@@ -51,6 +52,7 @@ class Base
 	 */
 	protected $_vars = array();
 
+//- Public
 	/**
 	 * Constructor
 	 */

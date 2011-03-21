@@ -1,31 +1,39 @@
 <?php
-/**
- * Description of Map
- *
- * @author Tim Frazier <tim.frazier at gmail.com>
- */
 
 namespace P3\Routing;
 
+/**
+ * P3\Routing\Map
+ *
+ * The Routing Map is used by app/routes.php to load routes into the Routing Engine
+ *
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ */
 class Map
 {
-//protected
-
+//- attr-protected
 	/**
+	 * Parent Map, if any
+	 *
 	 * @var P3\Routing\Map
 	 */
 	protected $_parent = null;
 
 	/**
+	 * Router to map Routes to
+	 *
 	 * @var P3\Router
 	 */
 	protected $_router = null;
 
 	/**
+	 * Options for Map
+	 *
 	 * @var array
 	 */
 	protected $_options = array();
 
+//- Public
 	public function  __construct($parent = null, $router = null)
 	{
 		$router = is_null($router) ? \P3::getRouter() : $router;
@@ -34,7 +42,17 @@ class Map
 		$this->_parent = $parent;
 	}
 
-//public
+	/**
+	 * Most simple form of binding a route.  Generates a single route and adds
+	 * it to the Router
+	 *
+	 * @param string $path Path to Route
+	 * @param array $options Options for Route
+	 * @param string $method Method route is good for
+	 * @param boolean $accept_format Whether or not the Route should accept a format.  (Same as appeneding [.:format])
+	 *
+	 * @return Route
+	 */
 	public function connect($path, array $options = array(), $method = 'any', $accept_format = false)
 	{
 		if($accept_format) {
@@ -48,11 +66,26 @@ class Map
 		return $route;
 	}
 
+	/**
+	 * Just a stub for now (Coming when URL Generations do)
+	 *
+	 * @param string $name
+	 * @param array $options
+	 *
+	 * @return Map
+	 */
 	public function named($name, $options)
 	{
-		return $this;
 	}
 
+	/**
+	 * Binds Restful CRUD for a Resource Model
+	 *
+	 * @param string $resource Resource (model name in underscore format)
+	 * @param array $options Options for resource routes
+	 *
+	 * @return P3\Routing\Route Returns Route for #show
+	 */
 	public function resource($resource, array $options = array())
 	{
 		$class = \str::toCamelCase($resource, true);
@@ -89,6 +122,14 @@ class Map
 		return $show;
 	}
 
+	/**
+	 * Binds Restul CRUD for a controller resource
+	 *
+	 * @param string $controller Controller resource (controller name in underscore form)(w/o _controller)
+	 * @param array $options Options for resource routes
+	 *
+	 * @return P3\Routing\Route Route for #show
+	 */
 	public function resources($controller, array $options = array())
 	{
 
@@ -143,6 +184,13 @@ class Map
 		return $show;
 	}
 
+	/**
+	 * Binds and returns root (a.k.a default) route
+	 *
+	 * @param array $options Options for Route
+	 *
+	 * @return P3\Routing\Route
+	 */
 	public function root($options = array())
 	{
 		if(!is_array($options)) $options = array('to' => $options);
@@ -150,18 +198,36 @@ class Map
 		return $this->connect('/', $options);
 	}
 
+	/**
+	 * Just a stub for now
+	 */
 	public function withOptions()
 	{
 		return $this;
 	}
 
-//protected
+//- Protected
+	/**
+	 * This will handle namespacing when im done w/ it
+	 *
+	 * @param string $controller Controller to prefix
+	 *
+	 * @return string Prefix for Route
+	 */
 	protected function _getPrefix($controller)
 	{
 		return '/'.$controller;
 	}
 
-//magic
+//- Magic
+	/**
+	 * Just a stub for now
+	 *
+	 * @param string $name
+	 * @param array $args
+	 *
+	 * @return P3\Routing\Map
+	 */
 	public function __call($name, $args)
 	{
 		return $this->named($name, $args);

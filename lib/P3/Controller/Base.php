@@ -1,18 +1,18 @@
 <?php
 
-/**
- * P3_Controller_Abstract
- *
- * Base Class for P3's Controllers
- */
 
 namespace P3\Controller;
 
 use P3\Router;
 
+/**
+ * P3_Controller_Abstract
+ *
+ * Base Class for P3's Controllers
+ */
 abstract class Base
 {
-
+//- attr-protected
 	/**
 	 * Array of attributes
 	 *
@@ -47,6 +47,7 @@ abstract class Base
 	 */
 	protected $_actionReturn;
 
+//- attr-public
 	/**
 	 * Array of models to load before running action
 	 *
@@ -54,6 +55,7 @@ abstract class Base
 	 */
 	public $_models = array();
 
+//- Public
 	/**
 	 * Constructor
 	 *
@@ -91,10 +93,13 @@ abstract class Base
 		$this->_attributes[$attr] = $value;
 	}
 
-//Static
+//- Static
 
-//Protected
-	/* Overideable to fill vars prior to a "page" running */
+//- Protected
+	/**
+	 * Overridable stub
+	 * Runs prior to action being processed.  Use this as a before_filter
+	 */
 	protected function _init()
 	{
 	}
