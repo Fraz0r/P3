@@ -175,8 +175,8 @@ abstract class Base extends \P3\Controller\Base
 	 * @param string $func
 	 * @param array $args
 	 */
-	public function __call($func, $args) {
-	}
+	//public function __call($func, $args) {
+	//}
 }
 
 ?>

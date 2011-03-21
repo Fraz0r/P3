@@ -46,6 +46,21 @@ class str
 		return $str;
 	}
 
+	public static function singularize($str)
+	{
+		$flag = 0;
+
+		$str = preg_replace('/ses$/', 's', $str, 1, $lag);
+
+		if(!$flag)
+			$str = preg_replace('/ies$/', 'y', $str, 1, $flag);
+
+		if(!$flag)
+			$str = substr($str, 0, -1);
+
+		return $str;
+	}
+
 	/**
 	* Titleizes (capitalizes each word in a string)
 	*

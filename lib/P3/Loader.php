@@ -155,6 +155,10 @@ final class Loader
 		if(!defined("P3\APP_PATH")) define("P3\APP_PATH", ROOT.'/app');
 		if(!defined("P3\LIB_PATH")) define("P3\LIB_PATH", ROOT.'/lib');
 
+		if(isset($_POST['_method'])) {
+			$_SERVER['REQUEST_METHOD'] = strtoupper($_POST['_method']);
+		}
+
 		/* Include lib */
 		if($set_include_path)
 			set_include_path(realpath(dirname(__FILE__).'/..').PATH_SEPARATOR.get_include_path());

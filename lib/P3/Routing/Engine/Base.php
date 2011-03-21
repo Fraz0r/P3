@@ -71,9 +71,9 @@ abstract class Base {
 		if(defined('\APP\START_TIME'))
 			define('APP\DISPATCH_TIME', microtime(true));
 
-		$route->dispatch();
-
 		self::$_dispatchedRoute = $route;
+
+		$route->dispatch();
 
 		return $route;
 	}
@@ -85,7 +85,7 @@ abstract class Base {
 	 */
 	public static function getAction()
 	{
-		return self::$_dispatchedRoute['action'];
+		return self::$_dispatchedRoute->getAction();
 	}
 
 	/**

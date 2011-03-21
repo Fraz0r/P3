@@ -358,6 +358,8 @@ class form extends P3\Helper\Base
 			$action = $this->_model->isNew() ? 'create' : 'update';
 			$route  = $router::reverseLookup($controller, $action);
 
+			$this->_options['method'] = $route->getMethod();
+
 			if(!$route)
 				throw new \P3\Exception\HelperException("Cant build URI for form because there is no create route for %s#%s.  Create one in routes.php", array($controller, $action));
 
@@ -421,12 +423,26 @@ class form extends P3\Helper\Base
 			$options['enctype'] = 'multipart/form-data';
 			unset($options['multipart']);
 		}
+
+		$options['method'] = isset($options['method']) ? $options['method'] : 'post';
+
+		if(in_array($options['method'], array('put', 'delete'))) {
+			$hidden_method  = $options['method'];
+			$options['method'] = 'post';
+		}
+
+		$method = $options['method'];
+
 		echo html::_t('form',
 				array_merge(array(
-					'method'  => isset($options['method']) ? $options['method'] : 'post',
+					'method'  => $method,
 					'action' => $url
 				), $options)
 		);
+
+		if(isset($hidden_method)) {
+			echo '<input type="hidden" name="_method" value="'.$hidden_method.'" />';
+		}
 	}
 }
 ?>

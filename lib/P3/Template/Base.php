@@ -143,7 +143,7 @@ class Base
 	 * @param string $path Page to render
 	 * @return string
 	 */
-	public function render($path)
+	public function render($path, array $vars = array())
 	{
 		$partial = false;
 		$parts   = explode('/', $path);
@@ -157,7 +157,7 @@ class Base
 		if(!is_readable($file))
 			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
 
-		extract($this->_vars);
+		extract(array_merge($this->_vars, $vars));
 		try{
 			ob_start();
 			include($file);

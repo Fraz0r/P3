@@ -255,7 +255,8 @@ class Route {
 		if(!$this->_validateMethod($method)) return false;
 
 		/* Handle Default route */
-		if($path == '' && $this->_path == '') return $this;
+		if($this->_path == '')
+			return $path == '' ? $this : false;
 
 		/* Match Tokens */
 		if($this->_matchTokens($path)) return $this;
@@ -305,14 +306,26 @@ class Route {
 		$passed_seps   = $passed[1];
 		$passed_len    = count($passed_tokens);
 
+		//var_dump($self, $passed);
+
 		/* Loop through tokens and check'm out */
 		for($x = 0; $x < $self_len; $x++) {
 			$self_token   = $self_tokens[$x];
 			$passed_token = isset($passed_tokens[$x]) ? $passed_tokens[$x] : false;
 
+			$self_sep   = $self_seps[$x];
+			$passed_sep = isset($passed_seps[$x]) ? $passed_seps[$x] : null;
+
 			/* If we are missing the token, and it's not optional - then we're done here */
-			if(!$passed_token && $self_seps[$x][0] !== '[')
-				return false;
+			if($self_sep[0] == '[') {
+				if(!is_null($passed_sep) && $passed_sep !== substr($self_sep, 1))
+					return false;
+			} else {
+				if(!$passed_token)
+					return false;
+				if($passed_sep !== $self_sep)
+					return false;
+			}
 
 			/* If the tokens aren't an exact match, lets investigate */
 			if($self_token != $passed_token) {
@@ -391,7 +404,8 @@ class Route {
 	public function __call($func, $args)
 	{
 		$options = isset($args[1]) ? $args[1] : array();
-		$options['prefix'] = $this->_path.'/';
+		$options['prefix'] = isset($options['prefix']) ? $options['prefix'] : $this(':'.\str::singularize($this->_controller).'_id');
+		$options['prefix'] = rtrim($options['prefix'], '/').'/';
 
 		return $this->_map->{$func}($args[0], $options);
 	}
@@ -404,10 +418,11 @@ class Route {
 	 * @param array $args
 	 * @return string
 	 */
-	public function __invoke($args)
+	public function __invoke($ids, $options = array())
 	{
-		$ret = str_replace(':id', $args[0], $this->_path);
-		$ret = preg_replace('/\[.:format\]$/', '', $ret);
+		$ids = !is_array($ids) ? array($ids) : $ids;
+
+		$ret = preg_replace('/\[.:format\]$/', '', $this->_path);
 		return $ret;
 	}
 }

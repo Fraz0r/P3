@@ -34,9 +34,9 @@ class Base extends \P3\Model\Base
 	protected static $_layout = null;
 
 	protected static $_headers = '';
-	protected static $_routing_data = null;
-	protected static $_args = null;
-	protected static $_view = null;
+	protected static $_route   = null;
+	protected static $_args    = null;
+	protected static $_view    = null;
 
 	/* MIME/Multipart */
 	protected static $_attachments  = array();
@@ -239,8 +239,8 @@ class Base extends \P3\Model\Base
 		static::$_body       = null;
 
 		static::$_attrs    = array();
-		static::$_routing_data = Router::parseRoute();
-		static::$_args    = static::$_routing_data['args'];
+		static::$_route    = Router::getDispatched();
+		static::$_args    = $_GET;
 		static::$_view    = new \P3\Template\Base;
 	}
 
