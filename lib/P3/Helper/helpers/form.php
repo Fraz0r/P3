@@ -76,12 +76,15 @@ class form extends P3\Helper\Base
 		$id    = $this->_getFieldID($field);
 		$label = '<label for="'.$id.'">'.str::toHuman($field, true).'</label>';
 
+		$checked = !is_null($this->_model->{$field}) && (bool)$this->_model->{$field};
+		if($checked)
+			$options['checked'] = 'checked';
+
 		$attrs = array_merge(array(
 			'id'      => $id,
 			'type'    => 'checkbox',
 			'value'   => 1,
-			'name'    => $this->_getFieldName($field),
-			'checked' => $this->_model->{$field} ? 'checked' : ''
+			'name'    => $this->_getFieldName($field)
 		), $options);
 
 		$input = html::_t('input', 	$attrs);
@@ -377,9 +380,8 @@ class form extends P3\Helper\Base
 	private function _inspect()
 	{
 		$this->_modelClass = get_class($this->_model);
-		$this->_modelField = str::fromCamelCase($this->_modelClass);
+		$this->_modelField = isset($this->_options['as']) ? $this->_options['as'] : str::fromCamelCase($this->_modelClass);
 		$this->_action     = $this->_model->isNew() ? 'create' : 'update';
-		$this->_uri        = $this->_getUri();
 		$this->_id         = ($this->_model->isNew() ? 'new-' : 'edit-').str::fromCamelCase($this->_modelClass);
 		if(!$this->_model->isNew()) $this->_id .= '-'.$this->_model->id();
 
