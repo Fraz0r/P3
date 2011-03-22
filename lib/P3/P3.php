@@ -16,12 +16,26 @@ final class P3
 	private static $_routingClass = '\P3\Router';
 
 	/**
+	 * @var P3\Database\Base
+	 */
+	private static $_database = null;
+
+	/**
 	 * Boots app
 	 */
 	public static function boot()
 	{
 		P3\Loader::loadEnv();
 		P3\Router::dispatch();
+	}
+
+	public static function getDatabase()
+	{
+		if(empty(self::$_database)) {
+			self::$_database = new \P3\Database\Base;
+		}
+
+		return self::$_database;
 	}
 
 	/**
