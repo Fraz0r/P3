@@ -110,6 +110,8 @@ abstract class Base {
 		foreach($values as $k => $v) {
 			$this->{$k} = $v;
 		}
+
+		return $this;
 	}
 
 	/**
