@@ -157,6 +157,7 @@ final class Loader
 
 		if(isset($_POST['_method'])) {
 			$_SERVER['REQUEST_METHOD'] = strtoupper($_POST['_method']);
+			unset($_POST['_method']);
 		}
 
 		/* Include lib */
