@@ -107,7 +107,8 @@ abstract class html extends P3\Helper\Base
 	 */
 	public static function select($name, $html_options, array $options = array())
 	{
-		$select  = '<select name="'.$name.'">';
+		$id      = isset($options['id']) ? ' id="'.$options['id'].'"' : '';
+		$select  = '<select name="'.$name.'"'.$id.'>';
 		$select .= self::selectOptions($html_options, $options);
 		$select .= '</select>';
 		echo  $select;
