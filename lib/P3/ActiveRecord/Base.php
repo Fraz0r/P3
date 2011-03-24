@@ -796,6 +796,9 @@ abstract class Base extends \P3\Model\Base
 		if(!empty($db)) {
 			static::$_db = $db;
 		} else {
+			if(empty(static::$_db))
+				static::$_db = \P3::getDatabase();
+
 			return static::$_db;
 		}
 	}

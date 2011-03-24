@@ -10,8 +10,14 @@ class Base extends \PDO
 	 * @param array $config Config array for connection
 	 * @param array $options Options
 	 */
-	public function __construct(array $config, array $options = array())
+	public function __construct(array $config = array(), array $options = array())
 	{
+		if(empty($config)) {
+			$file = new \P3\Config\Parser;
+			$file->read(array(\P3\ROOT.'/app/config/database.ini'));
+			$config = $file->getSection(\P3::getEnv());
+		}
+
 		/* Build our DSN if it's not in the config */
 		$dsn  = isset($config['dsn']) ? $config['dsn'] : $this->buildDSN($config);
 
