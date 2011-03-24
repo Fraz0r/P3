@@ -66,8 +66,6 @@ abstract class Base extends \P3\Controller\Base
 	 */
 	public function  __construct($route = null, array $options = array())
 	{
-		parent::__construct($route);
-
 		/* Save passed options */
 		foreach ($options as $k => $v) {
 			$this->setAttribute($k, $v);
@@ -75,6 +73,7 @@ abstract class Base extends \P3\Controller\Base
 
 		$this->_prepareView();
 
+		parent::__construct($route);
 	}
 
 	/**
@@ -177,6 +176,16 @@ abstract class Base extends \P3\Controller\Base
 	 */
 	//public function __call($func, $args) {
 	//}
+
+	public function __set($var, $val)
+	{
+		$this->_view->$var = $val;
+	}
+
+	public function __get($var)
+	{
+		return $this->_view->$var;
+	}
 
 }
 
