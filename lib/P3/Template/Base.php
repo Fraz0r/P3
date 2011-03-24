@@ -69,10 +69,6 @@ class Base
 			$path = \P3\APP_PATH.'/views';
 		}
 
-		if(!is_null($route)) {
-			$path .= '/'.$route->getNamespace();
-		}
-
 		$this->_path = rtrim($path, '/');
 
 		if(!empty($options)) {
@@ -151,6 +147,15 @@ class Base
 		if($parts[count($parts)-1][0] == '_') {
 			$partial = true;
 		}
+
+		if($path[0] == '\\') {
+			$path = substr($path, 1);
+		} else {
+			if(!is_null($this->_route)) {
+				$path = str_replace('\\', '/', $this->_route->getNamespace()).$path;
+			}
+		}
+
 
 		$file = $this->_path.'/'.$path.'.tpl';
 
