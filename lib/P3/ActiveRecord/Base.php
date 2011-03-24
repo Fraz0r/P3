@@ -187,7 +187,7 @@ abstract class Base extends \P3\Model\Base
 
 		$opts = static::$_hasAttachment[$attachment];
 		$path = ($path_type == self::ATTACHMENT_PATH_SYSTEM) ? rtrim(\P3\ROOT, '/') : '';
-		$path .= rtrim($opts['path'], '/').'/'.$this->id().'/'.$this->_data[$opts['field']];
+		$path .= rtrim($opts['path'], '/').'/'.$this->id().'/'.$this->_data[$attachment.'_filename'];
 
 		return $path;
 	}
@@ -541,7 +541,7 @@ abstract class Base extends \P3\Model\Base
 
 		// Handle model attachments
 		if($ret && $save_attachments && !empty(static::$_hasAttachment)) {
-			$this->saveAttachments();
+			$ret = $this->saveAttachments();
 		}
 
 		return $ret;
@@ -554,26 +554,30 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function saveAttachments()
 	{
+		$ret   = true;
 		$class = $this->_class;
 		$model_field = \str::fromCamelCase($class);
 
-		foreach(static::$_hasAttachment as $accsr => $opts) {
-			$field = $opts['field'];
+		foreach(static::$_hasAttachment as $field => $opts) {
 			if(isset($_FILES[$model_field])) {
 				$data = $_FILES[$model_field];
 
-				if($data['error'][$field] !== UPLOAD_ERR_OK) {
-					$ret = false;
-					$this->delete();
-					$this->_addError($field, 'Upload Error ['.$data['error'][$field].']');
-					break;
+				switch($data['error'][$field])
+				{
+					case \UPLOAD_ERR_OK:
+						break;
+					case \UPLOAD_ERR_NO_FILE:
+						break 2;
+					default:
+						$ret = false;
+						$this->_addError($field, 'Upload Error ['.$data['error'][$field].']');
+						break;
 				}
 
 				$path = \P3\ROOT.'/htdocs'.$opts['path'];
 
 				if(!is_dir($path)) {
 					$ret = false;
-					$this->delete();
 					throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
 				}
 
@@ -581,20 +585,22 @@ abstract class Base extends \P3\Model\Base
 
 				if(!is_dir($path)) mkdir($path);
 
+				$filetype = filetype($data['tmp_name'][$field]);
+
 				//var_dump($data['tmp_name'][$field], $path.'/'.$data['name'][$field]);
 				if(!move_uploaded_file($data['tmp_name'][$field], $path.'/'.$data['name'][$field])) {
 					$ret = false;
-					$this->delete();
 					$this->_addError($field, 'Upload failed');
 					break;
 				}
 
-				$this->_data[$field] = $data['name'][$field];
+				$this->_data[$field.'_filename'] = $data['name'][$field];
+				$this->_data[$field.'_filetype'] = $filetype;
 				$ret = $this->save(array('save_attachments' => false));
-			} else  {
-				$this->delete();
-			}
+			} 
 		}
+
+		return $ret;
 	}
 
 	/**
