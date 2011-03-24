@@ -86,6 +86,7 @@ class Route {
 //- Public
 	public function __construct($path, $options, $method = null, $map = null)
 	{
+		$path = trim($path, '/');
 		$this->_map = $map;
 
 		if(isset($options['method'])) {
@@ -109,8 +110,14 @@ class Route {
 			$this->_action = isset($options['action']) ? $options['action'] : 'index';
 		}
 
+		if(isset($options['prefix']))
+			$path = trim($options['prefix'], '/').'/'.$path;
+
+		if(isset($options['namespace']))
+			$path = rtrim($options['namespace']).'/'.$path;
+
 		$this->_options = $options;
-		$this->_path    = rtrim($path, '/');
+		$this->_path    = empty($path) ? '' : '/'.rtrim($path, '/');
 		$this->_tokens =  $this->_tokenize();
 	}
 
@@ -128,6 +135,7 @@ class Route {
 
 		$controller_class = $this->getControllerClass();
 		\P3\Loader::loadController($controller_class);
+
 		$controller_class = '\\'.$controller_class;
 
 		$controller = new $controller_class;
@@ -203,7 +211,7 @@ class Route {
 	 */
 	public function getNamespace()
 	{
-		return '';
+		return isset($this->_options['namespace']) ? $this->_options['namespace'].'\\' : '';
 	}
 
 	/**
@@ -223,7 +231,7 @@ class Route {
 	 */
 	public function getControllerClass()
 	{
-		return ucfirst(\str::toCamelCase($this->_controller)).'Controller';
+		return ucfirst($this->getNamespace().\str::toCamelCase($this->_controller, true)).'Controller';
 	}
 
 	/**
@@ -306,7 +314,9 @@ class Route {
 		$passed_seps   = $passed[1];
 		$passed_len    = count($passed_tokens);
 
-		//var_dump($self, $passed);
+		if($passed_len > $self_len)
+			return false;
+
 
 		/* Loop through tokens and check'm out */
 		for($x = 0; $x < $self_len; $x++) {
@@ -315,6 +325,8 @@ class Route {
 
 			$self_sep   = $self_seps[$x];
 			$passed_sep = isset($passed_seps[$x]) ? $passed_seps[$x] : null;
+
+			//var_dump("Self T: ({$self_sep}){$self_token},   Passed T:({$passed_sep}){$passed_token}");
 
 			/* If we are missing the token, and it's not optional - then we're done here */
 			if($self_sep[0] == '[') {
@@ -348,7 +360,7 @@ class Route {
 		if(isset($this->_params['action'])) $this->_action = $this->_params['action'];
 
 		/* Determine Format */
-		$this->_params['format'] = isset($this->_params['format']) ? $this->_params['format'] : 'html';
+		$this->_params['format'] = isset($this->_params['format']) && $this->_params['format'] ? $this->_params['format'] : 'html';
 
 		/* My Tokens match */
 		return true;
