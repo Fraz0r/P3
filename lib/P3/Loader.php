@@ -18,15 +18,13 @@ final class Loader
 	 * @param string $class Class being searched for by PHP
 	 */
 	public static function autoload($class){
-		if(count(explode('\\', $class)) > 1) {
+		if(substr($class, -10) == "Controller") {
+			self::loadController($class);
+		} elseif(count(explode('\\', $class)) > 1) {
 			self::loadClass($class);
 		} elseif(ucfirst($class[0]) == $class[0]) {
 			//Load Model, if first char is upperscase
-			if(substr($class, -10) == "Controller") {
-				self::loadController($class);
-			} else {
 				self::loadModel($class);
-			}
 		} else {
 			//Load helper, if first char is lowercase
 			self::loadHelper($class);
@@ -85,12 +83,22 @@ final class Loader
 	 */
 	public static function loadController($controller)
 	{
-
 		if(self::classExists($controller)) return;
 
 		$path = APP_PATH.'/controllers/';
-		$name  = strtolower(\str::fromCamelCase($controller));
-		$path = $path.$name.'.php';
+
+		$tmp_path = str_replace('\\', '/', ltrim($controller, '\\'));
+		$ex = explode('/', $tmp_path);
+		if(count($ex) > 1) {
+			array_walk($ex, function(&$dir, $i){ $dir = \str::fromCamelCase($dir); });
+			$tmp_path = implode('/', $ex);
+			$path .= dirname($tmp_path).'/';
+			$name  = basename($tmp_path);
+		} else {
+			$name  = \str::fromCamelCase($controller);
+		}
+
+		$path .= $name.'.php';
 
 		if(is_readable($path)) {
 			include_once($path);
