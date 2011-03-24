@@ -118,6 +118,13 @@ class form extends P3\Helper\Base
 		$this->select($field, $select_options, $options);
 	}
 
+	public function file($field, array $options = array())
+	{
+		$this->_options['multipart'] = true;
+
+		echo '<input type="file" name="'.$this->_getFieldName($field).'" />';
+	}
+
 	/**
 	 * Closes <form> tag
 	 */
@@ -216,8 +223,9 @@ class form extends P3\Helper\Base
 	{
 		$cols  = empty($options['cols']) ? 45 : $options['cols'];
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
+		$id    = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
 
-		$input = '<textarea id="'.$this->_getFieldID($field).'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'">'.$this->_model->{$field}.'</textarea>';
+		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'">'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
