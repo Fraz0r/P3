@@ -933,7 +933,7 @@ abstract class Base extends \P3\Model\Base
 				$sql .= (!empty($order) ? " ORDER BY {$order}" : '');
 
 				$stmnt = static::db()->query($sql);
-				$stmnt->setFetchMode(PDO::FETCH_CLASS, $class);
+				$stmnt->setFetchMode(\PDO::FETCH_CLASS, $class);
 
 				return new Collection\Base($stmnt->fetchAll(), $this);
 			}
