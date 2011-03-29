@@ -657,6 +657,10 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
+			if (in_array($f, static::$_belongsTo) || in_array($f, static::$_hasOne)
+					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasManyThrough))
+				continue;
+
 			$fields[] = "`{$f}`";
 			$values[] = ":{$f}";
 			$ex[":{$f}"] = $v;
@@ -684,6 +688,12 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue; // We don't update the value of the pk
+			if (in_array($f, array_keys(static::$_belongsTo))
+				|| in_array($f, array_keys(static::$_hasOne))
+				|| in_array($f, array_keys(static::$_hasMany))
+				|| in_array($f, array_keys(static::$_hasManyThrough)))
+					continue;
+
 			$fields[] = $f.' = ?';
 			$values[] = $v;
 		}
