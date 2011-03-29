@@ -30,6 +30,12 @@ class Base
 	protected $_layout;
 
 	/**
+	 * Last dirname from render
+	 * @var string
+	 */
+	protected $_lastBase;
+
+	/**
 	 * Template page to render
 	 * @var string
 	 */
@@ -148,6 +154,10 @@ class Base
 			$partial = true;
 		}
 
+		if(count($parts) == 1) {
+			$path = $this->_lastBase.'/'.$path;
+		}
+
 		if($path[0] == '\\') {
 			$path = substr($path, 1);
 		} else {
@@ -157,7 +167,9 @@ class Base
 		}
 
 
+		$this->_lastBase = dirname($path);
 		$file = $this->_path.'/'.$path.'.tpl';
+
 
 		if(!is_readable($file))
 			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
