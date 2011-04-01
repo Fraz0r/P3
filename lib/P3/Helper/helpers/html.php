@@ -64,7 +64,7 @@ abstract class html extends P3\Helper\Base
 	 */
 	public static function head()
 	{
-		self::base();
+		//self::base();
 		self::styles();
 		self::scripts();
 	}
