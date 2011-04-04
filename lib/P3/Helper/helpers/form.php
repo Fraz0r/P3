@@ -118,6 +118,11 @@ class form extends P3\Helper\Base
 		$this->select($field, $select_options, $options);
 	}
 
+	public function fieldsFor($child_name, array $options = array())
+	{
+		return new self($this->_model->{$child_name}, $options, false);
+	}
+
 	public function file($field, array $options = array())
 	{
 		$this->_options['multipart'] = true;
@@ -131,6 +136,35 @@ class form extends P3\Helper\Base
 	public function close()
 	{
 		self::end();
+	}
+
+	public function dateSelect($field, array $options = array())
+	{
+		$options['blankOption'] = isset($options['blankOption']) ? $options['blankOption'] : false;
+		$parts = array('year' => 1, 'month' => 2, 'day' => 3, 'hour' => 4, 'minute' => 5, 'second' => 6, 'ampm' => 7);
+		$order = isset($options['order']) ? $options['order'] : array('month', 'day', 'year');
+
+		$ret = '';
+		foreach($order as $item) {
+			switch($item) {
+				case 'year':
+					if(!isset($options['use_text_year']) || !$options['use_text_year']){
+						$func = $item.'sForSelect';
+						$select_options = \date::$func($options);
+						$ret .= self::select($field.'('.$parts[$item].'i)', $select_options, $options);
+						continue;
+					}
+
+					$ret .= $this->textField($field.'('.$parts[$item].'i)', array_merge(array('size' => 3)));
+				break;
+				default:
+					$func = $item.'sForSelect';
+					$select_options = \date::$func($options);
+					$ret .= self::select($field.'('.$parts[$item].'i)', $select_options, $options);
+			}
+		}
+
+		echo $ret;
 	}
 
 	/**
@@ -245,6 +279,11 @@ class form extends P3\Helper\Base
 					'value' => $this->_model->{$field}
 				), $options)
 		);
+	}
+
+	public function timezoneSelect($field, array $options = array())
+	{
+		$this->select($field, \date::timezoneForSelect());
 	}
 
 	/**
