@@ -34,7 +34,7 @@ class Builder
 
 	public function delete()
 	{
-		$this->_sections['base'] = 'DELETE FROM '.$this->_table;
+		$this->_sections = array('base' => 'DELETE FROM '.$this->_table);
 
 		$this->_setQueryType(self::TYPE_DELETE);
 		return $this;
@@ -63,7 +63,7 @@ class Builder
 
 	public function insert(array $fields)
 	{
-		$this->_sections['base'] = "INSERT INTO ".$this->_table.'('.implode(', ', array_keys($fields)).')';
+		$this->_sections = array('base' => "INSERT INTO ".$this->_table.'('.implode(', ', array_keys($fields)).')');
 		$this->values(implode(', ', $fields));
 
 		$this->_setQueryType(self::TYPE_INSERT);
@@ -107,7 +107,7 @@ class Builder
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
 
-		$this->_section('base', 'SELECT '.$fields.' FROM '.$this->_table);
+		$this->_sections = array('base' => 'SELECT '.$fields.' FROM '.$this->_table);
 
 		$this->_setQueryType(self::TYPE_SELECT);
 		return $this;
@@ -124,7 +124,7 @@ class Builder
 
 	public function update($fields)
 	{
-		$this->_sections['base'] = 'UPDATE '.$this->_table;
+		$this->_sections = array('base' => 'UPDATE '.$this->_table);
 
 		$this->set($fields, self::MODE_OVERRIDE);
 		$this->_setQueryType(self::TYPE_UPDATE);
@@ -158,7 +158,6 @@ class Builder
 
 		switch ($this->_queryType) {
 			case self::TYPE_DELETE:
-				//$query .= $this->_getSection('joins');
 				$query .= $this->_getSection('where');
 				$query .= $this->_getSection('limit');
 				break;
@@ -215,6 +214,9 @@ class Builder
 			case 'set':
 				$ret .= 'SET '.(is_array($val) ? implode(', ', $val) : $val);
 				break;
+			case 'values':
+				$ret .= 'VALUES('.(is_array($val) ? implode(', ') : $val).')';
+				break;
 			case 'where':
 				$ret .= 'WHERE ';
 				if(is_string($val)) {
@@ -223,9 +225,6 @@ class Builder
 					array_walk($val, function(&$v, $k){ $v = '('.$v.')'; });
 					$ret .= implode(' AND ', $val);
 				}
-				break;
-			case 'values':
-				$ret .= 'VALUES('.(is_array($val) ? implode(', ') : $val).')';
 				break;
 		}
 
