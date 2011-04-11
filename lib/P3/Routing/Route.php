@@ -148,13 +148,9 @@ class Route {
 		}
 
 		if(defined('\APP\START_TIME')) {
-			define('APP\TOTAL_TIME',  microtime(true) - \APP\START_TIME);
-		}
-
-		if(defined('\APP\START_TIME')) {
-			printf("<br /><br /><b>Dispatched In: </b>%0.4fms", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
-			printf("<br /><br /><b>Rendered In: </b>%0.4fms", (\APP\RENDER_TIME - \APP\DISPATCH_TIME) * 1000);
-			printf("<br /><br /><b>Total: </b>%0.4fms", (\APP\RENDER_TIME - \APP\START_TIME) * 1000);
+			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
+			define("APP\RENDERED_IN", (\APP\RENDER_TIME - \APP\DISPATCH_TIME) * 1000);
+			define("APP\TOTAL_TIME", (\APP\RENDER_TIME - \APP\START_TIME) * 1000);
 		}
 	}
 
