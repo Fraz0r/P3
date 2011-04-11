@@ -149,7 +149,10 @@ abstract class Base {
 	 */
 	public static function getRoute($path = null)
 	{
-		$path = !is_null($path) ? $path : (Loader::isCli() ? '/' : $_SERVER['REQUEST_URI']);
+		if(is_null($path)) {
+			$rpos = strrpos($_SERVER['REQUEST_URI'], '?');
+			$path = ($rpos === false) ? $_SERVER['REQUEST_URI'] : substr($_SERVER['REQUEST_URI'], 0, $rpos);
+		}
 
 		return self::matchRoute($path);
 	}

@@ -28,6 +28,10 @@ class Builder
 //- Public
 	public function __construct($table_or_model, $alias = null)
 	{
+<<<<<<< HEAD
+=======
+		$this->_alias = $alias;
+>>>>>>> master
 		$this->_table = (is_string($table_or_model) ? $table_or_model : $table_or_model::table()).(is_null($alias) ? '' : ' '.$alias);
 	}
 

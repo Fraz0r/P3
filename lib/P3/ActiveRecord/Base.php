@@ -530,6 +530,7 @@ abstract class Base extends \P3\Model\Base
 
 		$this->_triggerEvent('beforeSave');
 		try {
+			$this->_parseFields();
 			if (empty($this->_data[static::pk()]))
 				$ret = $this->_insert();
 			else
@@ -842,6 +843,29 @@ abstract class Base extends \P3\Model\Base
 			static::$_table = $table;
 		} else {
 			return static::$_table;
+		}
+	}
+
+//- Private
+	private function _parseFields()
+	{
+		$tmp = array();
+
+		foreach($this->_data as $k => $v) {
+			if(strpos($k, '(')) {
+				/* Date / Time */
+				if(preg_match('/([^\(]*)\(([\d]){1}i\)/', $k, $m)) {
+					if(!isset($tmp[$m[1]])) $tmp[$m[1]] = array();
+
+					$tmp[$m[1]][$m[2]] = $v;
+					unset($this->_data[$k]);
+				}
+			}
+		}
+
+		foreach($tmp as $field => $parts) {
+			ksort($parts);
+			$this->_data[$field] = vsprintf('%04d-%02d-%02d ', $parts);
 		}
 	}
 
