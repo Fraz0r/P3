@@ -227,7 +227,7 @@ class form extends P3\Helper\Base
 	 */
 	public function select($field, array $select_options = array(), array $options = array())
 	{
-		$options['selected'] = $this->_model->{$field};
+		$options['selected'] = isset($options['selected']) ? $options['selected'] : $this->_model->{$field};
 		$options['id']       = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
