@@ -1,4 +1,11 @@
 <?php
+/**
+ *  This is the "Bootstrap" for your application
+ * 
+ *  Here is where you want to setup your environment for your app.
+ *  All calls here are evaluated before the application is dispatched
+ */
+
 /* Setup money_format */
 //setlocale(LC_MONETARY, 'en_US.UTF-8');
 
@@ -8,6 +15,4 @@
 /* Setup timezone */
 //ini_set('date.timezone', 'America/Chicago');
 
-/* Tell P3 Models to use our database */
-//P3\ActiveRecord\Base::db(PASS_A_PDO_OBJ_HERE);
 ?>
