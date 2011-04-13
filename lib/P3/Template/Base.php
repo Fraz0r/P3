@@ -113,6 +113,8 @@ class Base
 		if(is_null($path))
 			$path = $this->_route->getViewPath();
 
+
+		$this->_lastBase = dirname($path);
 		$display =  $this->render($path);
 
 		if(isset($this->_attributes[self::ATTR_DOWNLOAD_AS_ATTACHMENT])) {
@@ -150,24 +152,12 @@ class Base
 		$partial = false;
 		$parts   = explode('/', $path);
 
-		if($parts[count($parts)-1][0] == '_') {
+		if($parts[count($parts)-1][0] == '_')
 			$partial = true;
-		}
 
-		if(count($parts) == 1) {
+		if(count($parts) == 1) 
 			$path = $this->_lastBase.'/'.$path;
-		}
 
-		if($path[0] == '\\') {
-			$path = substr($path, 1);
-		} else {
-			if(!is_null($this->_route)) {
-				$path = str_replace('\\', '/', $this->_route->getNamespace()).$path;
-			}
-		}
-
-
-		$this->_lastBase = dirname($path);
 		$file = $this->_path.'/'.$path.'.tpl';
 
 

@@ -88,6 +88,9 @@ abstract class Base extends \P3\Controller\Base
 		if(!$this->_processed) {
 			$action = is_null($action) ? $this->_route->getAction() : $action;
 			$this->_actionReturn = $this->{$action}();
+
+			if($this->_actionReturn !== FALSE && !$this->rendered())
+				$this->render();
 		}
 
 		return $this->_actionReturn;
@@ -105,9 +108,6 @@ abstract class Base extends \P3\Controller\Base
 	{
 		$this->_view->display($path);
 		$this->_rendered = true;
-		if(defined('\APP\START_TIME')) {
-			define('APP\RENDER_TIME', microtime(true));
-		}
 	}
 
 	/**
