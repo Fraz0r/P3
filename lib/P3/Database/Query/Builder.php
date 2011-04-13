@@ -21,15 +21,25 @@ class Builder
 	const JOINTYPE_LOUTER = 2;
 	const JOINTYPE_ROUTER = 3;
 
+	private $_intoClass = null;
 	private $_queryType = null;
 	private $_sections  = array();
 	private $_table     = null;
 
 //- Public
-	public function __construct($table_or_model, $alias = null)
+	public function __construct($table_or_model, $alias = null, $intoClass = null)
 	{
 		$this->_alias = $alias;
-		$this->_table = (is_string($table_or_model) ? $table_or_model : $table_or_model::table()).(is_null($alias) ? '' : ' '.$alias);
+
+		if(is_string($table_or_model)) {
+			$this->_table = $table_or_model;
+		} else {
+			$this->_table = $table_or_model::table();
+			$this->_intoClass = get_class($table_or_model);
+		}
+
+		if(!is_null($intoClass))
+			$this->_intoClass = $intoClass;
 	}
 
 	public function delete()
@@ -44,6 +54,23 @@ class Builder
 	{
 		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
+	}
+
+	public function fetchAll($fetchMode = null)
+	{
+		$db    = \P3::getDatabase();
+		$stmnt = $db->query($this->getQuery());
+
+		if(is_null($fetchMode)) {
+			if(!is_null($this->_intoClass))
+				$stmnt->setFetchMode(\PDO::FETCH_CLASS, $this->_intoClass);
+			else
+				$stmnt->setFetchMode(\PDO::FETCH_ASSOC);
+		} else {
+			$stmnt->setFetchMode($fetchMode);
+		}
+
+		return $stmnt->fetchAll();
 	}
 
 	public function getQuery()
