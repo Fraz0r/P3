@@ -1,6 +1,10 @@
 <?php
-require(realpath(dirname(__FILE__).'/..').'/lib/P3/Loader.php');
-P3\Loader::loadEnv();
+/**
+ *   This file is responsible for Booting your application.  Little to no modification
+ * should be needed
+ */
+
+require(realpath(dirname(__FILE__).'/..').'/lib/P3/P3.php');
 
 if(P3::development()) {
 	ini_set("display_errors", "true");
@@ -8,10 +12,9 @@ if(P3::development()) {
 }
 
 try {
-	P3\Router::dispatch();
+	P3::boot();
 } catch(P3\Exception\Base $e) {
 	$view = new P3\Template\Base();
-	$view->setLayout('application.tpl');
 	$view->exception = $e;
 
 	switch ((int)$e->getCode()) {
@@ -19,15 +22,13 @@ try {
 			header("HTTP/1.0 404 Not Found");
 			$view->heading = "We didn't find what you were looking for.";
 			$view->body    = "It's possible the page has moved.";
-			//$view->display('site/error.tpl');
-			var_dump($e);
+			$view->display('site/error.tpl');
 			break;
 		case 500:
 		default:
 			$view->heading = "Something went wrong";
-			$view->body    = (CBG_PRODUCTION) ? "We were notified about this issue, and will get it resolved." : $e->getMessage();
-			//$view->display('site/error.tpl');
-			var_dump($e);
+			$view->body    = (P3::production()) ? "We were notified about this issue, and will get it resolved." : $e->getMessage();
+			$view->display('site/error.tpl');
 	}
 }
 

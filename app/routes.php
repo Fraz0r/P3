@@ -1,5 +1,18 @@
 <?php
+/**
+ *  This is the global route file for you project.  (P3\Routing\Map) $map is assigned for you
+ * 
+ * Examples:
+ *     $map->root('welcome#show');
+ *     $map->connect('/user/activate/:token', array('controller' => 'users', 'action' => activate');
+ *     $map->resource('user');
+ *     $map->resources('accounts');
+ * 
+ * For more information, please visit our Wiki Page on Routing
+ */
 
-//P3\Router::loadDefaultRoutes(array("controller" => 'default'));
+//$map->root('welcome#show');
+
+
 
 ?>
