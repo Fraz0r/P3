@@ -1,6 +1,7 @@
 <?php
 
 namespace P3\ActiveRecord;
+use       P3\Database\Query\Builder as QueryBuilder;
 
 /**
  * P3\ActiveRecord\Base
@@ -36,6 +37,7 @@ abstract class Base extends \P3\Model\Base
 	 * @var array
 	 */
 	protected $_changed = array();
+
 
 	/* Events */
 	protected $_beforeCreate  = array();
@@ -110,8 +112,9 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static $_db = null;
 
+	protected static $_queryBuilder = null;
 
-	/**
+		/**
 	 * Use get() to fetch an array of models. But if you already have the
 	 * array, you can use this __constructer
 	 *
@@ -675,6 +678,18 @@ abstract class Base extends \P3\Model\Base
 		return((bool)$stmnt->rowCount());
 	}
 
+	protected static function _queryBuilder($builder = null)
+	{
+		if($builder == null) {
+			if(static::$_queryBuilder == null)
+				static::$_queryBuilder = new QueryBuilder(static::$_table);
+
+			return static::$_queryBuilder;
+		} else {
+			static::$_queryBuilder = $builder;
+		}
+	}
+
 	/**
 	 * Updates a record in the database
 	 *
@@ -767,27 +782,31 @@ abstract class Base extends \P3\Model\Base
 		if($only_one)
 			$limit = 1;
 
+		$builder = new QueryBuilder(static::$_table);
 
-		$sql = 'SELECT * FROM '.static::$_table;
+		$builder->select();
 
 		if(!empty($where)) {
 			if(!$skip_int_check && is_int($where)) {
-				$sql .= ' WHERE '.static::pk().' = '.$where;
+				$builder->where(static::pk().' = '.$where);
 				$only_one = true;
 			} else {
-				$sql .= ' WHERE '.$where;
+				$builder->where($where);
 			}
 		}
 
-		$sql .= ' ORDER BY '.$order;
+		$builder->order($order);
 
 		if(!is_null($limit)) {
-			if(!is_array($limit)) {
-				$sql .= ' LIMIT '.$limit;
-			} else {
-				$sql .= ' LIMIT '.$limit[0].', '.$limit[1];
-			}
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
 		}
+
+		$sql = $builder->getQuery();
 
 		$stmnt = static::db()->query($sql);
 		$stmnt->setFetchMode(\PDO::FETCH_CLASS, get_called_class());

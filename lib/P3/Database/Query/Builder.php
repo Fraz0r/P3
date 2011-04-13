@@ -42,8 +42,13 @@ class Builder
 
 	public function execute()
 	{
+		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
-		var_dump($query); die;
+	}
+
+	public function getQuery()
+	{
+		return $this->_buildQuery();
 	}
 
 	public function group($fields, $mode = self::MODE_OVERRIDE)
@@ -101,6 +106,10 @@ class Builder
 	public function offset($offset)
 	{
 		$this->_section('offset', $offset);
+	}
+
+	public function order($order) {
+		$this->_section('order', $order, self::MODE_OVERRIDE);
 	}
 
 	public function select($fields = '*')
@@ -169,6 +178,7 @@ class Builder
 				$query .= $this->_getSection('where');
 				$query .= $this->_getSection('group');
 				$query .= $this->_getSection('having');
+				$query .= $this->_getSection('order');
 				$query .= $this->_getSection('limit');
 				break;
 			case self::TYPE_UPDATE:
@@ -208,6 +218,9 @@ class Builder
 			case 'offset':
 				$ret .= ', '.$val;
 				$prepend_space = false;
+				break;
+			case 'order':
+				$ret .= 'ORDER BY '.(is_string($val) ? $val : implode(', ', $val));
 				break;
 			case 'update':
 				break;
