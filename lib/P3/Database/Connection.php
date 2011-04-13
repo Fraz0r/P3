@@ -2,7 +2,7 @@
 
 namespace P3\Database;
 
-class Base extends \PDO
+class Connection extends \PDO
 {
 	/**
 	 * Creates new instance of PDO
