@@ -1,7 +1,10 @@
 <?php
 
 namespace P3\ActiveRecord;
+use       P3\Loader;
 use       P3\Database\Query\Builder as QueryBuilder;
+
+Loader::loadClass(__NAMESPACE__.'\Collection\Base');
 
 /**
  * P3\ActiveRecord\Base
@@ -782,7 +785,7 @@ abstract class Base extends \P3\Model\Base
 		if($only_one)
 			$limit = 1;
 
-		$builder = new QueryBuilder(static::$_table);
+		$builder = new QueryBuilder(static::$_table, null, get_called_class());
 
 		$builder->select();
 
@@ -806,12 +809,9 @@ abstract class Base extends \P3\Model\Base
 			$builder->limit($limit, $offset);
 		}
 
-		$sql = $builder->getQuery();
+		$flags = $only_one ? Collection\FLAG_SINGLE_MODE : 0; 
 
-		$stmnt = static::db()->query($sql);
-		$stmnt->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
-
-		return $only_one ? $stmnt->fetch() : new Collection\Base($stmnt->fetchAll());
+		return new Collection\Base($builder, null, $flags);
 	}
 
 	/**
