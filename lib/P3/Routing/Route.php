@@ -130,7 +130,6 @@ class Route {
 	 */
 	public function dispatch()
 	{
-
 		$this->fillGET();
 
 		$controller_class = $this->getControllerClass();
@@ -140,18 +139,16 @@ class Route {
 
 		$controller = new $controller_class;
 
+
 		$ret = $controller->process($this->getAction());
-
-
-		if($ret !== FALSE && !$controller->rendered()) {
-			$controller->render();
-		}
 
 		if(defined('\APP\START_TIME')) {
 			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
-			define("APP\RENDERED_IN", (\APP\RENDER_TIME - \APP\DISPATCH_TIME) * 1000);
-			define("APP\TOTAL_TIME", (\APP\RENDER_TIME - \APP\START_TIME) * 1000);
+			define("APP\TOTAL_TIME", (microtime(true) - \APP\START_TIME) * 1000);
 		}
+
+
+
 	}
 
 	/**
@@ -237,7 +234,7 @@ class Route {
 	 */
 	public function getViewPath()
 	{
-		return $this->_controller.'/'.$this->_action;
+		return str_replace('\\', '/', $this->getNamespace()).$this->_controller.'/'.$this->_action;
 	}
 
 	/**
