@@ -47,8 +47,11 @@ class form extends P3\Helper\Base
 	private $_uri = null;
 
 //Public
-	public function  __construct(\P3\ActiveRecord\Base $model, array $options = array())
+	public function  __construct($model, array $options = array())
 	{
+		if(is_a($model, 'P3\ActiveRecord\Collection\Base'))
+			$model = $model->first();
+
 		$this->_model   = $model;
 
 		$this->_options = $options;
@@ -452,7 +455,7 @@ class form extends P3\Helper\Base
 	 * @param bool $print
 	 * @return form
 	 */
-	public static function forModel(\P3\ActiveRecord\Base $model, array $options = array(), $print = true)
+	public static function forModel($model, array $options = array(), $print = true)
 	{
 		if($print)
 			$options = array_merge(array('print' => true), $options);
