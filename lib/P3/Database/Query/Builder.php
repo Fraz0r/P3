@@ -22,6 +22,8 @@ class Builder
 	const JOINTYPE_ROUTER = 3;
 
 	private $_intoClass = null;
+	private $_fetchStmnt = null;
+	private $_fetchPointer = null;
 	private $_queryType = null;
 	private $_sections  = array();
 	private $_table     = null;
@@ -54,6 +56,30 @@ class Builder
 	{
 		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
+	}
+
+	public function fetch($fetchMode = null)
+	{
+		if(is_null($this->_fetchStmnt)) {
+			$db    = \P3::getDatabase();
+			$this->_fetchStmnt = $db->query($this->getQuery());
+			$this->_fetchPointer = 0;
+
+			if(is_null($fetchMode)) {
+				if(!is_null($this->_intoClass))
+					$this->_fetchStmnt->setFetchMode(\PDO::FETCH_CLASS, $this->_intoClass);
+				else
+					$this->_fetchStmnt->setFetchMode(\PDO::FETCH_ASSOC);
+			} else {
+				$this->_fetchStmnt->setFetchMode($fetchMode);
+			}
+		}
+
+		if(!$this->_fetchStmnt)
+			return false;
+
+		return $this->_fetchStmnt->fetch();
+
 	}
 
 	public function fetchAll($fetchMode = null)
