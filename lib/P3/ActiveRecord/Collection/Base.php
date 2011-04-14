@@ -36,10 +36,13 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function __construct(QueryBuilder $builder, $parentModel = null, $flags = null)
 	{
 		$this->_builder     = $builder;
-		$this->_flags       = $flags;
+		$this->_flags       = !is_null($flags) ? $flags : FLAG_NORMAL_MODE;
 		$this->_parentModel = $parentModel;
 
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
+
+		/* TEMPORARY */
+		$this->_fetchAll();
 	}
 
 	/**
@@ -57,6 +60,23 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function complete()
 	{
 		return $this->_state & STATE_STARTED & STATE_COMPLETE;
+	}
+
+	public function exists()
+	{
+		if($this->_flags & FLAG_SINGLE_MODE) {
+			return $this->count() == 1;
+		} else {
+			throw new \P3\Exception\ActiveRecordException('Calling exists on a collection.  Use count() instead');
+		}
+	}
+
+	public function fetch()
+	{
+		if($this->inSingleMode()) {
+			/* Todo:  This will need to change */
+			return $this->_data[0];
+		}
 	}
 
 	public function filter($closure)
@@ -87,6 +107,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function inProgress()
 	{
 		return $this->started() && !$this->complete();
+	}
+
+	public function inSingleMode()
+	{
+		return (bool)($this->_flags & FLAG_SINGLE_MODE);
 	}
 
 	/**
