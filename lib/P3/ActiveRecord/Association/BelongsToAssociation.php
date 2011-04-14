@@ -21,6 +21,8 @@ class BelongsToAssociation extends Base
 		$builder->select()->where($class::pk().' = '.$model->{$options['fk']});
 
 		parent::__construct($builder, null, \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE);
+
+		$this->_contentClass = $class;
 	}
 }
 

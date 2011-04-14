@@ -92,6 +92,17 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return isset($this->_data[0]) ? $this->_data[0] : false;
 	}
 
+	public function getContentClass()
+	{
+		return $this->_contentClass;
+	}
+
+	public function getController()
+	{
+		$class = $this->_contentClass;
+		return $class::$_controller;
+	}
+
 	/**
 	 * Returns iterator to use
 	 *

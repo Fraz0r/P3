@@ -354,15 +354,12 @@ abstract class Base extends \P3\Model\Base
 
 	public function getAssociationForField($field)
 	{
-		$class = $this->_class;
-
-		if(isset(static::$_belongsTo[$field])) {
+		if(isset(static::$_belongsTo[$field]))
 			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
-		} elseif(isset(static::$_hasOne[$field])) {
+		elseif(isset(static::$_hasOne[$field]))
 			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
-		} elseif(isset(static::$_hasMany[$field])) {
+		elseif(isset(static::$_hasMany[$field]))
 			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
-		}
 
 		return false;
 	}
@@ -755,6 +752,18 @@ abstract class Base extends \P3\Model\Base
 		return static::find('1', $options);
 	}
 
+	public static function assoctiationFor($field)
+	{
+		if(isset(static::$_belongsTo[$field]))
+			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
+		elseif(isset(static::$_hasOne[$field]))
+			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
+		elseif(isset(static::$_hasMany[$field]))
+			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
+
+		return false;
+	}
+
 	/**
 	 * Destroy records matching $where
 	 *
@@ -956,7 +965,9 @@ abstract class Base extends \P3\Model\Base
 			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->fetch() : $assoc;
-			$this->_data[$name] = $ret;
+
+			if(FALSE !== $ret)
+				$this->_data[$name] = $ret;
 
 
 			return $ret;

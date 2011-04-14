@@ -33,6 +33,7 @@ class Builder
 	{
 		$this->_alias = $alias;
 
+
 		if(is_string($table_or_model)) {
 			$this->_table = $table_or_model;
 		} else {
@@ -42,6 +43,7 @@ class Builder
 
 		if(!is_null($intoClass))
 			$this->_intoClass = $intoClass;
+
 	}
 
 	public function delete()
@@ -56,6 +58,11 @@ class Builder
 	{
 		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
+	}
+
+	public function getFetchClass()
+	{
+		return $this->_intoClass;
 	}
 
 	public function fetch($fetchMode = null)

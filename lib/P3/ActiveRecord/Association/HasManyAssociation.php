@@ -17,9 +17,11 @@ class HasManyAssociation extends Base
 		$class = $options['class'];
 
 		$builder = new QueryBuilder($class::table(), null, $class);
-		$builder->select()->where($options['fk'].' = '.$parent->pk());
+		$builder->select()->where($options['fk'].' = '.$parent->id());
 
 		parent::__construct($builder, $parent);
+
+		$this->_contentClass = $class;
 	}
 }
 

@@ -16,10 +16,12 @@ class HasOneAssociation extends Base
 
 		$class = $options['class'];
 
-		$builder = new QueryBuilder($class::table());
-		$builder->select()->where($options['fk'].' = '.$parent->pk());
+		$builder = new QueryBuilder($class::table(), null, $class);
+		$builder->select()->where($options['fk'].' = '.$parent->id());
 
-		parent::__contruct($builder, $parent, \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE);
+		parent::__construct($builder, $parent, \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE);
+
+		$this->_contentClass = $class;
 	}
 }
 
