@@ -14,15 +14,11 @@ abstract class number extends P3\Helper\Base
 	 *
 	 * @return array
 	 */
-	public static function range($start, $end)
+	public static function range($start, $end, $combine = false)
 	{
-		$ret = array();
+		$ret = range($start, $end);
 
-		for($i = $start; $i <= $end; $i++) {
-			$ret[] = $i;
-		}
-
-		return $ret;
+		return $combine ? array_combine($ret, $ret) : $ret;
 	}
 
 	/**
