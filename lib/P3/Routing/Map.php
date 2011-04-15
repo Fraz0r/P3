@@ -54,7 +54,7 @@ class Map
 	 *
 	 * @return Route
 	 */
-	public function connect($path, array $options = array(), $method = 'any', $accept_format = false)
+	public function connect($path, array $options = array(), $method = 'any', $accept_format = true)
 	{
 		$prefix = $this->_getPrefix($path);
 
@@ -209,7 +209,7 @@ class Map
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		return $this->connect('/', $options);
+		return $this->connect('/', $options, 'get', false);
 	}
 
 	/**
