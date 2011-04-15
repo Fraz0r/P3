@@ -148,7 +148,7 @@ abstract class Base extends \P3\Model\Base
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
-					static::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
+					static::db()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
 			}
 		}
 	}
@@ -274,7 +274,7 @@ abstract class Base extends \P3\Model\Base
 				$pk = $this->_data[self::pk()];
 
 				/* This looks rough, but all it does is binds a save handler to the returning model (To insert the join record upon save) */
-				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
+				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
 			}
 		}
 	}
@@ -451,7 +451,7 @@ abstract class Base extends \P3\Model\Base
 		$flag = false;
 		foreach(static::$_hasManyThrough as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
+				$join_table = static::$_hasManyThrough[$accsr]['table'];
 				$fk = static::$_hasManyThrough[$accsr]['fk'];
 				$efk = static::$_hasManyThrough[$accsr]['efk'];
 
@@ -516,7 +516,7 @@ abstract class Base extends \P3\Model\Base
 		$class = get_class($related_model);
 		foreach(static::$_hasManyThrough as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
+				$join_table = static::$_hasManyThrough[$accsr]['table'];
 				$fk = static::$_hasManyThrough[$accsr]['fk'];
 				$efk = static::$_hasManyThrough[$accsr]['efk'];
 
@@ -834,15 +834,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 
-		if($only_one) {
-			$flags = Collection\FLAG_SINGLE_MODE;
-
-			return $builder->fetch();
-		} else {
-			$flags = 0;
-		}
-
-		return new Collection\Base($builder, null, $flags);
+		return $only_one ? $builder->fetch() : new Collection\Base($builder);
 	}
 
 	/**
