@@ -342,6 +342,14 @@ abstract class Base extends \P3\Model\Base
 		return true;
 	}
 
+	public function duplicate()
+	{
+		$fields = $this->getFields();
+		unset($fields[static::pk()]);
+
+		return new static($fields);
+	}
+
 	/**
 	 * Returns Primary Key value for the model
 	 *
@@ -633,6 +641,12 @@ abstract class Base extends \P3\Model\Base
 	public function setAttribute($attr, $val)
 	{
 		$this->_attr[$attr] = $val;
+	}
+
+	public function updateAndSave(array $fields)
+	{
+		$this->update($fields);
+		return $this->save();
 	}
 
 	/**
