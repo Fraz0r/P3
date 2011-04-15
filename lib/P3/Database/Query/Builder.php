@@ -46,6 +46,14 @@ class Builder
 
 	}
 
+	public function count()
+	{
+		$this->_sections = array('base' => 'SELECT COUNT(*) FROM '.$this->_table);
+
+		$this->_setQueryType(self::TYPE_SELECT);
+		return $this;
+	}
+
 	public function delete()
 	{
 		$this->_sections = array('base' => 'DELETE FROM '.$this->_table);
