@@ -32,7 +32,7 @@ final class P3
 	public static function getDatabase()
 	{
 		if(empty(self::$_database)) {
-			self::$_database = new \P3\Database\Base;
+			self::$_database = new \P3\Database\Connection;
 		}
 
 		return self::$_database;

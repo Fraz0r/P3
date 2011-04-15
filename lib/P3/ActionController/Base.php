@@ -76,6 +76,12 @@ abstract class Base extends \P3\Controller\Base
 		parent::__construct($route);
 	}
 
+	public function dispatch($action = null)
+	{
+		if($this->process($action) !== FALSE && !$this->rendered())
+			$this->render();
+	}
+
 	/**
 	 * Process action and returns result
 	 *
@@ -89,8 +95,6 @@ abstract class Base extends \P3\Controller\Base
 			$action = is_null($action) ? $this->_route->getAction() : $action;
 			$this->_actionReturn = $this->{$action}();
 
-			if($this->_actionReturn !== FALSE && !$this->rendered())
-				$this->render();
 		}
 
 		return $this->_actionReturn;

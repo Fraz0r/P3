@@ -140,15 +140,12 @@ class Route {
 		$controller = new $controller_class;
 
 
-		$ret = $controller->process($this->getAction());
+		$ret = $controller->dispatch($this->getAction());
 
 		if(defined('\APP\START_TIME')) {
 			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
 			define("APP\TOTAL_TIME", (microtime(true) - \APP\START_TIME) * 1000);
 		}
-
-
-
 	}
 
 	/**
