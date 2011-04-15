@@ -338,6 +338,9 @@ class Route {
 				} else {
 					/* Otherwise, let's bind the Param */
 
+					if($m[0] == ':id')
+						$passed_token = (int)$passed_token;
+
 					$this->_params[$m[1]] = $passed_token;
 				}
 			}
@@ -424,7 +427,9 @@ class Route {
 	{
 		$ids = !is_array($ids) ? array($ids) : $ids;
 
-		$ret = preg_replace('/\[.:format\]$/', '', $this->_path);
+		$ret = $this->_path;
+		$ret = preg_replace('/\[.:format\]$/', '', $ret);
+		$ret = str_replace(':id', $ids[0], $ret);
 		return $ret;
 	}
 }
