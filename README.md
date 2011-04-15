@@ -1,6 +1,26 @@
-#  P3
-After working in Ruby on Rails for a while, and eventually swithing back to PHP, I wanted to build my apps using the MVC paradigm.  Obviously, there are tons of great Frameworks to choose from.  But I believe P3 offers competitive features that everyone could enjoy
+# P3
+Long story short - Ive always been a PHP fan ever since I started developing.  I did, however, switch to the RoR world for a while - Falling in love with the MVC paradigm shortly thereafter, of course.
 
-## Special thanks to BigE
-P3 was inspired by [SiTech](https://github.com/BigE/SiTech), a library built by a good friend of mine, [BigE](https://github.com/BigE).  SiTech is a Library designed for the coder who wants some functinonality of a Framework, without being forced into using the entire package.  Each piece of SciTech runs completely independent of eachother, with a few exceptions of course, making it infiinitely versatile.  P3 stemmed from SiTechs Models/Controllers, and grew into a borderline Rails Clone.
+Though I love Rails, I just found myself missing PHP the entire time.  Coming back though, I *definitely* wanted to implement MVC, and more particularly follow DRY coding standars.  There are tons of great MVC framework choices out there, and theres no way Id even try to claim to be the best.  I can, however, encourage you to take a look and see what you think. 
 
+P3 has been a work in progress for a little over two years now.  It was orignally called EEF, which spawned from some inspiring ideas I got from [BigE](https://github.com/BigE)'s [SiTech](https://github.com/BigE/SiTech) library at the time.  I wasn't happy with my ending result, but I sure did learn a lot about the MVC paradigm during my first go at it.  I decided to go for a gradual, but complete rewrite.  P3 being my ending result.
+
+I currently use P3 in 2 production apps for my employer, and am developing 3 personally on the side as I enhance P3.  That being said, I work on this thing *a lot*.  So please check back for updates!
+
+Features
+--------
+* Fully Customizable MVC Restful Routing
+* Advanced Model Relations  (belongs-to, has-one, has-many, and even has-many-through)
+* Views w/ support for "partials"
+* Nested/Namespaced Controller support
+* PDO Database  (currently only fully supporting MySQL. Postgres shortly.  Feel free to help!)
+* Form/Html Helpers to avoid the mondain tasks we have all grown to hate
+* Options scattered litteraly everywhere to modify P3s behavior, and even only use bits and pieces if you so chose.
+* Helpful Documentation 
+
+## Shoutout to the Rails Community
+I still use RoR for several apps at work and gain ideas from the libary to this day.  I try to keep P3 as seemless of a switch from Rails as possible, as you will notice throughout.  I'm not aiming to recreate the wheel entirely here, just mimic the Rails way the best I can with my own bit of flavor.
+
+
+## Special thanks again to BigE
+Check out his [SiTech](https://github.com/BigE/SiTech) library.  Especially if you are the type of coder that doesn't like to be locked into a framework, but still have a powerful library sitting behind your apps.
