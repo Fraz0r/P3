@@ -412,6 +412,7 @@ class Route {
 		$options['prefix'] = isset($options['prefix']) ? $options['prefix'] : $this(':'.\str::singularize($this->_controller).'_id');
 		$options['prefix'] = rtrim($options['prefix'], '/').'/';
 
+
 		return $this->_map->{$func}($args[0], $options);
 	}
 
@@ -425,11 +426,16 @@ class Route {
 	 */
 	public function __invoke($ids, $options = array())
 	{
-		$ids = !is_array($ids) ? array($ids) : $ids;
-
 		$ret = $this->_path;
+
+		if(is_array($ids)) {
+			foreach($ids as $k => $v)
+				$ret = str_replace(':'.$k, $v, $ret);
+		} else {
+			$ret = str_replace(':id', $ids, $ret);
+		}
+
 		$ret = preg_replace('/\[.:format\]$/', '', $ret);
-		$ret = str_replace(':id', $ids[0], $ret);
 		return $ret;
 	}
 }
