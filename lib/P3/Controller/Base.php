@@ -93,6 +93,11 @@ abstract class Base
 		$this->_attributes[$attr] = $value;
 	}
 
+	public function redirect($path)
+	{
+		\P3\Router::redirect($path);
+	}
+
 //- Static
 
 //- Protected
