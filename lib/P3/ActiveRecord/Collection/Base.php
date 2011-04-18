@@ -75,7 +75,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	{
 		if($this->inSingleMode()) {
 			/* Todo:  This will need to change */
-			return $this->_data[0];
+			return isset($this->_data[0]) ? $this->_data[0] : false;
 		}
 	}
 
