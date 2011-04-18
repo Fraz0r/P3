@@ -53,6 +53,8 @@ class form extends P3\Helper\Base
 
 		$this->_options = $options;
 
+		$this->_uri = isset($options['url']) ? $options['url'] : null;
+
 		$this->_inspect();
 
 		$class = $this->_modelClass;
@@ -414,7 +416,7 @@ class form extends P3\Helper\Base
 
 			$this->_options['method'] = $route->getMethod();
 
-			$uri = $route($this->_model->id());
+			$uri = $route(array(\str::toCamelCase($this->_modelClass) => $this->_model->id()));
 
 			$this->_uri = $uri;
 		}
