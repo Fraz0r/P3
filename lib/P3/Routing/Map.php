@@ -56,7 +56,7 @@ class Map
 	 */
 	public function connect($path, array $options = array(), $method = 'any', $accept_format = true)
 	{
-		$prefix = $this->_getPrefix($path);
+		$prefix = isset($options['prefix']) ? $options['prefix'] : $this->_getPrefix($path);
 
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
@@ -149,26 +149,26 @@ class Map
 		$front = isset($options['as']) ? $options['as'] : $controller;
 
 		/* Index */
-		$index = $this->connect($front.'/', array('controller' => $controller, 'action' => 'index'), 'get', true);
+		$index = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'index')), 'get', true);
 
 		/* Create */
-		$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
+		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'create')), 'post', true);
 
 		/* New */
-		$this->connect($front.'/new', array('controller' => $controller, 'action' => 'add'), 'get', true);
-		$this->connect($front.'/add', array('controller' => $controller, 'action' => 'add'), 'get', true);
+		$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
 
 		/* Edit */
-		$this->connect($front.'/:id/edit', array('controller' => $controller, 'action' => 'edit'), 'get', true);
+		$this->connect($front.'/:id/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
 
 		/* Show */
-		$show = $this->connect($front.'/:id', array('controller' => $controller, 'action' => 'show'), 'get', true);
+		$show = $this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
 
 		/* Update */
-		$this->connect($front.'/:id', array('controller' => $controller, 'action' => 'update'), 'put', true);
+		$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
 
 		/* Delete */
-		$this->connect($front.'/:id', array('controller' => $controller, 'action' => 'delete'), 'delete', true);
+		$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
 
 		/* Members */
 		if(isset($options['member'])) {
