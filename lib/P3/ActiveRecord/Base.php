@@ -1,6 +1,10 @@
 <?php
 
 namespace P3\ActiveRecord;
+use       P3\Loader;
+use       P3\Database\Query\Builder as QueryBuilder;
+
+Loader::loadClass(__NAMESPACE__.'\Collection\Base');
 
 /**
  * P3\ActiveRecord\Base
@@ -37,6 +41,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected $_changed = array();
 
+
 	/* Events */
 	protected $_beforeCreate  = array();
 	protected $_afterCreate   = array();
@@ -64,18 +69,18 @@ abstract class Base extends \P3\Model\Base
 	public static $_hasAttachment = array();
 
 	/**
+	 * List of "many-many" relationships
+	 *
+	 * @var array
+	 */
+	public static $_hasAndBelongsToMany = array();
+
+	/**
 	 * List of "has many" relationships
 	 *
 	 * @var array
 	 */
 	public static $_hasMany = array();
-
-	/**
-	 * List of "has many through" relationships
-	 *
-	 * @var array
-	 */
-	public static $_hasManyThrough = array();
 
 	/**
 	 * List of "has one" relationships
@@ -110,8 +115,9 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static $_db = null;
 
+	protected static $_queryBuilder = null;
 
-	/**
+		/**
 	 * Use get() to fetch an array of models. But if you already have the
 	 * array, you can use this __constructer
 	 *
@@ -138,11 +144,11 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function addModelToMany($related_model, array $options = array())
 	{
-		foreach(static::$_hasManyThrough as $field => $opts) {
+		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
-					static::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
+					static::db()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$related_model->id}')");
 			}
 		}
 	}
@@ -262,15 +268,20 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::$_hasManyThrough as $field => $opts) {
+		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];
 
 				/* This looks rough, but all it does is binds a save handler to the returning model (To insert the join record upon save) */
-				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['joinTable']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
+				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
 			}
 		}
+	}
+
+	public function createdAt($format = 'n/d/y')
+	{
+		return date($format, strtotime($this->created_at));
 	}
 
 	/**
@@ -290,7 +301,11 @@ abstract class Base extends \P3\Model\Base
 
 		$ret = (bool)$stmnt->rowCount();
 
-		if($ret) $this->destroyAttachments();
+		if($ret){ 
+			$this->_cascade();
+			$this->destroyAttachments();
+		}
+
 		return $ret;
 	}
 
@@ -336,6 +351,14 @@ abstract class Base extends \P3\Model\Base
 		return true;
 	}
 
+	public function duplicate()
+	{
+		$fields = $this->getFields();
+		unset($fields[static::pk()]);
+
+		return new static($fields);
+	}
+
 	/**
 	 * Returns Primary Key value for the model
 	 *
@@ -344,6 +367,20 @@ abstract class Base extends \P3\Model\Base
 	public function id()
 	{
 		return $this->{$this->pk()};
+	}
+
+	public function getAssociationForField($field)
+	{
+		if(isset(static::$_belongsTo[$field]))
+			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
+		elseif(isset(static::$_hasAndBelongsToMany[$field]))
+			return new Association\HasAndBelongsToMany($this, static::$_hasAndBelongsToMany[$field]);
+		elseif(isset(static::$_hasOne[$field]))
+			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
+		elseif(isset(static::$_hasMany[$field]))
+			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
+
+		return false;
 	}
 
 	/**
@@ -431,11 +468,11 @@ abstract class Base extends \P3\Model\Base
 		if(is_null($id)) return false;
 
 		$flag = false;
-		foreach(static::$_hasManyThrough as $accsr => $arr) {
+		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
-				$fk = static::$_hasManyThrough[$accsr]['fk'];
-				$efk = static::$_hasManyThrough[$accsr]['efk'];
+				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
+				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
+				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
 
 				$sql = "SELECT COUNT(*) FROM `{$join_table}` a";
 				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
@@ -496,11 +533,11 @@ abstract class Base extends \P3\Model\Base
 		if(!$this->isInMany($related_model)) return false;
 
 		$class = get_class($related_model);
-		foreach(static::$_hasManyThrough as $accsr => $arr) {
+		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['joinTable'];
-				$fk = static::$_hasManyThrough[$accsr]['fk'];
-				$efk = static::$_hasManyThrough[$accsr]['efk'];
+				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
+				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
+				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
 
 				$sql = "DELETE FROM `{$join_table}`";
 				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
@@ -577,10 +614,8 @@ abstract class Base extends \P3\Model\Base
 
 				$path = \P3\ROOT.'/htdocs'.$opts['path'];
 
-				if(!is_dir($path)) {
-					$ret = false;
+				if(!is_dir($path) && !mkdir($path, 777, true))
 					throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
-				}
 
 				$path .= '/'.$this->id();
 
@@ -617,6 +652,17 @@ abstract class Base extends \P3\Model\Base
 		$this->_attr[$attr] = $val;
 	}
 
+	public function updateAndSave(array $fields)
+	{
+		$this->update($fields);
+		return $this->save();
+	}
+
+	public function updatedAt($format = 'n/d/y')
+	{
+		return date($format, strtotime($this->updated_at));
+	}
+
 	/**
 	 * Returns true if record fields are valid
 	 *
@@ -651,6 +697,9 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _insert()
 	{
+		$this->created_at = date("Y-m-d H:i:s", time());
+		$this->updated_at = date("Y-m-d H:i:s", time());
+
 		$pk = static::pk();
 		$sql = 'INSERT INTO `'.static::$_table.'` ';
 		$fields = array();
@@ -659,7 +708,7 @@ abstract class Base extends \P3\Model\Base
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
 			if (in_array($f, static::$_belongsTo) || in_array($f, static::$_hasOne)
-					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasManyThrough))
+					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasAndBelongsToMany))
 				continue;
 
 			$fields[] = "`{$f}`";
@@ -675,6 +724,18 @@ abstract class Base extends \P3\Model\Base
 		return((bool)$stmnt->rowCount());
 	}
 
+	protected static function _queryBuilder($builder = null)
+	{
+		if($builder == null) {
+			if(static::$_queryBuilder == null)
+				static::$_queryBuilder = new QueryBuilder(static::$_table);
+
+			return static::$_queryBuilder;
+		} else {
+			static::$_queryBuilder = $builder;
+		}
+	}
+
 	/**
 	 * Updates a record in the database
 	 *
@@ -682,6 +743,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
+		$this->updated_at = date("Y-m-d H:i:s", time());
+
 		$pk = static::pk();
 		$sql = 'UPDATE '.static::$_table.' SET ';
 		$fields = array();
@@ -692,7 +755,7 @@ abstract class Base extends \P3\Model\Base
 			if (in_array($f, array_keys(static::$_belongsTo))
 				|| in_array($f, array_keys(static::$_hasOne))
 				|| in_array($f, array_keys(static::$_hasMany))
-				|| in_array($f, array_keys(static::$_hasManyThrough)))
+				|| in_array($f, array_keys(static::$_hasAndBelongsToMany)))
 					continue;
 
 			$fields[] = $f.' = ?';
@@ -720,6 +783,18 @@ abstract class Base extends \P3\Model\Base
 	{
 		$options['skip_int_check'] = true;
 		return static::find('1', $options);
+	}
+
+	public static function assoctiationFor($field)
+	{
+		if(isset(static::$_belongsTo[$field]))
+			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
+		elseif(isset(static::$_hasOne[$field]))
+			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
+		elseif(isset(static::$_hasMany[$field]))
+			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
+
+		return false;
 	}
 
 	/**
@@ -767,32 +842,32 @@ abstract class Base extends \P3\Model\Base
 		if($only_one)
 			$limit = 1;
 
+		$builder = new QueryBuilder(static::$_table, null, get_called_class());
 
-		$sql = 'SELECT * FROM '.static::$_table;
+		$builder->select();
 
 		if(!empty($where)) {
 			if(!$skip_int_check && is_int($where)) {
-				$sql .= ' WHERE '.static::pk().' = '.$where;
+				$builder->where(static::pk().' = '.$where);
 				$only_one = true;
 			} else {
-				$sql .= ' WHERE '.$where;
+				$builder->where($where);
 			}
 		}
 
-		$sql .= ' ORDER BY '.$order;
+		$builder->order($order);
 
 		if(!is_null($limit)) {
-			if(!is_array($limit)) {
-				$sql .= ' LIMIT '.$limit;
-			} else {
-				$sql .= ' LIMIT '.$limit[0].', '.$limit[1];
-			}
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
 		}
 
-		$stmnt = static::db()->query($sql);
-		$stmnt->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
 
-		return $only_one ? $stmnt->fetch() : new Collection\Base($stmnt->fetchAll());
+		return $only_one ? $builder->fetch() : new Collection\Base($builder);
 	}
 
 	/**
@@ -847,6 +922,36 @@ abstract class Base extends \P3\Model\Base
 	}
 
 //- Private
+	private function _cascade()
+	{
+		$children_assoc = array_merge(static::$_hasMany, static::$_hasOne);
+
+		foreach($children_assoc as $accessor => $opts) {
+			if(isset($opts['dependent']) && !\is_null($opts['dependent'])) {
+
+				$builder = new QueryBuilder($opts['class']::table());
+
+				switch($opts['dependent']) {
+					case 'destroy':
+					case 'delete':
+						$builder->delete();
+						break;
+					case 'nullify':
+						$builder->update(array($opts['fk'] => 'NULL'));
+						break;
+					default:
+						throw new \P3\Exception\ActiveRecordException("Unknown option passed for 'dependent' in the association for %s->%s", array($this->_class, $accessor));
+				}
+
+
+				if(isset($opts['through'])) 
+					throw new \P3\Exception\ActiveRecordException("Cannot %s children accross a 'through' relationship for %s->%s.  Move this dependent option to the other side of the join.", array($opts['dependent'], $this->_class, $accessor));
+
+				$builder->where($opts['fk'].'=\''.$this->id().'\'')->execute();
+			}
+		}
+	}
+
 	private function _parseFields()
 	{
 		$tmp = array();
@@ -900,80 +1005,30 @@ abstract class Base extends \P3\Model\Base
 		if(null !== ($value = parent::__get($name))) {
 			return $value;
 		} else {
-			$class = null;
-			$where = null;
-			$opts  = array();
+			$assoc = $this->getAssociationForField($name);
 
-			if(isset(static::$_hasMany[$name])) {
-				$class = isset(static::$_hasMany[$name]['class']) ? static::$_hasMany[$name]['class'] : $name;
+			if(!$assoc) 
+				return null;
 
-				if(isset(static::$_hasMany[$name]['sort'])) {
-					$opts['order'] = static::$_hasMany[$name]['sort'];
+			if($this->isNew()) {
+				var_dump("HIT NEW: ".$name);
+				die;
+			} else {
+				if($assoc->inSingleMode()) {
+					$ret = $assoc->fetch();
 				}
-				if(isset(static::$_hasMany[$name]['order'])) {
-					$opts['order'] = static::$_hasMany[$name]['order'];
-				}
-
-				if(isset(static::$_hasMany[$name]['fk'])) {
-					$where = static::$_hasMany[$name]['fk'].'='.$this->_data[static::pk()];
-				} else {
-					$where = strtolower(get_called_class()).'_id ='.$this->_data[static::pk()];
-				}
-			} elseif(isset(static::$_hasOne[$name])) {
-				$class = isset(static::$_hasOne[$name]['class']) ? static::$_hasOne[$name]['class'] : $name;
-
-				if(isset(static::$_hasOne[$name]['fk'])) {
-					$where = static::$_hasOne[$name]['fk'].'='.$this->_data[static::pk()];
-				} else {
-					$where = strtolower(get_called_class()).'_id ='.$this->_data[static::pk()];
-				}
-
-				$opts['one'] = true;
-			} elseif(isset(static::$_belongsTo[$name])) {
-				$class = isset(static::$_belongsTo[$name]['class']) ? static::$_belongsTo[$name]['class'] : $name;
-
-				if(isset(static::$_belongsTo[$name]['fk'])) {
-					$where = (int)$this->_data[static::$_belongsTo[$name]['fk']];
-				}
-
-				$opts['one'] = true;
-			} elseif(isset(static::$_hasManyThrough[$name])) {
-				$class = static::$_hasManyThrough[$name]['class'];
-				$join_table = static::$_hasManyThrough[$name]['joinTable'];
-				$fk = static::$_hasManyThrough[$name]['fk'];
-				$efk = static::$_hasManyThrough[$name]['efk'];
-				$order = null;
-
-				if(isset(static::$_hasMany[$name]['sort'])) {
-					$order = static::$_hasMany[$name]['sort'];
-				}
-				if(isset(static::$_hasMany[$name]['order'])) {
-					$order = static::$_hasMany[$name]['order'];
-				}
-
-				$sql = "SELECT b.* FROM `{$join_table}` a";
-				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
-				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
-				$sql .= (!empty($order) ? " ORDER BY {$order}" : '');
-
-				$stmnt = static::db()->query($sql);
-				$stmnt->setFetchMode(\PDO::FETCH_CLASS, $class);
-
-				return new Collection\Base($stmnt->fetchAll(), $this);
 			}
+
+			$ret =  $assoc->inSingleMode() ? $assoc->fetch() : $assoc;
+
+			if(FALSE !== $ret)
+				$this->_data[$name] = $ret;
+
+
+			return $ret;
 		}
 
-		if($class != null) {
-			\P3\Loader::loadModel($class);
-
-
-			$value = $class::find($where, $opts);
-			$this->_data[$name] = $value;
-
-			return $value;
-		} else {
-			return null;
-		}
+		return null;
 	}
 
 	/**

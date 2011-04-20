@@ -170,7 +170,7 @@ final class Loader
 
 		/* Include lib */
 		if($set_include_path)
-			set_include_path(realpath(dirname(__FILE__).'/..').PATH_SEPARATOR.get_include_path());
+			set_include_path(implode(array(LIB_PATH), PATH_SEPARATOR).get_include_path());
 
 		/* Set up Auto Loading */
 		self::registerAutoload();
@@ -251,7 +251,7 @@ final class Loader
 			if(!defined('\P3\APP_PATH'))
 				throw new Exception\LoaderException('APP_PATH not defined, cannot locate routes.');
 			else
-				$file = APP_PATH.'/routes.php';
+				$file = ROOT.'/config/routes.php';
 		}
 		if(!is_readable($file))
 			throw new Exception\LoaderException('Unable to load routes file "%s"', array($file));
@@ -272,7 +272,7 @@ final class Loader
 		$file = ucfirst(\str::toCamelCase(array_pop($exp), true).'.php');
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
-		$path = \P3\LIB_PATH.'/'.$dir.DIRECTORY_SEPARATOR.$file;
+		$path = LIB_PATH.DIRECTORY_SEPARATOR.$dir.DIRECTORY_SEPARATOR.$file;
 
 		return $path;
 	}

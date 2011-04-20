@@ -2,7 +2,7 @@
 
 namespace P3\Database;
 
-class Base extends \PDO
+class Connection extends \PDO
 {
 	/**
 	 * Creates new instance of PDO
@@ -14,7 +14,7 @@ class Base extends \PDO
 	{
 		if(empty($config)) {
 			$file = new \P3\Config\Parser;
-			$file->read(array(\P3\ROOT.'/app/config/database.ini'));
+			$file->read(array(\P3\ROOT.'/config/database.ini'));
 			$config = $file->getSection(\P3::getEnv());
 		}
 

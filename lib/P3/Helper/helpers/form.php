@@ -47,11 +47,13 @@ class form extends P3\Helper\Base
 	private $_uri = null;
 
 //Public
-	public function  __construct(\P3\ActiveRecord\Base $model, array $options = array())
+	public function  __construct($model, array $options = array())
 	{
 		$this->_model   = $model;
 
 		$this->_options = $options;
+
+		$this->_uri = isset($options['url']) ? $options['url'] : null;
 
 		$this->_inspect();
 
@@ -120,7 +122,8 @@ class form extends P3\Helper\Base
 
 	public function fieldsFor($child_name, array $options = array())
 	{
-		return new self($this->_model->{$child_name}, $options, false);
+		$model = $this->_model->{$child_name};
+		return new self($model, $options, false);
 	}
 
 	public function file($field, array $options = array())
@@ -426,7 +429,7 @@ class form extends P3\Helper\Base
 	 */
 	private function _inspect()
 	{
-		$this->_modelClass = get_class($this->_model);
+		$this->_modelClass = is_subclass_of($this->_model, 'P3\ActiveRecord\Collection\Base') ? $this->_model->getContentClass() : get_class($this->_model);
 		$this->_modelField = isset($this->_options['as']) ? $this->_options['as'] : str::fromCamelCase($this->_modelClass);
 		$this->_action     = $this->_model->isNew() ? 'create' : 'update';
 		$this->_id         = ($this->_model->isNew() ? 'new-' : 'edit-').str::fromCamelCase($this->_modelClass);
@@ -452,7 +455,7 @@ class form extends P3\Helper\Base
 	 * @param bool $print
 	 * @return form
 	 */
-	public static function forModel(\P3\ActiveRecord\Base $model, array $options = array(), $print = true)
+	public static function forModel($model, array $options = array(), $print = true)
 	{
 		if($print)
 			$options = array_merge(array('print' => true), $options);

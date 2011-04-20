@@ -211,6 +211,8 @@ abstract class Base {
 	 * @param string $path Path to redirect to
 	 */
 	public static function redirect($path) {
+		$path = $path == ':back' ? $_SERVER['HTTP_REFERER'] : $path;
+
 		header("Location: {$path}");
 		exit;
 	}

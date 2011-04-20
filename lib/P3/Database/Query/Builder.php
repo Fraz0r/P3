@@ -21,15 +21,52 @@ class Builder
 	const JOINTYPE_LOUTER = 2;
 	const JOINTYPE_ROUTER = 3;
 
+	private $_intoClass = null;
+	private $_fetchStmnt = null;
+	private $_fetchPointer = null;
 	private $_queryType = null;
 	private $_sections  = array();
 	private $_table     = null;
 
 //- Public
-	public function __construct($table_or_model, $alias = null)
+	public function __construct($table_or_model, $alias = null, $intoClass = null)
 	{
 		$this->_alias = $alias;
-		$this->_table = (is_string($table_or_model) ? $table_or_model : $table_or_model::table()).(is_null($alias) ? '' : ' '.$alias);
+
+
+		if(is_string($table_or_model)) {
+			$this->_table = $table_or_model;
+		} else {
+			$this->_table = $table_or_model::table();
+			$this->_intoClass = get_class($table_or_model);
+		}
+
+		if(!is_null($alias))
+			$this->alias($alias);
+
+		if(!is_null($intoClass))
+			$this->_intoClass = $intoClass;
+
+	}
+
+	public function alias($alias = null)
+	{
+		if(!is_null($alias)) {
+			$this->_alias = $alias;
+
+			/* Will probably change this at some point */
+			$this->_table = $this->_table.' '.$alias;
+		} else {
+			return $this->_alias;
+		}
+	}
+
+	public function count()
+	{
+		$this->_sections = array('base' => 'SELECT COUNT(*) FROM '.$this->_table);
+
+		$this->_setQueryType(self::TYPE_SELECT);
+		return $this;
 	}
 
 	public function delete()
@@ -43,7 +80,58 @@ class Builder
 	public function execute()
 	{
 		$query = $this->_buildQuery();
-		var_dump($query); die;
+		return \P3::getDatabase()->exec($query);
+	}
+
+	public function getFetchClass()
+	{
+		return $this->_intoClass;
+	}
+
+	public function fetch($fetchMode = null)
+	{
+		if(is_null($this->_fetchStmnt)) {
+			$db    = \P3::getDatabase();
+			$this->_fetchStmnt = $db->query($this->getQuery());
+			$this->_fetchPointer = 0;
+
+			if(is_null($fetchMode)) {
+				if(!is_null($this->_intoClass))
+					$this->_fetchStmnt->setFetchMode(\PDO::FETCH_CLASS, $this->_intoClass);
+				else
+					$this->_fetchStmnt->setFetchMode(\PDO::FETCH_ASSOC);
+			} else {
+				$this->_fetchStmnt->setFetchMode($fetchMode);
+			}
+		}
+
+		if(!$this->_fetchStmnt)
+			return false;
+
+		return $this->_fetchStmnt->fetch();
+
+	}
+
+	public function fetchAll($fetchMode = null)
+	{
+		$db    = \P3::getDatabase();
+		$stmnt = $db->query($this->getQuery());
+
+		if(is_null($fetchMode)) {
+			if(!is_null($this->_intoClass))
+				$stmnt->setFetchMode(\PDO::FETCH_CLASS, $this->_intoClass);
+			else
+				$stmnt->setFetchMode(\PDO::FETCH_ASSOC);
+		} else {
+			$stmnt->setFetchMode($fetchMode);
+		}
+
+		return $stmnt->fetchAll();
+	}
+
+	public function getQuery()
+	{
+		return $this->_buildQuery();
 	}
 
 	public function group($fields, $mode = self::MODE_OVERRIDE)
@@ -103,6 +191,10 @@ class Builder
 		$this->_section('offset', $offset);
 	}
 
+	public function order($order) {
+		$this->_section('order', $order, self::MODE_OVERRIDE);
+	}
+
 	public function select($fields = '*')
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
@@ -117,9 +209,24 @@ class Builder
 	{
 		$set = array();
 		foreach($fields as $k => $v)
-			$set[] = $k.'=\''.$v.'\'';
+			if($v !== 'NULL' && !is_numeric($v))
+				$v = '\''.$v.'\'';
+
+			$set[] = $k.'='.$v;
 
 		$this->_section('set', $set, $mode);
+	}
+
+	public function table($table = null, $alias = null)
+	{
+		if(!is_null($table)) {
+			$this->_table = $table;
+
+			if(!is_null($alias))
+				$this->alias($alias);
+		} else {
+			return $this->_table;
+		}
 	}
 
 	public function update($fields)
@@ -154,6 +261,10 @@ class Builder
 //- Private
 	private function _buildQuery()
 	{
+		/* TODO:  Switch to query builder exception */
+		if(empty($this->_sections['base']))
+				throw new \Exception("You asked me to build a query for which you have not started?");
+
 		$query = $this->_sections['base'];
 
 		switch ($this->_queryType) {
@@ -169,6 +280,7 @@ class Builder
 				$query .= $this->_getSection('where');
 				$query .= $this->_getSection('group');
 				$query .= $this->_getSection('having');
+				$query .= $this->_getSection('order');
 				$query .= $this->_getSection('limit');
 				break;
 			case self::TYPE_UPDATE:
@@ -208,6 +320,9 @@ class Builder
 			case 'offset':
 				$ret .= ', '.$val;
 				$prepend_space = false;
+				break;
+			case 'order':
+				$ret .= 'ORDER BY '.(is_string($val) ? $val : implode(', ', $val));
 				break;
 			case 'update':
 				break;

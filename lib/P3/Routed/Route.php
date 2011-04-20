@@ -1,6 +1,6 @@
 <?php
 
-namespace P3\Routing;
+namespace P3\Routed;
 use       P3\Loader;
 use       P3\Exception\RouteException as Exception;
 
@@ -140,15 +140,12 @@ class Route {
 		$controller = new $controller_class;
 
 
-		$ret = $controller->process($this->getAction());
+		$ret = $controller->dispatch($this->getAction());
 
 		if(defined('\APP\START_TIME')) {
 			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
 			define("APP\TOTAL_TIME", (microtime(true) - \APP\START_TIME) * 1000);
 		}
-
-
-
 	}
 
 	/**
@@ -341,6 +338,9 @@ class Route {
 				} else {
 					/* Otherwise, let's bind the Param */
 
+					if($m[0] == ':id')
+						$passed_token = (int)$passed_token;
+
 					$this->_params[$m[1]] = $passed_token;
 				}
 			}
@@ -412,6 +412,7 @@ class Route {
 		$options['prefix'] = isset($options['prefix']) ? $options['prefix'] : $this(':'.\str::singularize($this->_controller).'_id');
 		$options['prefix'] = rtrim($options['prefix'], '/').'/';
 
+
 		return $this->_map->{$func}($args[0], $options);
 	}
 
@@ -425,9 +426,16 @@ class Route {
 	 */
 	public function __invoke($ids, $options = array())
 	{
-		$ids = !is_array($ids) ? array($ids) : $ids;
+		$ret = $this->_path;
 
-		$ret = preg_replace('/\[.:format\]$/', '', $this->_path);
+		if(is_array($ids)) {
+			foreach($ids as $k => $v)
+				$ret = str_replace(':'.$k, $v, $ret);
+		} else {
+			$ret = str_replace(':id', $ids, $ret);
+		}
+
+		$ret = preg_replace('/\[.:format\]$/', '', $ret);
 		return $ret;
 	}
 }
