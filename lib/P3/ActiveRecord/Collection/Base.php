@@ -57,6 +57,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return count($this->_data);
 	}
 
+	public function collect($attr)
+	{
+		$ret = array();
+
+		foreach($this as $record)
+			$ret[] = $record->{$attr};
+
+		return $ret;
+	}
+
 	public function complete()
 	{
 		return $this->_state & STATE_STARTED & STATE_COMPLETE;
