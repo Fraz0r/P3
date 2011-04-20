@@ -69,18 +69,18 @@ abstract class Base extends \P3\Model\Base
 	public static $_hasAttachment = array();
 
 	/**
+	 * List of "many-many" relationships
+	 *
+	 * @var array
+	 */
+	public static $_hasAndBelongsToMany = array();
+
+	/**
 	 * List of "has many" relationships
 	 *
 	 * @var array
 	 */
 	public static $_hasMany = array();
-
-	/**
-	 * List of "has many through" relationships
-	 *
-	 * @var array
-	 */
-	public static $_hasManyThrough = array();
 
 	/**
 	 * List of "has one" relationships
@@ -144,7 +144,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function addModelToMany($related_model, array $options = array())
 	{
-		foreach(static::$_hasManyThrough as $field => $opts) {
+		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
@@ -268,7 +268,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::$_hasManyThrough as $field => $opts) {
+		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];
@@ -368,6 +368,8 @@ abstract class Base extends \P3\Model\Base
 	{
 		if(isset(static::$_belongsTo[$field]))
 			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
+		elseif(isset(static::$_hasAndBelongsToMany[$field]))
+			return new Association\HasAndBelongsToMany($this, static::$_hasAndBelongsToMany[$field]);
 		elseif(isset(static::$_hasOne[$field]))
 			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
 		elseif(isset(static::$_hasMany[$field]))
@@ -461,11 +463,11 @@ abstract class Base extends \P3\Model\Base
 		if(is_null($id)) return false;
 
 		$flag = false;
-		foreach(static::$_hasManyThrough as $accsr => $arr) {
+		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['table'];
-				$fk = static::$_hasManyThrough[$accsr]['fk'];
-				$efk = static::$_hasManyThrough[$accsr]['efk'];
+				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
+				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
+				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
 
 				$sql = "SELECT COUNT(*) FROM `{$join_table}` a";
 				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
@@ -526,11 +528,11 @@ abstract class Base extends \P3\Model\Base
 		if(!$this->isInMany($related_model)) return false;
 
 		$class = get_class($related_model);
-		foreach(static::$_hasManyThrough as $accsr => $arr) {
+		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
 			if($arr['class'] == $class) {
-				$join_table = static::$_hasManyThrough[$accsr]['table'];
-				$fk = static::$_hasManyThrough[$accsr]['fk'];
-				$efk = static::$_hasManyThrough[$accsr]['efk'];
+				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
+				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
+				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
 
 				$sql = "DELETE FROM `{$join_table}`";
 				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
@@ -695,7 +697,7 @@ abstract class Base extends \P3\Model\Base
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
 			if (in_array($f, static::$_belongsTo) || in_array($f, static::$_hasOne)
-					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasManyThrough))
+					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasAndBelongsToMany))
 				continue;
 
 			$fields[] = "`{$f}`";
@@ -740,7 +742,7 @@ abstract class Base extends \P3\Model\Base
 			if (in_array($f, array_keys(static::$_belongsTo))
 				|| in_array($f, array_keys(static::$_hasOne))
 				|| in_array($f, array_keys(static::$_hasMany))
-				|| in_array($f, array_keys(static::$_hasManyThrough)))
+				|| in_array($f, array_keys(static::$_hasAndBelongsToMany)))
 					continue;
 
 			$fields[] = $f.' = ?';
@@ -917,6 +919,7 @@ abstract class Base extends \P3\Model\Base
 				$builder = new QueryBuilder($opts['class']::table());
 
 				switch($opts['dependent']) {
+					case 'destroy':
 					case 'delete':
 						$builder->delete();
 						break;
