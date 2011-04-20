@@ -279,6 +279,11 @@ abstract class Base extends \P3\Model\Base
 		}
 	}
 
+	public function createdAt($format = 'n/d/y')
+	{
+		return date($format, strtotime($this->created_at));
+	}
+
 	/**
 	 * Deletes Record from Database
 	 *
@@ -653,6 +658,11 @@ abstract class Base extends \P3\Model\Base
 		return $this->save();
 	}
 
+	public function updatedAt($format = 'n/d/y')
+	{
+		return date($format, strtotime($this->updated_at));
+	}
+
 	/**
 	 * Returns true if record fields are valid
 	 *
@@ -687,6 +697,9 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _insert()
 	{
+		$this->created_at = date("Y-m-d H:i:s", time());
+		$this->updated_at = date("Y-m-d H:i:s", time());
+
 		$pk = static::pk();
 		$sql = 'INSERT INTO `'.static::$_table.'` ';
 		$fields = array();
@@ -730,6 +743,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
+		$this->updated_at = date("Y-m-d H:i:s", time());
+
 		$pk = static::pk();
 		$sql = 'UPDATE '.static::$_table.' SET ';
 		$fields = array();
