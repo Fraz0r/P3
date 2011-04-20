@@ -609,10 +609,8 @@ abstract class Base extends \P3\Model\Base
 
 				$path = \P3\ROOT.'/htdocs'.$opts['path'];
 
-				if(!is_dir($path)) {
-					$ret = false;
+				if(!is_dir($path) && !mkdir($path, 777, true))
 					throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
-				}
 
 				$path .= '/'.$this->id();
 
