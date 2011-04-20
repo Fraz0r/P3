@@ -64,8 +64,8 @@ class Builder
 
 	public function execute()
 	{
-		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
+		return \P3::getDatabase()->exec($query);
 	}
 
 	public function getFetchClass()
@@ -194,7 +194,10 @@ class Builder
 	{
 		$set = array();
 		foreach($fields as $k => $v)
-			$set[] = $k.'=\''.$v.'\'';
+			if($v !== 'NULL' && !is_numeric($v))
+				$v = '\''.$v.'\'';
+
+			$set[] = $k.'='.$v;
 
 		$this->_section('set', $set, $mode);
 	}
