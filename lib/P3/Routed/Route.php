@@ -1,6 +1,6 @@
 <?php
 
-namespace P3\Routing;
+namespace P3\Routed;
 use       P3\Loader;
 use       P3\Exception\RouteException as Exception;
 
