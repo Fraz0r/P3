@@ -416,7 +416,7 @@ class form extends P3\Helper\Base
 
 			$this->_options['method'] = $route->getMethod();
 
-			$uri = $route(array(\str::toCamelCase($this->_modelClass) => $this->_model->id()));
+			$uri = $route($this->_model->id());
 
 			$this->_uri = $uri;
 		}
