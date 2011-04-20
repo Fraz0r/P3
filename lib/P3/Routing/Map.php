@@ -1,6 +1,7 @@
 <?php
 
 namespace P3\Routing;
+use       P3\Routed\Route;
 
 /**
  * P3\Routing\Map
