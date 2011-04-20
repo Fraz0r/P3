@@ -41,9 +41,24 @@ class Builder
 			$this->_intoClass = get_class($table_or_model);
 		}
 
+		if(!is_null($alias))
+			$this->alias($alias);
+
 		if(!is_null($intoClass))
 			$this->_intoClass = $intoClass;
 
+	}
+
+	public function alias($alias = null)
+	{
+		if(!is_null($alias)) {
+			$this->_alias = $alias;
+
+			/* Will probably change this at some point */
+			$this->_table = $this->_table.' '.$alias;
+		} else {
+			return $this->_alias;
+		}
 	}
 
 	public function count()
@@ -64,8 +79,8 @@ class Builder
 
 	public function execute()
 	{
-		/* Todo:  Finish execute() */
 		$query = $this->_buildQuery();
+		return \P3::getDatabase()->exec($query);
 	}
 
 	public function getFetchClass()
@@ -194,9 +209,24 @@ class Builder
 	{
 		$set = array();
 		foreach($fields as $k => $v)
-			$set[] = $k.'=\''.$v.'\'';
+			if($v !== 'NULL' && !is_numeric($v))
+				$v = '\''.$v.'\'';
+
+			$set[] = $k.'='.$v;
 
 		$this->_section('set', $set, $mode);
+	}
+
+	public function table($table = null, $alias = null)
+	{
+		if(!is_null($table)) {
+			$this->_table = $table;
+
+			if(!is_null($alias))
+				$this->alias($alias);
+		} else {
+			return $this->_table;
+		}
 	}
 
 	public function update($fields)
@@ -231,6 +261,10 @@ class Builder
 //- Private
 	private function _buildQuery()
 	{
+		/* TODO:  Switch to query builder exception */
+		if(empty($this->_sections['base']))
+				throw new \Exception("You asked me to build a query for which you have not started?");
+
 		$query = $this->_sections['base'];
 
 		switch ($this->_queryType) {

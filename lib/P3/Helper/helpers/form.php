@@ -53,6 +53,8 @@ class form extends P3\Helper\Base
 
 		$this->_options = $options;
 
+		$this->_uri = isset($options['url']) ? $options['url'] : null;
+
 		$this->_inspect();
 
 		$class = $this->_modelClass;
