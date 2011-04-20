@@ -296,7 +296,11 @@ abstract class Base extends \P3\Model\Base
 
 		$ret = (bool)$stmnt->rowCount();
 
-		if($ret) $this->destroyAttachments();
+		if($ret){ 
+			$this->_cascade();
+			$this->destroyAttachments();
+		}
+
 		return $ret;
 	}
 
@@ -903,6 +907,35 @@ abstract class Base extends \P3\Model\Base
 	}
 
 //- Private
+	private function _cascade()
+	{
+		$children_assoc = array_merge(static::$_hasMany, static::$_hasOne);
+
+		foreach($children_assoc as $accessor => $opts) {
+			if(isset($opts['dependent']) && !\is_null($opts['dependent'])) {
+
+				$builder = new QueryBuilder($opts['class']::table());
+
+				switch($opts['dependent']) {
+					case 'delete':
+						$builder->delete();
+						break;
+					case 'nullify':
+						$builder->update(array($opts['fk'] => 'NULL'));
+						break;
+					default:
+						throw new \P3\Exception\ActiveRecordException("Unknown option passed for 'dependent' in the association for %s->%s", array($this->_class, $accessor));
+				}
+
+
+				if(isset($opts['through'])) 
+					throw new \P3\Exception\ActiveRecordException("Cannot %s children accross a 'through' relationship for %s->%s.  Move this dependent option to the other side of the join.", array($opts['dependent'], $this->_class, $accessor));
+
+				$builder->where($opts['fk'].'=\''.$this->id().'\'')->execute();
+			}
+		}
+	}
+
 	private function _parseFields()
 	{
 		$tmp = array();
