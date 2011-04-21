@@ -63,12 +63,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		}
 	}
 
-	public function collect($attr)
+	public function collect($attr, array $args = array())
 	{
-		$ret = array();
+		$is_func = $attr[0] == ':';
+		$ret     = array();
+
+		if($is_func)
+			$func = substr($attr, 1);
 
 		foreach($this as $record)
-			$ret[] = $record->{$attr};
+			$ret[] = $is_func ? call_user_func_array(array($record, $func), $args) : $record->{$attr};
 
 		return $ret;
 	}
