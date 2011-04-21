@@ -40,9 +40,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
 
 		$this->_statement = \P3::getDatabase()->query($builder->getQuery());
-
-		/* TEMPORARY */
-		//$this->_fetchAll();
 	}
 
 	/**
@@ -78,7 +75,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function complete()
 	{
-		return $this->_state & STATE_STARTED & STATE_COMPLETE;
+		return $this->_state & STATE_COMPLETE;
+	}
+
+	public function current()
+	{
+		return $this->_data[count($this->_data)-1];
 	}
 
 	public function exists()
@@ -90,8 +92,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		}
 	}
 
+	public function export()
+	{
+		return $this->_data;
+	}
+
 	public function fetch()
 	{
+		if(!$this->started())
+			$this->_setState(STATE_STARTED);
+
 		if($this->_flags & FLAG_DYNAMIC_TYPES) {
 			$tmp  = $this->_statement->fetch(\PDO::FETCH_ASSOC);
 
@@ -102,15 +112,21 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 				$record = new $type($tmp);
 			}
 		} else {
-			if(\is_null($this->_contentClass)) {
+			$class = \is_null($this->_contentClass) ? $this->_builder->getFetchClass() : $this->_contentClass;
+
+			if(\is_null($class)) {
 				$this->_statement->setFetchMode(\PDO::FETCH_ASSOC);
 			} else {
-				$this->_statement->setFetchMode(\PDO::FETCH_CLASS, $this->_contentClass);
+				$this->_statement->setFetchMode(\PDO::FETCH_CLASS, $class);
 			}
 			$record =  $this->_statement->fetch();
 		}
 
-		$this->_data[++$this->_fetchPointer] = $record;
+		if($record !== FALSE) {
+			$this->_data[++$this->_fetchPointer] = $record;
+		} else {
+			$this->_setState(STATE_COMPLETE);
+		}
 
 		return $record;
 	}
@@ -121,11 +137,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function first()
 	{
-		if(!$this->complete()) {
-			/* TODO:  Switch this to fetch only one record */
-			$this->_fetchAll();
+		if(!isset($this->_data[0])) {
+			$first = $this->fetch();
 		}
-		return isset($this->_data[0]) ? $this->_data[0] : false;
+
+		return $first;
 	}
 
 	public function getContentClass()
@@ -148,7 +164,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function getIterator()
 	{
-		return new \P3\ActiveRecord\Collection\Iterator($this->_data);
+		return new \P3\ActiveRecord\Collection\Iterator($this);
 	}
 
 	public function inProgress()
@@ -189,6 +205,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @return mixed Returns item at given $offset, or null
 	 */
 	public function offsetGet($offset) {
+		if(!isset($this->_data[$offset])) {
+			while(!$this->complete() && $this->_fetchPointer < $offset) {
+				$this->fetch();
+			}
+		}
+
 		return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
 	}
 
@@ -219,6 +241,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function offsetUnset($offset) {
 		unset($this->_data[$offset]);
+	}
+
+	public function setFlag($flag)
+	{
+		$this->_flags = $this->_flags | $flag;
 	}
 
 	public function started()

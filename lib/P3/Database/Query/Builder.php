@@ -27,10 +27,12 @@ class Builder
 	private $_queryType = null;
 	private $_sections  = array();
 	private $_table     = null;
+	private $_flags     = 0;
 
 //- Public
-	public function __construct($table_or_model, $alias = null, $intoClass = null)
+	public function __construct($table_or_model, $alias = null, $intoClass = null, $flags = 0)
 	{
+		$this->_flags = $flags;
 		$this->_alias = $alias;
 
 
@@ -199,7 +201,7 @@ class Builder
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
 
-		$this->_sections = array('base' => 'SELECT '.$fields.' FROM '.$this->_table);
+		$this->_sections['base'] = 'SELECT '.$fields.' FROM '.$this->_table;
 
 		$this->_setQueryType(self::TYPE_SELECT);
 		return $this;

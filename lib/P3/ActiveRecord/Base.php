@@ -135,7 +135,12 @@ abstract class Base extends \P3\Model\Base
 
 		$this->_triggerEvent('beforeCreate');
 
+
 		parent::__construct($record_array);
+
+		if(static::$_extendable) {
+			$this->type = $this->_class;
+		}
 
 		$this->_triggerEvent('afterCreate');
 	}
@@ -852,6 +857,7 @@ abstract class Base extends \P3\Model\Base
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
 		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 		$flags    = 0;
+		$class    = get_called_class();
 
 		if($only_one) {
 			$limit = 1;
@@ -861,7 +867,7 @@ abstract class Base extends \P3\Model\Base
 		if(static::$_extendable)
 			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
 
-		$builder = new QueryBuilder(static::$_table, null, get_called_class());
+		$builder = new QueryBuilder(static::$_table, null, $class);
 
 		$builder->select();
 
@@ -874,6 +880,13 @@ abstract class Base extends \P3\Model\Base
 			}
 		}
 
+		if(static::$_extendable) {
+			$parent_class = array_shift(class_parents($class));
+
+			if($parent_class !== __CLASS__)
+				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+		} 
+
 		$builder->order($order);
 
 		if(!is_null($limit)) {
@@ -885,8 +898,10 @@ abstract class Base extends \P3\Model\Base
 			$builder->limit($limit, $offset);
 		}
 
+		$collection = new Collection\Base($builder, null, $flags);
 
-		return $only_one ? $builder->fetch() : new Collection\Base($builder, null, $flags);
+
+		return $only_one ? $collection->first() : $collection;
 	}
 
 	/**
@@ -1034,7 +1049,7 @@ abstract class Base extends \P3\Model\Base
 				die;
 			}
 
-			$ret =  $assoc->inSingleMode() ? $assoc->fetch() : $assoc;
+			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;
 
 			if(FALSE !== $ret)
 				$this->_data[$name] = $ret;
