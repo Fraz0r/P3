@@ -9,8 +9,6 @@ require_once(dirname(__FILE__).'/Loader.php');
  */
 final class P3
 {
-	public static $VERSION = '1.0.0-experimental';
-
 	private static $_env = null;
 
 	private static $_routingClass = '\P3\Router';

@@ -143,6 +143,11 @@ final class Loader
 
 	}
 
+	public static function loadConstants()
+	{
+		require(dirname(__FILE__).'/constants.php');
+	}
+
 	/**
 	 * This function will set APP_PATH (if it's not set), update the PHP
 	 * Include path (unless $set_include_path is false), register auto-load,
@@ -171,6 +176,8 @@ final class Loader
 		/* Include lib */
 		if($set_include_path)
 			set_include_path(implode(array(LIB_PATH), PATH_SEPARATOR).get_include_path());
+
+		self::loadConstants();
 
 		/* Set up Auto Loading */
 		self::registerAutoload();
