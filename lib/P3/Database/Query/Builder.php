@@ -217,6 +217,11 @@ class Builder
 		$this->_section('set', $set, $mode);
 	}
 
+	public function setFetchClass($class)
+	{
+		$this->_intoClass = $class;
+	}
+
 	public function table($table = null, $alias = null)
 	{
 		if(!is_null($table)) {

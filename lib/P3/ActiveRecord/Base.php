@@ -4,8 +4,6 @@ namespace P3\ActiveRecord;
 use       P3\Loader;
 use       P3\Database\Query\Builder as QueryBuilder;
 
-Loader::loadClass(__NAMESPACE__.'\Collection\Base');
-
 /**
  * P3\ActiveRecord\Base
  *
@@ -115,9 +113,17 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static $_db = null;
 
+	/**
+	 * Whether or not the model can be extended
+	 * 
+	 * @var type bool
+	 */
+	public static $_extendable = false;
+
+
 	protected static $_queryBuilder = null;
 
-		/**
+	/**
 	 * Use get() to fetch an array of models. But if you already have the
 	 * array, you can use this __constructer
 	 *
@@ -128,7 +134,9 @@ abstract class Base extends \P3\Model\Base
 		$this->bindEventListeners($options);
 
 		$this->_triggerEvent('beforeCreate');
+
 		parent::__construct($record_array);
+
 		$this->_triggerEvent('afterCreate');
 	}
 
@@ -442,6 +450,11 @@ abstract class Base extends \P3\Model\Base
 		$this->{$field} += $inc;
 		if($save) $this->save();
 		return $this->{$field};
+	}
+
+	public function isExtendable()
+	{
+		return static::$_extendable;
 	}
 
 	/**
@@ -838,9 +851,15 @@ abstract class Base extends \P3\Model\Base
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
 		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
+		$flags    = 0;
 
-		if($only_one)
+		if($only_one) {
 			$limit = 1;
+			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+		}
+
+		if(static::$_extendable)
+			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
 
 		$builder = new QueryBuilder(static::$_table, null, get_called_class());
 
@@ -867,7 +886,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 
-		return $only_one ? $builder->fetch() : new Collection\Base($builder);
+		return $only_one ? $builder->fetch() : new Collection\Base($builder, null, $flags);
 	}
 
 	/**
@@ -1013,10 +1032,6 @@ abstract class Base extends \P3\Model\Base
 			if($this->isNew()) {
 				var_dump("HIT NEW: ".$name);
 				die;
-			} else {
-				if($assoc->inSingleMode()) {
-					$ret = $assoc->fetch();
-				}
 			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->fetch() : $assoc;

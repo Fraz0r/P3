@@ -7,5 +7,11 @@ namespace P3\ActiveRecord\Collection;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class Iterator extends \ArrayIterator { }
+class Iterator extends \ArrayIterator 
+{ 
+	public function next()
+	{
+		parent::next();
+	}
+}
 ?>

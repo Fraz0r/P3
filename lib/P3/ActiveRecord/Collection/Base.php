@@ -3,12 +3,6 @@
 namespace P3\ActiveRecord\Collection;
 use       P3\Database\Query\Builder as QueryBuilder;
 
-const FLAG_NORMAL_MODE = 1;
-const FLAG_SINGLE_MODE = 2;
-
-const STATE_STARTED  = 1;
-const STATE_COMPLETE = 2;
-
 /**
  * P3\Active\Record\Collection\Base
  *
@@ -25,6 +19,10 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected $_flags        = 0;
 	protected $_parentModel  = null;
 	protected $_state        = 0;
+	protected $_countQuery   = null;
+	protected $_statement    = null;
+	
+	private $_fetchPointer = -1;
 
 //- Public
 	/**
@@ -33,16 +31,18 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @param array $input Array of records
 	 * @param P3\ActiveRecord\Base $parent Parent model, if any
 	 */
-	public function __construct(QueryBuilder $builder, $parentModel = null, $flags = null)
+	public function __construct(QueryBuilder $builder, $parentModel = null, $flags = 0)
 	{
 		$this->_builder     = $builder;
-		$this->_flags       = !is_null($flags) ? $flags : FLAG_NORMAL_MODE;
+		$this->_flags       = $flags;
 		$this->_parentModel = $parentModel;
 
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
 
+		$this->_statement = \P3::getDatabase()->query($builder->getQuery());
+
 		/* TEMPORARY */
-		$this->_fetchAll();
+		//$this->_fetchAll();
 	}
 
 	/**
@@ -54,7 +54,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function count()
 	{
-		return count($this->_data);
+		if($this->complete()) {
+			return count($this->_data);
+		} else {
+			$stmnt = \P3::getDatabase()->query($this->_countQuery());
+
+			if(!$stmnt)
+				return 0;
+
+			return (int)$stmnt->fetchColumn();
+		}
 	}
 
 	public function collect($attr)
@@ -83,10 +92,27 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function fetch()
 	{
-		if($this->inSingleMode()) {
-			/* Todo:  This will need to change */
-			return isset($this->_data[0]) ? $this->_data[0] : false;
+		if($this->_flags & FLAG_DYNAMIC_TYPES) {
+			$tmp  = $this->_statement->fetch(\PDO::FETCH_ASSOC);
+
+			if(!$tmp) {
+				$record = false;
+			} else {
+				$type = $tmp['type'];
+				$record = new $type($tmp);
+			}
+		} else {
+			if(\is_null($this->_contentClass)) {
+				$this->_statement->setFetchMode(\PDO::FETCH_ASSOC);
+			} else {
+				$this->_statement->setFetchMode(\PDO::FETCH_CLASS, $this->_contentClass);
+			}
+			$record =  $this->_statement->fetch();
 		}
+
+		$this->_data[++$this->_fetchPointer] = $record;
+
+		return $record;
 	}
 
 	public function filter($closure)
@@ -133,6 +159,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function inSingleMode()
 	{
 		return (bool)($this->_flags & FLAG_SINGLE_MODE);
+	}
+
+	public function setContentClass($class)
+	{
+		$this->_contentClass = $class;
 	}
 
 	/**
@@ -196,6 +227,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 //- Private
+	private function _countQuery() 
+	{
+		if(is_null($this->_countQuery)) {
+			$builder = clone $this->_builder;
+			$this->_countQuery = $builder->select('COUNT(*)')->getQuery();
+		}
+
+		return $this->_countQuery;
+	}
+
 	private function _fetchAll()
 	{
 		$this->_setState(STATE_STARTED);
