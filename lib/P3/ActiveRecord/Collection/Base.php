@@ -331,7 +331,10 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function valid()
 	{
-		return !$this->complete() || $this->_indexPointer < count($this);
+		if($this->started())
+			return !$this->complete() || $this->_indexPointer < count($this);
+		else
+			return (bool)count($this);
 	}
 
 //- Private
