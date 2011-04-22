@@ -223,13 +223,16 @@ abstract class Base {
 
 	protected function _triggerEvent($event)
 	{
+		$ret   = true;
 		$funcs = $this->{'_'.$event};
 
 		if(is_null($funcs))
 			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
 
 		foreach($funcs as $func)
-			$func($this);
+			$ret = $ret && $func($this);
+
+		return $ret;
 	}
 
 //- Static

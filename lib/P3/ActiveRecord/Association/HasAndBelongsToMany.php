@@ -23,7 +23,13 @@ class HasAndBelongsToMany extends Base
 			->join($options['table'].' b', 'b.'.$options['efk'].' = a.'.$parent::pk())
 			->where('b.'.$options['fk'].' = '.$parent->id());
 
-		parent::__construct($builder, $parent);
+		$flags = 0;
+
+		if($class::$_extendable) {
+			$flags = $flags | \P3\ActiveRecord\Collection\FLAG_DYNAMIC_TYPES;
+		}
+
+		parent::__construct($builder, $parent, $flags);
 
 		$this->_contentClass = $class;
 	}

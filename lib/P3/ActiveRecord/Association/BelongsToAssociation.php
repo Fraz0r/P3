@@ -20,7 +20,13 @@ class BelongsToAssociation extends Base
 		$builder = new QueryBuilder($class::table(), null, $class);
 		$builder->select()->where($class::pk().' = '.$model->{$options['fk']});
 
-		parent::__construct($builder, null, \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE);
+		$flags = \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE;
+
+		if($class::$_extendable) {
+			$flags = $flags | \P3\ActiveRecord\Collection\FLAG_DYNAMIC_TYPES;
+		}
+
+		parent::__construct($builder, null, $flags);
 
 		$this->_contentClass = $class;
 	}

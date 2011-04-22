@@ -19,7 +19,16 @@ class HasManyAssociation extends Base
 		$builder = new QueryBuilder($class::table(), null, $class);
 		$builder->select()->where($options['fk'].' = '.$parent->id());
 
-		parent::__construct($builder, $parent);
+		if(isset($options['order']))
+			$builder->order($options['order']);
+
+		$flags = 0;
+
+		if($class::$_extendable) {
+			$flags = $flags | \P3\ActiveRecord\Collection\FLAG_DYNAMIC_TYPES;
+		}
+
+		parent::__construct($builder, $parent, $flags);
 
 		$this->_contentClass = $class;
 	}
