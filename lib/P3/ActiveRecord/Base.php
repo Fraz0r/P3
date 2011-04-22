@@ -43,6 +43,8 @@ abstract class Base extends \P3\Model\Base
 	/* Events */
 	protected $_beforeCreate  = array();
 	protected $_afterCreate   = array();
+	protected $_beforeUpdate  = array();
+	protected $_afterUpdate   = array();
 	protected $_beforeSave    = array();
 	protected $_afterSave     = array();
 	protected $_beforeDestroy = array();
@@ -133,7 +135,6 @@ abstract class Base extends \P3\Model\Base
 	{
 		$this->bindEventListeners($options);
 
-		$this->_triggerEvent('beforeCreate');
 
 
 		parent::__construct($record_array);
@@ -142,7 +143,6 @@ abstract class Base extends \P3\Model\Base
 			$this->type = $this->_class;
 		}
 
-		$this->_triggerEvent('afterCreate');
 	}
 
 	/**
@@ -304,13 +304,13 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function delete()
 	{
+		$this->_triggerEvent('beforeDestroy');
+
 		$pk = static::pk();
 
 		$stmnt = self::db()->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
 
-		$this->_triggerEvent('beforeDestroy');
 		$stmnt->execute(array($this->id()));
-		$this->_triggerEvent('afterDestroy');
 
 		$ret = (bool)$stmnt->rowCount();
 
@@ -319,7 +319,7 @@ abstract class Base extends \P3\Model\Base
 			$this->destroyAttachments();
 		}
 
-		return $ret;
+		return $ret && $this->_triggerEvent('afterDestroy');
 	}
 
 	/**
@@ -598,14 +598,13 @@ abstract class Base extends \P3\Model\Base
 		} catch(PDOException $e) {
 			return false;
 		}
-		$this->_triggerEvent('afterSave');
 
 		// Handle model attachments
 		if($ret && $save_attachments && !empty(static::$_hasAttachment)) {
 			$ret = $this->saveAttachments();
 		}
 
-		return $ret;
+		return $ret && $this->_triggerEvent('afterSave');
 	}
 
 	/**
@@ -720,6 +719,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _insert()
 	{
+		$this->_triggerEvent('beforeCreate');
+
 		$this->created_at = date("Y-m-d H:i:s", time());
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
@@ -744,7 +745,12 @@ abstract class Base extends \P3\Model\Base
 		$stmnt->execute($ex);
 
 		$this->{$pk} = static::db()->lastInsertId();
-		return((bool)$stmnt->rowCount());
+
+
+		$success = (bool)$stmnt->rowCount();
+
+
+		return $success && $this->_triggerEvent('afterCreate');
 	}
 
 	protected static function _queryBuilder($builder = null)
@@ -766,6 +772,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
+		$this->_triggerEvent('beforeUpdate');
+
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
 		$pk = static::pk();
@@ -790,7 +798,10 @@ abstract class Base extends \P3\Model\Base
 		$values[] = $this->_data[$pk];
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($values);
-		return(($stmnt->rowCount() === false)? false : true);
+
+		$success = (($stmnt->rowCount() === false)? false : true);
+
+		return $success && $this->_triggerEvent('beforeUpdate');
 	}
 
 
