@@ -18,7 +18,7 @@ class Iterator implements \Iterator
 
 	public function next()
 	{ 
-		return $this->_collection->fetch();
+		return $this->_collection->next();
 	}
 
 	public function current ()
@@ -28,15 +28,17 @@ class Iterator implements \Iterator
 
 	public function key ()
 	{
+		return $this->_collection->key();
 	}
 
 	public function rewind ()
 	{
+		return $this->_collection->rewind();
 	}
 
 	public function valid ()
 	{
-		return !$this->_collection->complete();
+		return $this->_collection->valid();
 	}
 }
 ?>

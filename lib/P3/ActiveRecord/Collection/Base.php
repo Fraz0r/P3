@@ -23,6 +23,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected $_statement    = null;
 	
 	private $_fetchPointer = -1;
+	private $_indexPointer = 0;
 
 //- Public
 	/**
@@ -82,7 +83,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function current()
 	{
-		return $this->_data[count($this->_data)-1];
+		return $this[$this->_indexPointer];
 	}
 
 	public function exists()
@@ -226,6 +227,19 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return (bool)($this->_flags & FLAG_SINGLE_MODE);
 	}
 
+	public function key()
+	{
+		return $this->_indexPointer;
+	}
+
+	public function next()
+	{
+		if(!$this->complete())
+			$this->fetch();
+
+		$this->_indexPointer++;
+	}
+
 	public function setContentClass($class)
 	{
 		$this->_contentClass = $class;
@@ -240,8 +254,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 *
 	 * @return boolean True if already set, false otherwise
 	 */
-	public function offsetExists($offset) {
-
+	public function offsetExists($offset) 
+	{
 		while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
 
 		return isset($this->_data[$offset]);
@@ -257,11 +271,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @return mixed Returns item at given $offset, or null
 	 */
 	public function offsetGet($offset) {
-		if(!isset($this->_data[$offset])) {
-			while(!$this->complete() && $this->_fetchPointer < $offset) {
-				$this->fetch();
-			}
-		}
+		if(!isset($this->_data[$offset]))
+			while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
 
 		return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
 	}
@@ -276,10 +287,14 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 *
 	 * return void
 	 */
-	public function offsetSet($offset, $value) {
+	public function offsetSet($offset, $value) 
+	{
 		if (is_null($offset)) {
 			$this->_data[] = $value;
 		} else {
+			if(!isset($this->_data[$offset]))
+				while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
+
 			$this->_data[$offset] = $value;
 		}
 	}
@@ -292,7 +307,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @param mixed $offset Unset given $offset key
 	 */
 	public function offsetUnset($offset) {
+		if(!isset($this->_data[$offset]))
+			while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
+
 		unset($this->_data[$offset]);
+	}
+
+
+	public function rewind()
+	{
+		$this->_indexPointer = 0;
 	}
 
 	public function setFlag($flag)
@@ -303,6 +327,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function started()
 	{
 		return (bool)$this->_state & STATE_STARTED;
+	}
+
+	public function valid()
+	{
+		return !$this->complete() || $this->_indexPointer < count($this);
 	}
 
 //- Private
