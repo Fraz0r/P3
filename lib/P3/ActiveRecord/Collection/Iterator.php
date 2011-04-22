@@ -17,7 +17,8 @@ class Iterator implements \Iterator
 	}
 
 	public function next()
-	{
+	{ 
+		return $this->_collection->fetch();
 	}
 
 	public function current ()
@@ -35,7 +36,7 @@ class Iterator implements \Iterator
 
 	public function valid ()
 	{
-		return !$this->_collection->complete() && FALSE !== $this->_collection->fetch();
+		return !$this->_collection->complete();
 	}
 }
 ?>
