@@ -38,8 +38,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_parentModel = $parentModel;
 
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
-
-		$this->_statement = \P3::getDatabase()->query($builder->getQuery());
 	}
 
 	/**
@@ -104,7 +102,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function fetch()
 	{
 		if(!$this->started())
-			$this->_setState(STATE_STARTED);
+			$this->_start();
 
 		if($this->_flags & FLAG_DYNAMIC_TYPES) {
 			$tmp  = $this->_statement->fetch(\PDO::FETCH_ASSOC);
@@ -139,13 +137,60 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	{
 	}
 
-	public function first()
+	/**
+	 * Finds the record(s) within the collection 
+	 * 
+	 * @param type $where where for ActiveRecords find
+	 * @param array $options options 
+	 */
+	public function find($where, array $options = array())
 	{
-		if(!isset($this->_data[0])) {
-			$first = $this->fetch();
+		/* TODO: Same code from ActiveRecord's find (minus extension checks) (needs to be refactored) */
+
+		$builder = clone $this->_builder;
+
+		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
+		$only_one = isset($options['one']) ? $options['one'] : false;
+		$limit    = isset($options['limit']) ? $options['limit'] : null;
+		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
+		$flags    = 0;
+		$class = $this->_options['class'];
+
+		if($only_one) {
+			$limit = 1;
+			$flags = $flags | Collection\FLAG_SINGLE_MODE;
 		}
 
-		return $first;
+		/* Uses MODE_PREPEND to attempt to preserve indexed keys */
+		if(!empty($where)) {
+			if(!$skip_int_check && is_int($where)) {
+				$builder->where($class::pk().' = '.$where, QueryBuilder::MODE_PREPEND);
+				$only_one = true;
+			} else {
+				$builder->where($where, QueryBuilder::MODE_PREPEND);
+			}
+		}
+
+		if(!is_null($limit)) {
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
+		}
+
+		$collection = new self($builder, null, $this->_flags | $flags);
+
+		return $only_one ? $collection->first() : $collection;
+	}
+
+	public function first()
+	{
+		if(!isset($this->_data[0]))
+			return $this->fetch();
+
+		return $this->_data[0];
 	}
 
 	public function getContentClass()
@@ -196,6 +241,9 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @return boolean True if already set, false otherwise
 	 */
 	public function offsetExists($offset) {
+
+		while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
+
 		return isset($this->_data[$offset]);
 	}
 
@@ -288,9 +336,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_state = $this->_state | $state;
 	}
 
+	private function _start()
+	{
+		$this->_setState(STATE_STARTED);
+		$this->_statement = \P3::getDatabase()->query($this->_builder->getQuery());
+	}
+
 //- Magic
 	public function __call($name, $args)
 	{
+		/* TODO:  This is old and needs some work */
 		if($this->_flags & FLAG_SINGLE_MODE) {
 			if(!$this->complete()) {
 				$this->_fetchAll();
@@ -305,6 +360,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function __get($name)
 	{
+		/* TODO:  This is old and needs some work */
 		if($this->_flags & FLAG_SINGLE_MODE) {
 			if(!$this->complete()) {
 				$this->_fetchAll();
