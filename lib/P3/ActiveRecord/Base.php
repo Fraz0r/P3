@@ -157,7 +157,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function addModelToMany($related_model, array $options = array())
 	{
-		foreach(static::getHasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
