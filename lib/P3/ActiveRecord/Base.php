@@ -4,8 +4,6 @@ namespace P3\ActiveRecord;
 use       P3\Loader;
 use       P3\Database\Query\Builder as QueryBuilder;
 
-Loader::loadClass(__NAMESPACE__.'\Collection\Base');
-
 /**
  * P3\ActiveRecord\Base
  *
@@ -45,6 +43,8 @@ abstract class Base extends \P3\Model\Base
 	/* Events */
 	protected $_beforeCreate  = array();
 	protected $_afterCreate   = array();
+	protected $_beforeUpdate  = array();
+	protected $_afterUpdate   = array();
 	protected $_beforeSave    = array();
 	protected $_afterSave     = array();
 	protected $_beforeDestroy = array();
@@ -115,9 +115,17 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static $_db = null;
 
+	/**
+	 * Whether or not the model can be extended
+	 * 
+	 * @var type bool
+	 */
+	public static $_extendable = false;
+
+
 	protected static $_queryBuilder = null;
 
-		/**
+	/**
 	 * Use get() to fetch an array of models. But if you already have the
 	 * array, you can use this __constructer
 	 *
@@ -127,9 +135,14 @@ abstract class Base extends \P3\Model\Base
 	{
 		$this->bindEventListeners($options);
 
-		$this->_triggerEvent('beforeCreate');
+
+
 		parent::__construct($record_array);
-		$this->_triggerEvent('afterCreate');
+
+		if(static::$_extendable) {
+			$this->type = $this->_class;
+		}
+
 	}
 
 	/**
@@ -144,7 +157,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function addModelToMany($related_model, array $options = array())
 	{
-		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == get_class($related_model)) {
 				$pk = $this->_data[static::pk()];
 				if(!$this->isInMany($opts['class'], $related_model->id()))
@@ -246,7 +259,7 @@ abstract class Base extends \P3\Model\Base
 	public function build($model_name, array $record_array = array())
 	{
 		/* Has One */
-		foreach(static::$_hasOne as $field => $opts) {
+		foreach(static::getHasOne() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = static::pk();
@@ -257,7 +270,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many */
-		foreach(static::$_hasMany as $field => $opts) {
+		foreach(static::getHasMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = static::pk();
@@ -268,7 +281,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::$_hasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];
@@ -291,13 +304,13 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function delete()
 	{
+		$this->_triggerEvent('beforeDestroy');
+
 		$pk = static::pk();
 
 		$stmnt = self::db()->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
 
-		$this->_triggerEvent('beforeDestroy');
 		$stmnt->execute(array($this->id()));
-		$this->_triggerEvent('afterDestroy');
 
 		$ret = (bool)$stmnt->rowCount();
 
@@ -306,7 +319,7 @@ abstract class Base extends \P3\Model\Base
 			$this->destroyAttachments();
 		}
 
-		return $ret;
+		return $ret && $this->_triggerEvent('afterDestroy');
 	}
 
 	/**
@@ -371,14 +384,19 @@ abstract class Base extends \P3\Model\Base
 
 	public function getAssociationForField($field)
 	{
-		if(isset(static::$_belongsTo[$field]))
-			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
-		elseif(isset(static::$_hasAndBelongsToMany[$field]))
-			return new Association\HasAndBelongsToMany($this, static::$_hasAndBelongsToMany[$field]);
-		elseif(isset(static::$_hasOne[$field]))
-			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
-		elseif(isset(static::$_hasMany[$field]))
-			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
+		$belongsTo   = static::getBelongsTo();
+		$hasMany     = static::getHasMany();
+		$hasOne      = static::getHasOne();
+		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
+
+		if(isset($belongsTo[$field]))
+			return new Association\BelongsToAssociation($this, $belongsTo[$field]);
+		elseif(isset($hasAndBelongsToMany[$field]))
+			return new Association\HasAndBelongsToMany($this, $hasAndBelongsToMany[$field]);
+		elseif(isset($hasOne[$field]))
+			return new Association\HasOneAssociation($this, $hasOne[$field]);
+		elseif(isset($hasMany[$field]))
+			return new Association\HasManyAssociation($this, $hasMany[$field]);
 
 		return false;
 	}
@@ -444,6 +462,11 @@ abstract class Base extends \P3\Model\Base
 		return $this->{$field};
 	}
 
+	public function isExtendable()
+	{
+		return static::$_extendable;
+	}
+
 	/**
 	 * Determines if model is in Many-Many relationship
 	 *
@@ -468,11 +491,11 @@ abstract class Base extends \P3\Model\Base
 		if(is_null($id)) return false;
 
 		$flag = false;
-		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
-			if($arr['class'] == $class) {
-				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
-				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
-				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
+		foreach(static::getHasAndBelongsToMany() as $accsr => $opts) {
+			if($opts['class'] == $class) {
+				$join_table = $opts['table'];
+				$fk = $opts['fk'];
+				$efk = $opts['efk'];
 
 				$sql = "SELECT COUNT(*) FROM `{$join_table}` a";
 				$sql .= " INNER JOIN `".$class::$_table."` b ON a.{$efk} = b.".$class::pk();
@@ -533,11 +556,11 @@ abstract class Base extends \P3\Model\Base
 		if(!$this->isInMany($related_model)) return false;
 
 		$class = get_class($related_model);
-		foreach(static::$_hasAndBelongsToMany as $accsr => $arr) {
-			if($arr['class'] == $class) {
-				$join_table = static::$_hasAndBelongsToMany[$accsr]['table'];
-				$fk = static::$_hasAndBelongsToMany[$accsr]['fk'];
-				$efk = static::$_hasAndBelongsToMany[$accsr]['efk'];
+		foreach(static::getHasAndBelongsToMany() as $accsr => $opts) {
+			if($opts['class'] == $class) {
+				$join_table = $opts['table'];
+				$fk = $opts['fk'];
+				$efk = $opts['efk'];
 
 				$sql = "DELETE FROM `{$join_table}`";
 				$sql .= " WHERE {$fk} = ".$this->_data[static::pk()];
@@ -575,14 +598,13 @@ abstract class Base extends \P3\Model\Base
 		} catch(PDOException $e) {
 			return false;
 		}
-		$this->_triggerEvent('afterSave');
 
 		// Handle model attachments
 		if($ret && $save_attachments && !empty(static::$_hasAttachment)) {
 			$ret = $this->saveAttachments();
 		}
 
-		return $ret;
+		return $ret && $this->_triggerEvent('afterSave');
 	}
 
 	/**
@@ -697,6 +719,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _insert()
 	{
+		$this->_triggerEvent('beforeCreate');
+
 		$this->created_at = date("Y-m-d H:i:s", time());
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
@@ -707,8 +731,8 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
-			if (in_array($f, static::$_belongsTo) || in_array($f, static::$_hasOne)
-					|| in_array($f, static::$_hasMany) || in_array($f, static::$_hasAndBelongsToMany))
+			if (in_array($f, static::getBelongsTo()) || in_array($f, static::getHasOne())
+					|| in_array($f, static::getHasMany()) || in_array($f, static::getHasAndBelongsToMany()))
 				continue;
 
 			$fields[] = "`{$f}`";
@@ -721,7 +745,12 @@ abstract class Base extends \P3\Model\Base
 		$stmnt->execute($ex);
 
 		$this->{$pk} = static::db()->lastInsertId();
-		return((bool)$stmnt->rowCount());
+
+
+		$success = (bool)$stmnt->rowCount();
+
+
+		return $success && $this->_triggerEvent('afterCreate');
 	}
 
 	protected static function _queryBuilder($builder = null)
@@ -743,6 +772,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
+		$this->_triggerEvent('beforeUpdate');
+
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
 		$pk = static::pk();
@@ -752,10 +783,10 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue; // We don't update the value of the pk
-			if (in_array($f, array_keys(static::$_belongsTo))
-				|| in_array($f, array_keys(static::$_hasOne))
-				|| in_array($f, array_keys(static::$_hasMany))
-				|| in_array($f, array_keys(static::$_hasAndBelongsToMany)))
+			if (in_array($f, array_keys(static::getBelongsTo()))
+				|| in_array($f, array_keys(static::getHasOne()))
+				|| in_array($f, array_keys(static::getHasMany()))
+				|| in_array($f, array_keys(static::getHasAndBelongsToMany())))
 					continue;
 
 			$fields[] = $f.' = ?';
@@ -767,7 +798,10 @@ abstract class Base extends \P3\Model\Base
 		$values[] = $this->_data[$pk];
 		$stmnt = static::db()->prepare($sql);
 		$stmnt->execute($values);
-		return(($stmnt->rowCount() === false)? false : true);
+
+		$success = (($stmnt->rowCount() === false)? false : true);
+
+		return $success && $this->_triggerEvent('beforeUpdate');
 	}
 
 
@@ -783,18 +817,6 @@ abstract class Base extends \P3\Model\Base
 	{
 		$options['skip_int_check'] = true;
 		return static::find('1', $options);
-	}
-
-	public static function assoctiationFor($field)
-	{
-		if(isset(static::$_belongsTo[$field]))
-			return new Association\BelongsToAssociation($this, static::$_belongsTo[$field]);
-		elseif(isset(static::$_hasOne[$field]))
-			return new Association\HasOneAssociation($this, static::$_hasOne[$field]);
-		elseif(isset(static::$_hasMany[$field]))
-			return new Association\HasManyAssociation($this, static::$_hasMany[$field]);
-
-		return false;
 	}
 
 	/**
@@ -838,11 +860,18 @@ abstract class Base extends \P3\Model\Base
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
 		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
+		$flags    = 0;
+		$class    = get_called_class();
 
-		if($only_one)
+		if($only_one) {
 			$limit = 1;
+			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+		}
 
-		$builder = new QueryBuilder(static::$_table, null, get_called_class());
+		if(static::$_extendable)
+			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
+
+		$builder = new QueryBuilder(static::$_table, null, $class);
 
 		$builder->select();
 
@@ -855,6 +884,13 @@ abstract class Base extends \P3\Model\Base
 			}
 		}
 
+		if(static::$_extendable) {
+			$parent_class = array_shift(class_parents($class));
+
+			if($parent_class !== __CLASS__)
+				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+		} 
+
 		$builder->order($order);
 
 		if(!is_null($limit)) {
@@ -866,8 +902,48 @@ abstract class Base extends \P3\Model\Base
 			$builder->limit($limit, $offset);
 		}
 
+		$collection = new Collection\Base($builder, null, $flags);
 
-		return $only_one ? $builder->fetch() : new Collection\Base($builder);
+
+		return $only_one ? $collection->first() : $collection;
+	}
+
+	public static function getBelongsTo()
+	{
+		return static::getMergedProp('_belongsTo');
+	}
+
+	public static function getHasAndBelongsToMany()
+	{
+		return static::getMergedProp('_hasAndBelongsToMany');
+	}
+
+	public static function getHasOne()
+	{
+		return static::getMergedProp('_hasOne');
+	}
+
+	public static function getHasMany()
+	{
+		return static::getMergedProp('_hasMany');
+	}
+
+	public static function getMergedProp($prop)
+	{
+		if(static::$_extendable) {
+			$parents = class_parents(get_called_class());
+			$ret = static::${$prop};
+			foreach($parents as $parent) {
+				if($parent == __CLASS__)
+					break;
+
+				$ret = array_merge($ret, $parent::${$prop});
+			}
+
+			return $ret;
+		} else {
+			return static::${$prop};
+		}
 	}
 
 	/**
@@ -924,7 +1000,7 @@ abstract class Base extends \P3\Model\Base
 //- Private
 	private function _cascade()
 	{
-		$children_assoc = array_merge(static::$_hasMany, static::$_hasOne);
+		$children_assoc = array_merge(static::getHasMany(), static::getHasOne());
 
 		foreach($children_assoc as $accessor => $opts) {
 			if(isset($opts['dependent']) && !\is_null($opts['dependent'])) {
@@ -985,11 +1061,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function  __isset($name)
 	{
-		if(FALSE !== ($bool = parent::__isset($name))) {
-			return $bool;
-		} else {
-			return(!empty(static::$_hasMany[$name]) || !empty(static::$_hasOne[$name]) || !empty(static::$_belongsTo[$name]));
-		}
+		return parent::__isset($name);
 	}
 
 	/**
@@ -1013,13 +1085,9 @@ abstract class Base extends \P3\Model\Base
 			if($this->isNew()) {
 				var_dump("HIT NEW: ".$name);
 				die;
-			} else {
-				if($assoc->inSingleMode()) {
-					$ret = $assoc->fetch();
-				}
 			}
 
-			$ret =  $assoc->inSingleMode() ? $assoc->fetch() : $assoc;
+			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;
 
 			if(FALSE !== $ret)
 				$this->_data[$name] = $ret;

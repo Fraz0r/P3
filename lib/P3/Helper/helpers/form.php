@@ -274,12 +274,14 @@ class form extends P3\Helper\Base
 	 */
 	public function textField($field, array $options = array())
 	{
+		$val = isset($options['value']) ? $options['value'] : $this->_model->{$field};
+
 		echo html::_t('input',
 				array_merge(array(
 					'type'  => 'text',
 					'id'    => $this->_getFieldID($field),
 					'name'  => $this->_getFieldName($field),
-					'value' => $this->_model->{$field}
+					'value' => $val
 				), $options)
 		);
 	}

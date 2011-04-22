@@ -166,19 +166,42 @@ class Base
 
 		extract(array_merge($this->_vars, $vars));
 		try{
-			ob_start();
-			include($file);
-			$content = ob_get_clean();
+			if($partial) {
+				if(isset($vars['collection'])) {
+					foreach($vars['collection'] as $plural_var => $collection) {
+						$content = '';
+						foreach($collection as $collection_item) {
+							if(!isset($singular))
+								$singular = \str::singularize($plural_var);
 
-			if($partial || is_null($this->_layout)) {
-				$rendered = $content;
+							${$singular} = $collection_item;
+							ob_start();
+							include($file);
+							$content .= ob_get_clean();
+						}
+						break; //only want/need one iteration (to grab k & v)
+					}
 
-				/* Change this one day */
-				if($partial) echo $content;
+					echo $content;
+					return true;
+				} else {
+					include($file);
+					return true;
+				}
+
+				return false;
 			} else {
 				ob_start();
-				include(\P3\APP_PATH.'/layouts/'.$this->_layout);
-				$rendered = ob_get_clean();
+				include($file);
+				$content = ob_get_clean();
+
+				if(!is_null($this->_layout)) {
+					ob_start();
+					include(\P3\APP_PATH.'/layouts/'.$this->_layout);
+					$rendered = ob_get_clean();
+				} else {
+					$rendered = $content;
+				}
 			}
 
 		} catch(Exception $e) {

@@ -10,7 +10,8 @@ namespace P3\Database\Query;
 class Builder 
 {
 	const MODE_APPEND   = 1;
-	const MODE_OVERRIDE = 2;
+	const MODE_PREPEND  = 2;
+	const MODE_OVERRIDE = 3;
 
 	const TYPE_DELETE = 1;
 	const TYPE_INSERT = 2;
@@ -27,10 +28,12 @@ class Builder
 	private $_queryType = null;
 	private $_sections  = array();
 	private $_table     = null;
+	private $_flags     = 0;
 
 //- Public
-	public function __construct($table_or_model, $alias = null, $intoClass = null)
+	public function __construct($table_or_model, $alias = null, $intoClass = null, $flags = 0)
 	{
+		$this->_flags = $flags;
 		$this->_alias = $alias;
 
 
@@ -199,7 +202,7 @@ class Builder
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
 
-		$this->_sections = array('base' => 'SELECT '.$fields.' FROM '.$this->_table);
+		$this->_sections['base'] = 'SELECT '.$fields.' FROM '.$this->_table;
 
 		$this->_setQueryType(self::TYPE_SELECT);
 		return $this;
@@ -215,6 +218,11 @@ class Builder
 			$set[] = $k.'='.$v;
 
 		$this->_section('set', $set, $mode);
+	}
+
+	public function setFetchClass($class)
+	{
+		$this->_intoClass = $class;
 	}
 
 	public function table($table = null, $alias = null)
@@ -358,6 +366,16 @@ class Builder
 		switch($mode) {
 			case self::MODE_OVERRIDE:
 				$this->_sections[$section] = $val;
+				break;
+			case self::MODE_PREPEND:
+				if(!isset($this->_sections[$section])) {
+					$this->_sections[$section] = $val;
+				} elseif(is_array($this->_sections[$section])) {
+					array_unshift($this->_sections[$section],  $val);
+				} else {
+					$tmp = $this->_sections[$section];
+					$this->_sections[$section] = array($val, $tmp);
+				}
 				break;
 			case self::MODE_APPEND:
 				if(!isset($this->_sections[$section])) {
