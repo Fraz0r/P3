@@ -10,7 +10,8 @@ namespace P3\Database\Query;
 class Builder 
 {
 	const MODE_APPEND   = 1;
-	const MODE_OVERRIDE = 2;
+	const MODE_PREPEND  = 2;
+	const MODE_OVERRIDE = 3;
 
 	const TYPE_DELETE = 1;
 	const TYPE_INSERT = 2;
@@ -365,6 +366,16 @@ class Builder
 		switch($mode) {
 			case self::MODE_OVERRIDE:
 				$this->_sections[$section] = $val;
+				break;
+			case self::MODE_PREPEND:
+				if(!isset($this->_sections[$section])) {
+					$this->_sections[$section] = $val;
+				} elseif(is_array($this->_sections[$section])) {
+					array_unshift($this->_sections[$section],  $val);
+				} else {
+					$tmp = $this->_sections[$section];
+					$this->_sections[$section] = array($val, $tmp);
+				}
 				break;
 			case self::MODE_APPEND:
 				if(!isset($this->_sections[$section])) {
