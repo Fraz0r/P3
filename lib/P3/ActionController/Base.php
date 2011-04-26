@@ -124,6 +124,16 @@ abstract class Base extends \P3\Controller\Base
 		return $this->_rendered;
 	}
 
+	/**
+	 * Verifies whether or not the template exists 
+	 * 
+	 * @param type $path  Path controller wants to render
+	 */
+	public function templateExists($path)
+	{
+		return file_exists($this->_view->viewPath($this->_route->getViewPath($path)));
+	}
+
 //- Protected
 	/**
 	 * Prepares controller's view

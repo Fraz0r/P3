@@ -110,9 +110,7 @@ class Base
 	 */
 	public function display($path = null)
 	{
-		if(is_null($path))
-			$path = $this->_route->getViewPath();
-
+		$path = $this->_route->getViewPath($path);
 
 		$this->_lastBase = dirname($path);
 		$display =  $this->render($path);
@@ -158,7 +156,7 @@ class Base
 		if(count($parts) == 1) 
 			$path = $this->_lastBase.'/'.$path;
 
-		$file = $this->_path.'/'.$path.'.tpl';
+		$file = $this->viewPath($path);
 
 
 		if(!is_readable($file))
@@ -220,6 +218,11 @@ class Base
 	public function getAttribute($attr)
 	{
 		return $this->_attributes[$attr];
+	}
+
+	public function viewPath($path)
+	{
+		return $this->_path.'/'.$path.'.tpl';
 	}
 
 	/**

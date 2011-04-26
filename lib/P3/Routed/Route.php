@@ -156,10 +156,7 @@ class Route {
 	 */
 	public function fillGET()
 	{
-		$_GET = array_merge(array(
-			'controller' => $this->_controller,
-			'action'     => $this->_action
-		), $this->_params, $_GET);
+		$_GET = array_merge($this->_options, $this->_params, $_GET);
 	}
 
 	/**
@@ -229,9 +226,10 @@ class Route {
 	 *
 	 * @return string Route's View Path
 	 */
-	public function getViewPath()
+	public function getViewPath($action = null)
 	{
-		return str_replace('\\', '/', $this->getNamespace()).$this->_controller.'/'.$this->_action;
+		$action = is_null($action) ? $this->_action : $action;
+		return str_replace('\\', '/', $this->getNamespace()).$this->_controller.'/'.$action;
 	}
 
 	/**
