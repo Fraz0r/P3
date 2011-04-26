@@ -62,9 +62,8 @@ class Map
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		if($accept_format) {
+		if($accept_format)
 			$path = rtrim($path, '/').'[.:format]';
-		}
 
 		$router = $this->_router;
 		$route = new Route($path, $options, $method, $this);
@@ -216,12 +215,17 @@ class Map
 	/**
 	 * Just a stub for now
 	 */
-	public function withOptions(array $options = array())
+	public function withOptions(array $options = array(), $closure = null)
 	{
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		return new self($this, $this->_router, $options);
+		$map = new self($this, $this->_router, $options);
+
+		if(!is_null($closure))
+			$closure($map);
+
+		return $map;
 	}
 
 //- Protected
