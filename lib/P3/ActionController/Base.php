@@ -91,10 +91,15 @@ abstract class Base extends \P3\Controller\Base
 	 */
 	public function process($action = null)
 	{
+		/* Call init */
+		$this->_init();
+
 		if(!$this->_processed) {
 			$action = is_null($action) ? $this->_route->getAction() : $action;
 			$this->_actionReturn = $this->{$action}();
 
+			if(($this->_actionReturn === true || is_null($this->_actionReturn)) && !$this->rendered())
+				$this->render();
 		}
 
 		return $this->_actionReturn;

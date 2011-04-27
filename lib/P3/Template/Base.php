@@ -111,8 +111,7 @@ class Base
 	public function display($path = null)
 	{
 		if(is_null($path))
-			$path = $this->_route->getViewPath();
-
+			$path = $this->_route->getController().'/'.$this->_route->getAction();
 
 		$this->_lastBase = dirname($path);
 		$display =  $this->render($path);

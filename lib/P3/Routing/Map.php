@@ -58,13 +58,19 @@ class Map
 	public function connect($path, array $options = array(), $method = 'any', $accept_format = true)
 	{
 		$prefix = isset($options['prefix']) ? $options['prefix'] : $this->_getPrefix($path);
+		
+		$prefix = rtrim($prefix, '/').'/';
+
+		if($path != '/')
+			$path = $prefix.$path;
+		else 
+			$path = $prefix;
 
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		if($accept_format) {
+		if($accept_format)
 			$path = rtrim($path, '/').'[.:format]';
-		}
 
 		$router = $this->_router;
 		$route = new Route($path, $options, $method, $this);
@@ -85,9 +91,14 @@ class Map
 	{
 	}
 
-	public function namespaced($namespace)
+	public function namespaced($namespace, array $options = array(), $closure = null)
 	{
-		return $this->withOptions(array('namespace' => $namespace));
+		$map = $this->withOptions(array_merge(array('namespace' => $namespace), $options));
+
+		if(!is_null($closure))
+			$closure($map);
+
+		return $map;
 	}
 
 	/**
@@ -213,6 +224,11 @@ class Map
 		return $this->connect('/', $options, 'get', false);
 	}
 
+	public function router()
+	{
+		return $this->_router;
+	}
+
 	/**
 	 * Just a stub for now
 	 */
@@ -232,16 +248,13 @@ class Map
 	 *
 	 * @return string Prefix for Route
 	 */
-	protected function _getPrefix($path)
+	protected function _getPrefix()
 	{
-		$path = ltrim($path, '/');
 		$ret = '/';
 
 		if(isset($this->_options['namespace'])) {
-			$ret .= $this->_options['namespace'].'/';
+			$ret .= $this->_options['namespace'];
 		}
-
-		$ret .= $path;
 
 		return $ret;
 	}
