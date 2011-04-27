@@ -113,6 +113,11 @@ class Route {
 		if(isset($options['namespace']))
 			$this->_controller = rtrim($options['namespace'], '/').'/'.$this->_controller;
 
+		/* make sure controller and action are in options too */
+		/* TODO:  This is gross... refactor */
+		$options['controller'] = $this->_controller;
+		$options['action'] = $this->_controller;
+
 		$this->_options = $options;
 		$this->_path    = '/'.ltrim($path, '/');
 		$this->_tokens =  $this->_tokenize();
