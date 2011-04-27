@@ -110,6 +110,11 @@ namespace  //Clear Namespace from defining global constants above
 			}
 		}
 
+		public static function request()
+		{
+			return P3\Routed\Request::singleton();
+		}
+
 		/**
 		 * Sets default routing class
 		 *
