@@ -78,6 +78,24 @@ abstract class Base {
 		return $route;
 	}
 
+	public static function dispatchController($controller, $action = 'index')
+	{
+		$parts = explode('/', $controller);
+		array_walk($parts, function(&$part){ $part = \str::toCamelCase($part, true); });
+
+		$controller_name = array_pop($parts).'Controller';
+
+		if(count($parts))
+			$namespace = implode('\\', $parts).'\\';
+		else
+			$namespace = '';
+
+		$fully_qualified = $namespace.$controller_name;
+
+		$controller = new $fully_qualified;
+		return $controller->process($action);
+	}
+
 	/**
 	 * Returns current dispatched action
 	 *

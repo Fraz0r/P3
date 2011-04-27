@@ -110,14 +110,11 @@ class Route {
 			$this->_action = isset($options['action']) ? $options['action'] : 'index';
 		}
 
-		if(isset($options['prefix']))
-			$path = trim($options['prefix'], '/').'/'.$path;
-
 		if(isset($options['namespace']))
-			$path = rtrim($options['namespace']).'/'.$path;
+			$this->_controller = rtrim($options['namespace'], '/').'/'.$this->_controller;
 
 		$this->_options = $options;
-		$this->_path    = empty($path) ? '' : '/'.rtrim($path, '/');
+		$this->_path    = '/'.ltrim($path, '/');
 		$this->_tokens =  $this->_tokenize();
 	}
 
@@ -132,20 +129,9 @@ class Route {
 	{
 		$this->fillGET();
 
-		$controller_class = $this->getControllerClass();
-		\P3\Loader::loadController($controller_class);
-
-		$controller_class = '\\'.$controller_class;
-
-		$controller = new $controller_class;
-
-
-		$ret = $controller->dispatch($this->getAction());
-
-		if(defined('\APP\START_TIME')) {
-			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
-			define("APP\TOTAL_TIME", (microtime(true) - \APP\START_TIME) * 1000);
-		}
+		$router = $this->_map->router();
+		$router::dispatchController($this->_controller, $this->_action);
+		die;
 	}
 
 	/**
@@ -242,8 +228,6 @@ class Route {
 	 */
 	public function match($path, $method = null)
 	{
-		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
-
 		$path = rtrim($path, '/');
 		$method = is_null($method) ? strtolower($_SERVER['REQUEST_METHOD']) : $method;
 
@@ -251,8 +235,8 @@ class Route {
 		if(!$this->_validateMethod($method)) return false;
 
 		/* Handle Default route */
-		if($this->_path == '')
-			return $path == '' ? $this : false;
+		if($path == '')
+			return $this->_path == '' || $this->_path == '/' ? $this : false;
 
 		/* Match Tokens */
 		if($this->_matchTokens($path)) return $this;
@@ -304,7 +288,6 @@ class Route {
 
 		if($passed_len > $self_len)
 			return false;
-
 
 		/* Loop through tokens and check'm out */
 		for($x = 0; $x < $self_len; $x++) {
