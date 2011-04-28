@@ -116,7 +116,7 @@ class Route {
 		/* make sure controller and action are in options too */
 		/* TODO:  This is gross... refactor */
 		$options['controller'] = $this->_controller;
-		$options['action'] = $this->_controller;
+		$options['action'] = $this->_action;
 
 		$this->_options = $options;
 		$this->_path    = '/'.ltrim($path, '/');
