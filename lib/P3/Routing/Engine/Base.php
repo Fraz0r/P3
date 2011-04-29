@@ -245,7 +245,7 @@ abstract class Base {
 	 *
 	 * @return P3\Routing\Route Returns Route if succesful, false otherwise
 	 */
-	public function reverseLookup($controller, $action = 'index', $method = 'any')
+	public static function reverseLookup($controller, $action = 'index', $method = 'any')
 	{
 		if(is_null($controller))
 			throw new \P3\Exception\RoutingException("You asked me to look for a route with a <null> contoller?");
