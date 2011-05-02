@@ -815,8 +815,58 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static function all(array $options = array())
 	{
-		$options['skip_int_check'] = true;
-		return static::find('1', $options);
+		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
+		$only_one = isset($options['one']) ? $options['one'] : false;
+		$limit    = isset($options['limit']) ? $options['limit'] : null;
+		$flags    = 0;
+		$class    = get_called_class();
+
+		if($only_one) {
+			$limit = 1;
+			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+		}
+
+		if(static::$_extendable)
+			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
+
+		$builder = new QueryBuilder(static::$_table, null, $class);
+
+		$builder->select();
+
+		if(!isset($options['conditions'])) {
+			$builder->where('1');
+		} else {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
+			}
+		}
+
+		if(static::$_extendable) {
+			$parent_class = array_shift(class_parents($class));
+
+			if($parent_class !== __CLASS__)
+				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+		} 
+
+		$builder->order($order);
+
+		if(!is_null($limit)) {
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
+		}
+
+		$collection = new Collection\Base($builder, null, $flags);
+
+
+		return $only_one ? $collection->first() : $collection;
 	}
 
 	/**
@@ -854,14 +904,15 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return P3\ActiveRecord\Base
 	 */
-	public static function find($where, array $options = array())
+	public static function find($id, array $options = array())
 	{
 		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
-		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
-		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 		$flags    = 0;
 		$class    = get_called_class();
+
+		/* Todo: Change this if array is passed as id */
+		$only_one = true;
 
 		if($only_one) {
 			$limit = 1;
@@ -875,12 +926,15 @@ abstract class Base extends \P3\Model\Base
 
 		$builder->select();
 
-		if(!empty($where)) {
-			if(!$skip_int_check && is_int($where)) {
-				$builder->where(static::pk().' = '.$where);
-				$only_one = true;
-			} else {
-				$builder->where($where);
+		$builder->where(static::pk().' = '.$id);
+
+		if(isset($options['conditions'])) {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
 			}
 		}
 
