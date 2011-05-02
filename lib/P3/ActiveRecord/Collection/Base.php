@@ -232,6 +232,18 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_indexPointer;
 	}
 
+	public function last()
+	{
+		if(count($this)) {
+			if(!$this->complete())
+				$this->_fetchAll();
+
+			return $this->_data[count($this) - 1];
+		}
+
+		return null;
+	}
+
 	public function next()
 	{
 		if(!$this->complete())
