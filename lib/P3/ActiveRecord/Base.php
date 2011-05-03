@@ -390,7 +390,7 @@ abstract class Base extends \P3\Model\Base
 		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
 
 		if(isset($belongsTo[$field]))
-			return new Association\BelongsToAssociation($this, $belongsTo[$field]);
+			return !is_null($this->_data[$belongsTo[$field]['fk']]) ? new Association\BelongsToAssociation($this, $belongsTo[$field]) : null;
 		elseif(isset($hasAndBelongsToMany[$field]))
 			return new Association\HasAndBelongsToMany($this, $hasAndBelongsToMany[$field]);
 		elseif(isset($hasOne[$field]))
