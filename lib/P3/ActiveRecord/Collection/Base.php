@@ -384,6 +384,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		unset($this->_data[$offset]);
 	}
 
+	public function paginate(array $options)
+	{
+		return new Paginized(clone $this->_builder, $options, $this->_parentModel, $this->_flags);
+	}
+
 
 	public function rewind()
 	{
@@ -408,8 +413,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			return (bool)count($this);
 	}
 
-//- Private
-	private function _countQuery() 
+//- Protected
+	protected function _countQuery() 
 	{
 		if(is_null($this->_countQuery)) {
 			$builder = clone $this->_builder;
@@ -419,6 +424,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_countQuery;
 	}
 
+//- Private
 	private function _fetchAll()
 	{
 		$this->_setState(STATE_STARTED);
