@@ -322,12 +322,12 @@ class Builder
 				$ret .= is_string($val) ? $val : implode(' ', $val);
 				break;
 			case 'limit':
-				$ret .= 'LIMIT '.$val;
-				$ret .= $this->_getSection('offset');
+					$ret .= 'LIMIT '.$val;
+					if(isset($this->_sections['offset']))
+						$ret .= $this->_getSection('offset');
 				break;
 			case 'offset':
-				$ret .= ', '.$val;
-				$prepend_space = false;
+				$ret .= 'OFFSET '.$val;
 				break;
 			case 'order':
 				$ret .= 'ORDER BY '.(is_string($val) ? $val : implode(', ', $val));
