@@ -31,17 +31,19 @@ class Builder
 	private $_flags     = 0;
 
 //- Public
-	public function __construct($table_or_model, $alias = null, $intoClass = null, $flags = 0)
+	public function __construct($table_or_model = null, $alias = null, $intoClass = null, $flags = 0)
 	{
 		$this->_flags = $flags;
 		$this->_alias = $alias;
 
 
-		if(is_string($table_or_model)) {
-			$this->_table = $table_or_model;
-		} else {
-			$this->_table = $table_or_model::table();
-			$this->_intoClass = get_class($table_or_model);
+		if(!is_null($table_or_model)) {
+			if(is_string($table_or_model)) {
+				$this->_table = $table_or_model;
+			} else {
+				$this->_table = $table_or_model::table();
+				$this->_intoClass = get_class($table_or_model);
+			}
 		}
 
 		if(!is_null($alias))
@@ -132,6 +134,14 @@ class Builder
 		return $stmnt->fetchAll();
 	}
 
+	public function selectFrom($from)
+	{
+		if(is_object($from))
+			$from = '('.$from->getQuery().') as t';
+
+		$this->_section('from', $from);
+	}
+
 	public function getQuery()
 	{
 		return $this->_buildQuery();
@@ -194,17 +204,29 @@ class Builder
 		$this->_section('offset', $offset);
 	}
 
-	public function order($order) {
+	public function order($order) 
+	{
 		$this->_section('order', $order, self::MODE_OVERRIDE);
+	}
+
+	public function removeSection($section)
+	{
+		if(is_array($section)) {
+			foreach($section as $s) unset($this->_sections[$s]);
+		} else {
+			unset($this->_sections[$section]);
+		}
 	}
 
 	public function select($fields = '*')
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
 
-		$this->_sections['base'] = 'SELECT '.$fields.' FROM '.$this->_table;
+		$this->_sections['base'] = 'SELECT '.$fields;
 
 		$this->_setQueryType(self::TYPE_SELECT);
+		$this->selectFrom($this->_table);
+
 		return $this;
 	}
 
@@ -284,6 +306,7 @@ class Builder
 				$query .= $this->_getSection('values');
 				break;
 			case self::TYPE_SELECT:
+				$query .= $this->_getSection('from');
 				$query .= $this->_getSection('joins');
 				$query .= $this->_getSection('where');
 				$query .= $this->_getSection('group');
@@ -312,6 +335,9 @@ class Builder
 
 		$val = $this->_sections[$section];
 		switch ($section) {
+			case 'from':
+				$ret .= 'FROM '.$val;
+				break;
 			case 'group':
 				$ret .= 'GROUP BY '.(is_string($val) ? $val : implode(', ', $val));
 				break;
