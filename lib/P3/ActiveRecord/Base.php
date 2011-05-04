@@ -717,9 +717,12 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return boolean
 	 */
-	protected  function _insert()
+	protected function _insert()
 	{
-		$this->_triggerEvent('beforeCreate');
+		$ret = $this->_triggerEvent('beforeCreate');
+
+		if(!$ret)
+			return false;
 
 		$this->created_at = date("Y-m-d H:i:s", time());
 		$this->updated_at = date("Y-m-d H:i:s", time());
@@ -731,8 +734,8 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
-			if (in_array($f, static::getBelongsTo()) || in_array($f, static::getHasOne())
-					|| in_array($f, static::getHasMany()) || in_array($f, static::getHasAndBelongsToMany()))
+			if (array_key_exists($f, static::getBelongsTo()) || array_key_exists($f, static::getHasOne())
+					|| array_key_exists($f, static::getHasMany()) || array_key_exists($f, static::getHasAndBelongsToMany()))
 				continue;
 
 			$fields[] = "`{$f}`";
@@ -783,10 +786,10 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue; // We don't update the value of the pk
-			if (in_array($f, array_keys(static::getBelongsTo()))
-				|| in_array($f, array_keys(static::getHasOne()))
-				|| in_array($f, array_keys(static::getHasMany()))
-				|| in_array($f, array_keys(static::getHasAndBelongsToMany())))
+			if (array_key_exists($f, array_keys(static::getBelongsTo()))
+				|| array_key_exists($f, array_keys(static::getHasOne()))
+				|| array_key_exists($f, array_keys(static::getHasMany()))
+				|| array_key_exists($f, array_keys(static::getHasAndBelongsToMany())))
 					continue;
 
 			$fields[] = $f.' = ?';
@@ -1137,8 +1140,8 @@ abstract class Base extends \P3\Model\Base
 				return null;
 
 			if($this->isNew()) {
-				var_dump("HIT NEW: ".$name);
-				die;
+				if(!is_a($assoc, 'P3\ActiveRecord\Association\BelongsToAssociation'))
+					throw new \P3\Exception\ActiveRecordException("You cannot access the children of an unsaved parent");
 			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;
