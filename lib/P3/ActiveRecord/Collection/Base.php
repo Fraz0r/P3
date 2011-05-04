@@ -53,11 +53,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 		if($only_one) {
 			$limit = 1;
-			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+			$flags = $flags | FLAG_SINGLE_MODE;
 		}
 
 		if($class::$_extendable)
-			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
+			$flags = $flags | FLAG_DYNAMIC_TYPES;
 
 		$builder->select();
 
@@ -153,6 +153,9 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function export()
 	{
+		if(!$this->complete())
+			$this->_fetchAll();
+
 		return $this->_data;
 	}
 
