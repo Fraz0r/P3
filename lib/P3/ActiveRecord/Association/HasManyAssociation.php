@@ -19,6 +19,15 @@ class HasManyAssociation extends Base
 		$builder = new QueryBuilder($class::table(), null, $class);
 		$builder->select()->where($options['fk'].' = '.$parent->id());
 
+		if(isset($options['conditions'])) {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.' = \''.$v.'\'');
+				else
+					$builder->where($v);
+			}
+		}
+
 		if(isset($options['order']))
 			$builder->order($options['order']);
 

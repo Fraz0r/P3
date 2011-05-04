@@ -20,6 +20,16 @@ class HasOneAssociation extends Base
 		$builder->select()->where($options['fk'].' = '.$parent->id());
 
 
+		if(isset($options['conditions'])) {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.' = \''.$v.'\'');
+				else
+					$builder->where($v);
+			}
+		}
+
+
 		$flags = \P3\ActiveRecord\Collection\FLAG_SINGLE_MODE;
 
 		if($class::$_extendable) {
