@@ -151,7 +151,7 @@ class Base extends \ArrayObject
 			throw new Error("Session is already started.");
 
 		self::$_startedInternally = true;
-		self::$_instance = new self;
+		self::$_instance = new static;
 
 		self::singleton();
 	}
