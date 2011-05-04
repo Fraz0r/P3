@@ -229,8 +229,16 @@ abstract class Base {
 		if(is_null($funcs))
 			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
 
-		foreach($funcs as $func)
-			$ret = $ret && $func($this);
+		foreach($funcs as $func) {
+			if(is_string($func) && $func[0] == ':') {
+				$func_name = substr($func, 1);
+				$ret = $ret && call_user_func_array(array($this, $func_name), array());
+			} elseif(is_callable($func)) {
+				$ret = $ret && $func($this);
+			} else {
+				throw new Exception\ModelException("Unknown event handler type");
+			}
+		}
 
 		return $ret;
 	}
