@@ -775,7 +775,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
-		$this->_triggerEvent('beforeUpdate');
+		if(!$this->_triggerEvent('beforeUpdate'))
+			return false;
 
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
@@ -786,11 +787,9 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue; // We don't update the value of the pk
-			if (array_key_exists($f, array_keys(static::getBelongsTo()))
-				|| array_key_exists($f, array_keys(static::getHasOne()))
-				|| array_key_exists($f, array_keys(static::getHasMany()))
-				|| array_key_exists($f, array_keys(static::getHasAndBelongsToMany())))
-					continue;
+			if (array_key_exists($f, static::getBelongsTo()) || array_key_exists($f, static::getHasOne())
+					|| array_key_exists($f, static::getHasMany()) || array_key_exists($f, static::getHasAndBelongsToMany()))
+				continue;
 
 			$fields[] = $f.' = ?';
 			$values[] = $v;
