@@ -25,6 +25,14 @@ class HasManyAssociation extends Base
 		} elseif(isset($options['as'])) {
 			$as = $options['as'];
 			$builder->where($as.'_id = '.$parent->id().' AND '.$as.'_type =  \''.get_class($parent).'\'');
+		} elseif(isset($options['through'])) {
+			$assoc = $parent->getAssociationForField($options['through']);
+
+			if(!$assoc)
+				throw new \P3\Exception\ActiveRecordException("No association for through option");
+
+
+			throw new \P3\Exception\ActiveRecordException("Unfinished support for 'through' option.  Its a doozy");
 		} else {
 			throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
 		}
@@ -50,6 +58,10 @@ class HasManyAssociation extends Base
 		parent::__construct($builder, $parent, $flags);
 
 		$this->_contentClass = $class;
+	}
+
+	public function buildThrough($assoc)
+	{
 	}
 
 	public function offsetSet($offset, $model)
