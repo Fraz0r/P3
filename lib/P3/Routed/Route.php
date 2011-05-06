@@ -395,7 +395,19 @@ class Route {
 	public function __call($func, $args)
 	{
 		$options = isset($args[1]) ? $args[1] : array();
-		$options['prefix'] = isset($options['prefix']) ? $options['prefix'] : $this(':'.\str::singularize($this->_controller).'_id');
+
+		if(isset($this->_options['prefix'])) {
+			$tmp = $this->_options;
+			unset($tmp['prefix']);
+			$options = array_merge($tmp, $options);
+		} else {
+			$options = array_merge($this->_options, $options);
+		}
+
+		if(!isset($options['prefix']))
+			$options['prefix'] = $this();
+
+
 		$options['prefix'] = rtrim($options['prefix'], '/').'/';
 
 
@@ -410,15 +422,17 @@ class Route {
 	 * @param array $args
 	 * @return string
 	 */
-	public function __invoke($ids, $options = array())
+	public function __invoke($ids = null, $options = array())
 	{
 		$ret = $this->_path;
 
-		if(is_array($ids)) {
-			foreach($ids as $k => $v)
-				$ret = str_replace(':'.$k, $v, $ret);
-		} else {
-			$ret = str_replace(':id', $ids, $ret);
+		if(!is_null($ids)) {
+			if(is_array($ids)) {
+				foreach($ids as $k => $v)
+					$ret = str_replace(':'.$k, $v, $ret);
+			} else {
+				$ret = str_replace(':id', $ids, $ret);
+			}
 		}
 
 		$ret = preg_replace('/\[.:format\]$/', '', $ret);
