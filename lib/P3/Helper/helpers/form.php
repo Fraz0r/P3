@@ -484,6 +484,11 @@ class form extends P3\Helper\Base
 		return new self($model, $options);
 	}
 
+	public static function fieldsForModel($model, array $options = array())
+	{
+		return new self($model, $options);
+	}
+
 	/**
 	 * Renders <form> tag
 	 *
