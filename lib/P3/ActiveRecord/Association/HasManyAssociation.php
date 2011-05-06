@@ -22,6 +22,13 @@ class HasManyAssociation extends Base
 
 		if(isset($options['fk'])) {
 			$builder->where($options['fk'].' = '.$parent->id());
+
+			if($class::$_extendable) {
+				$parents = class_parents($class, false);
+
+				if(current($parents) != 'P3\ActiveRecord\Base')
+					$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+			}
 		} elseif(isset($options['as'])) {
 			$as = $options['as'];
 			$builder->where($as.'_id = '.$parent->id().' AND '.$as.'_type =  \''.get_class($parent).'\'');
