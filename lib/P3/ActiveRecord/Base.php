@@ -620,11 +620,11 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return void
 	 */
-	public function saveAttachments()
+	public function saveAttachments(array $options = array())
 	{
 		$ret   = true;
 		$class = $this->_class;
-		$model_field = \str::fromCamelCase($class);
+		$model_field = isset($options['model_field']) ? $options['model_field'] : \str::fromCamelCase($class);
 
 		foreach(static::$_hasAttachment as $field => $opts) {
 			if(isset($_FILES[$model_field])) {
@@ -661,7 +661,7 @@ abstract class Base extends \P3\Model\Base
 				}
 
 				$this->_data[$field.'_filename'] = $data['name'][$field];
-				$this->_data[$field.'_filetype'] = $filetype;
+				$this->_data[$field.'_filetype'] = $data['type'][$field];
 				$ret = $this->save(array('save_attachments' => false));
 			} 
 		}
