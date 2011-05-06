@@ -118,29 +118,48 @@ class Map
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
+		$only_set = isset($options['only']);
+
+		if($only_set)
+			$only = $options['only'];
+
 		$class = \str::toCamelCase($resource, true);
 
 		$front = isset($options['as']) ? $options['as'] : $resource;
 		$controller = $class::$_controller;
 
 		/* Create */
-		$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
+		if(!$only_set || in_array('index', $only))
+			$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
 
 		/* New */
-		$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
-		$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		if(!$only_set || in_array('new', $only) || in_array('add', $only)) {
+			$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+			$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		}
 
 		/* Edit */
-		$this->connect($front.'/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
+		if(!$only_set || in_array('edit', $only))
+			$this->connect($front.'/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
 
 		/* Show */
-		$show = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
+		if(!$only_set || in_array('show', $only))
+			$show = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
 
 		/* Update */
-		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
+		if(!$only_set || in_array('update', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
 
 		/* Delete */
-		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
+		if(!$only_set || in_array('delete', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
+
+		/* Members */
+		if(isset($show) && isset($options['member'])) {
+			foreach($options['member'] as $member => $method){
+				$show->connect('/'.$member, array('action' => $member), $method);
+			}
+		}
 
 		return $show;
 	}
