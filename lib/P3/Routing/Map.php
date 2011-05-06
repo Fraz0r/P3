@@ -61,8 +61,12 @@ class Map
 		
 		$prefix = rtrim($prefix, '/').'/';
 
+
+		if(isset($options['method']))
+			$method = $options['method'];
+
 		if($path != '/')
-			$path = $prefix.$path;
+			$path = $prefix.ltrim($path, '/');
 		else 
 			$path = $prefix;
 
@@ -119,9 +123,6 @@ class Map
 		$front = isset($options['as']) ? $options['as'] : $resource;
 		$controller = $class::$_controller;
 
-		/* Index */ // I dont think i need/want this?  Ill drink on it
-		//$index = $this->connect($prefix.'/', array('controller' => $controller, 'action' => 'index'), 'get');  //  \url\<model>s
-
 		/* Create */
 		$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
 
@@ -169,6 +170,13 @@ class Map
 		if(!$only_set || in_array('index', $only))
 			$index = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'index')), 'get', true);
 
+		/* Collections */
+		if(isset($index) && isset($options['collection'])) {
+			foreach($options['collection'] as $collection => $method){
+				$index->connect('/'.$collection, array('action' => $collection, 'method' => $method));
+			}
+		}
+
 		/* Create */
 		if(!$only_set || in_array('create', $only))
 			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'create')), 'post', true);
@@ -199,13 +207,6 @@ class Map
 		if(isset($show) && isset($options['member'])) {
 			foreach($options['member'] as $member => $method){
 				$show->connect('/'.$member, array('action' => $member), $method);
-			}
-		}
-
-		/* Collections */
-		if(isset($index) && isset($options['collection'])) {
-			foreach($options['collection'] as $collection => $method){
-				$index->connect('/'.$collection, array('action' => $collection, 'method' => $method));
 			}
 		}
 
