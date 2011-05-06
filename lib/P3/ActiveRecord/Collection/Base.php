@@ -256,6 +256,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_data[0];
 	}
 
+	public function getBuilder()
+	{
+		return $this->_builder;
+	}
+
 	public function getContentClass()
 	{
 		return $this->_contentClass;
