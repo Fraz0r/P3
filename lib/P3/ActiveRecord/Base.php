@@ -389,14 +389,22 @@ abstract class Base extends \P3\Model\Base
 		$hasOne      = static::getHasOne();
 		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
 
-		if(isset($belongsTo[$field]))
-			return !is_null($this->_data[$belongsTo[$field]['fk']]) ? new Association\BelongsToAssociation($this, $belongsTo[$field]) : null;
-		elseif(isset($hasAndBelongsToMany[$field]))
+		if(isset($belongsTo[$field])) {
+			if(isset($belongsTo[$field]['fk']) && is_null($this->_data[$belongsTo[$field]['fk']])) {
+				return null;
+			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
+				$belongsTo[$field]['polymorphic_as'] = $field;
+				return new Association\PolymorphicAssociation($this, $belongsTo[$field]);
+			}
+
+			return new Association\BelongsToAssociation($this, $belongsTo[$field]);
+		} elseif(isset($hasAndBelongsToMany[$field])) {
 			return new Association\HasAndBelongsToMany($this, $hasAndBelongsToMany[$field]);
-		elseif(isset($hasOne[$field]))
+		} elseif(isset($hasOne[$field])) {
 			return new Association\HasOneAssociation($this, $hasOne[$field]);
-		elseif(isset($hasMany[$field]))
+		} elseif(isset($hasMany[$field])) {
 			return new Association\HasManyAssociation($this, $hasMany[$field]);
+		} 
 
 		return false;
 	}

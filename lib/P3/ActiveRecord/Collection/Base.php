@@ -22,8 +22,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected $_countQuery   = null;
 	protected $_statement    = null;
 	
-	private $_fetchPointer = -1;
-	private $_indexPointer = 0;
+	protected $_fetchPointer = -1;
+	protected $_indexPointer = 0;
 
 //- Public
 	/**
@@ -363,14 +363,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function offsetSet($offset, $value) 
 	{
-		if (is_null($offset)) {
-			$this->_data[] = $value;
-		} else {
-			if(!isset($this->_data[$offset]))
-				while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
-
-			$this->_data[$offset] = $value;
-		}
+		if(!is_null($offset))
+			throw new \P3\Exception\ActiveRecordException("Replacing a model in the collection is not supported (You passed a key to set into the collection array).  You should add models using \$collection[].");
 	}
 
 	/**

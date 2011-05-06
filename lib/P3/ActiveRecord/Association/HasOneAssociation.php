@@ -17,7 +17,17 @@ class HasOneAssociation extends Base
 		$class = $options['class'];
 
 		$builder = new QueryBuilder($class::table(), null, $class);
-		$builder->select()->where($options['fk'].' = '.$parent->id());
+
+		$builder->select();
+
+		if(isset($options['fk'])) {
+			$builder->where($options['fk'].' = '.$parent->id());
+		} elseif(isset($options['as'])) {
+			$as = $options['as'];
+			$builder->where($as.'_id = '.$parent->id().' AND '.$as.'_type =  \''.get_class($parent).'\'');
+		} else {
+			throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
+		}
 
 
 		if(isset($options['conditions'])) {

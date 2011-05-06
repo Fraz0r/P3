@@ -17,7 +17,17 @@ class HasManyAssociation extends Base
 		$class = $options['class'];
 
 		$builder = new QueryBuilder($class::table(), null, $class);
-		$builder->select()->where($options['fk'].' = '.$parent->id());
+
+		$builder->select();
+
+		if(isset($options['fk'])) {
+			$builder->where($options['fk'].' = '.$parent->id());
+		} elseif(isset($options['as'])) {
+			$as = $options['as'];
+			$builder->where($as.'_id = '.$parent->id().' AND '.$as.'_type =  \''.get_class($parent).'\'');
+		} else {
+			throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
+		}
 
 		if(isset($options['conditions'])) {
 			foreach($options['conditions'] as $k => $v) {
@@ -40,6 +50,35 @@ class HasManyAssociation extends Base
 		parent::__construct($builder, $parent, $flags);
 
 		$this->_contentClass = $class;
+	}
+
+	public function offsetSet($offset, $model)
+	{
+		/* The parent doesn't do anything with this, but it does handle the exception if offset is not null */
+		parent::offsetSet($offset, $model);
+
+		/* TODO:  Need to throw exception if the class isn't allowed in here (Handling extensions as well) */
+
+		$fk_val = $this->_parentModel->id();
+
+		$model->{$this->_options['fk']} = $fk_val;
+		$model->save();
+	}
+
+	public function offsetUnset($offset)
+	{
+		if(!isset($this->_data[$offset]))
+			while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
+
+
+		/* If it's still not set, throw an exception */
+		if(!isset($this->_data[$offset]))
+			throw new \P3\Exception\ActiveRecordException("Can't remove model from association because it doesn't exist");
+
+		$model = $this->_data[$offset];
+
+		$model->{$this->_options['fk']} = 'NULL';
+		$model->save();
 	}
 }
 
