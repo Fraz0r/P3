@@ -389,14 +389,22 @@ abstract class Base extends \P3\Model\Base
 		$hasOne      = static::getHasOne();
 		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
 
-		if(isset($belongsTo[$field]))
+		if(isset($belongsTo[$field])) {
+			if(isset($belongsTo[$field]['fk']) && is_null($this->_data[$belongsTo[$field]['fk']])) {
+				return null;
+			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
+				$belongsTo[$field]['polymorphic_as'] = $field;
+				return new Association\PolymorphicAssociation($this, $belongsTo[$field]);
+			}
+
 			return new Association\BelongsToAssociation($this, $belongsTo[$field]);
-		elseif(isset($hasAndBelongsToMany[$field]))
+		} elseif(isset($hasAndBelongsToMany[$field])) {
 			return new Association\HasAndBelongsToMany($this, $hasAndBelongsToMany[$field]);
-		elseif(isset($hasOne[$field]))
+		} elseif(isset($hasOne[$field])) {
 			return new Association\HasOneAssociation($this, $hasOne[$field]);
-		elseif(isset($hasMany[$field]))
+		} elseif(isset($hasMany[$field])) {
 			return new Association\HasManyAssociation($this, $hasMany[$field]);
+		} 
 
 		return false;
 	}
@@ -612,11 +620,11 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return void
 	 */
-	public function saveAttachments()
+	public function saveAttachments(array $options = array())
 	{
 		$ret   = true;
 		$class = $this->_class;
-		$model_field = \str::fromCamelCase($class);
+		$model_field = isset($options['model_field']) ? $options['model_field'] : \str::fromCamelCase($class);
 
 		foreach(static::$_hasAttachment as $field => $opts) {
 			if(isset($_FILES[$model_field])) {
@@ -653,7 +661,7 @@ abstract class Base extends \P3\Model\Base
 				}
 
 				$this->_data[$field.'_filename'] = $data['name'][$field];
-				$this->_data[$field.'_filetype'] = $filetype;
+				$this->_data[$field.'_filetype'] = $data['type'][$field];
 				$ret = $this->save(array('save_attachments' => false));
 			} 
 		}
@@ -717,9 +725,12 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return boolean
 	 */
-	protected  function _insert()
+	protected function _insert()
 	{
-		$this->_triggerEvent('beforeCreate');
+		$ret = $this->_triggerEvent('beforeCreate');
+
+		if(!$ret)
+			return false;
 
 		$this->created_at = date("Y-m-d H:i:s", time());
 		$this->updated_at = date("Y-m-d H:i:s", time());
@@ -731,8 +742,8 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue;
-			if (in_array($f, static::getBelongsTo()) || in_array($f, static::getHasOne())
-					|| in_array($f, static::getHasMany()) || in_array($f, static::getHasAndBelongsToMany()))
+			if (array_key_exists($f, static::getBelongsTo()) || array_key_exists($f, static::getHasOne())
+					|| array_key_exists($f, static::getHasMany()) || array_key_exists($f, static::getHasAndBelongsToMany()))
 				continue;
 
 			$fields[] = "`{$f}`";
@@ -772,7 +783,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	protected  function _update()
 	{
-		$this->_triggerEvent('beforeUpdate');
+		if(!$this->_triggerEvent('beforeUpdate'))
+			return false;
 
 		$this->updated_at = date("Y-m-d H:i:s", time());
 
@@ -783,11 +795,9 @@ abstract class Base extends \P3\Model\Base
 
 		foreach ($this->_data as $f => $v) {
 			if ($f == $pk) continue; // We don't update the value of the pk
-			if (in_array($f, array_keys(static::getBelongsTo()))
-				|| in_array($f, array_keys(static::getHasOne()))
-				|| in_array($f, array_keys(static::getHasMany()))
-				|| in_array($f, array_keys(static::getHasAndBelongsToMany())))
-					continue;
+			if (array_key_exists($f, static::getBelongsTo()) || array_key_exists($f, static::getHasOne())
+					|| array_key_exists($f, static::getHasMany()) || array_key_exists($f, static::getHasAndBelongsToMany()))
+				continue;
 
 			$fields[] = $f.' = ?';
 			$values[] = $v;
@@ -815,8 +825,58 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static function all(array $options = array())
 	{
-		$options['skip_int_check'] = true;
-		return static::find('1', $options);
+		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
+		$only_one = isset($options['one']) ? $options['one'] : false;
+		$limit    = isset($options['limit']) ? $options['limit'] : null;
+		$flags    = 0;
+		$class    = get_called_class();
+
+		if($only_one) {
+			$limit = 1;
+			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+		}
+
+		if(static::$_extendable)
+			$flags = $flags | Collection\FLAG_DYNAMIC_TYPES;
+
+		$builder = new QueryBuilder(static::$_table, null, $class);
+
+		$builder->select();
+
+		if(!isset($options['conditions'])) {
+			$builder->where('1');
+		} else {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
+			}
+		}
+
+		if(static::$_extendable) {
+			$parent_class = array_shift(class_parents($class));
+
+			if($parent_class !== __CLASS__)
+				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+		} 
+
+		$builder->order($order);
+
+		if(!is_null($limit)) {
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
+		}
+
+		$collection = new Collection\Base($builder, null, $flags);
+
+
+		return $only_one ? $collection->first() : $collection;
 	}
 
 	/**
@@ -854,14 +914,15 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @return P3\ActiveRecord\Base
 	 */
-	public static function find($where, array $options = array())
+	public static function find($id, array $options = array())
 	{
 		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
-		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
-		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 		$flags    = 0;
 		$class    = get_called_class();
+
+		/* Todo: Change this if array is passed as id */
+		$only_one = true;
 
 		if($only_one) {
 			$limit = 1;
@@ -875,12 +936,15 @@ abstract class Base extends \P3\Model\Base
 
 		$builder->select();
 
-		if(!empty($where)) {
-			if(!$skip_int_check && is_int($where)) {
-				$builder->where(static::pk().' = '.$where);
-				$only_one = true;
-			} else {
-				$builder->where($where);
+		$builder->where(static::pk().' = '.$id);
+
+		if(isset($options['conditions'])) {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
 			}
 		}
 
@@ -1083,8 +1147,8 @@ abstract class Base extends \P3\Model\Base
 				return null;
 
 			if($this->isNew()) {
-				var_dump("HIT NEW: ".$name);
-				die;
+				if(!is_a($assoc, 'P3\ActiveRecord\Association\BelongsToAssociation'))
+					throw new \P3\Exception\ActiveRecordException("You cannot access the children of an unsaved parent");
 			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;

@@ -78,6 +78,24 @@ abstract class Base {
 		return $route;
 	}
 
+	public static function dispatchController($controller, $action = 'index')
+	{
+		$parts = explode('/', $controller);
+		array_walk($parts, function(&$part){ $part = \str::toCamelCase($part, true); });
+
+		$controller_name = array_pop($parts).'Controller';
+
+		if(count($parts))
+			$namespace = implode('\\', $parts).'\\';
+		else
+			$namespace = '';
+
+		$fully_qualified = $namespace.$controller_name;
+
+		$controller = new $fully_qualified;
+		return $controller->process($action);
+	}
+
 	/**
 	 * Returns current dispatched action
 	 *
@@ -227,7 +245,7 @@ abstract class Base {
 	 *
 	 * @return P3\Routing\Route Returns Route if succesful, false otherwise
 	 */
-	public function reverseLookup($controller, $action = 'index', $method = 'any')
+	public static function reverseLookup($controller, $action = 'index', $method = 'any')
 	{
 		if(is_null($controller))
 			throw new \P3\Exception\RoutingException("You asked me to look for a route with a <null> contoller?");

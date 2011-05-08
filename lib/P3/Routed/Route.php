@@ -110,14 +110,16 @@ class Route {
 			$this->_action = isset($options['action']) ? $options['action'] : 'index';
 		}
 
-		if(isset($options['prefix']))
-			$path = trim($options['prefix'], '/').'/'.$path;
-
 		if(isset($options['namespace']))
-			$path = rtrim($options['namespace']).'/'.$path;
+			$this->_controller = rtrim($options['namespace'], '/').'/'.$this->_controller;
+
+		/* make sure controller and action are in options too */
+		/* TODO:  This is gross... refactor */
+		$options['controller'] = $this->_controller;
+		$options['action'] = $this->_action;
 
 		$this->_options = $options;
-		$this->_path    = empty($path) ? '' : '/'.rtrim($path, '/');
+		$this->_path    = '/'.ltrim($path, '/');
 		$this->_tokens =  $this->_tokenize();
 	}
 
@@ -132,20 +134,9 @@ class Route {
 	{
 		$this->fillGET();
 
-		$controller_class = $this->getControllerClass();
-		\P3\Loader::loadController($controller_class);
-
-		$controller_class = '\\'.$controller_class;
-
-		$controller = new $controller_class;
-
-
-		$ret = $controller->dispatch($this->getAction());
-
-		if(defined('\APP\START_TIME')) {
-			define("APP\DISPATCHED_IN", (\APP\DISPATCH_TIME - \APP\START_TIME) * 1000);
-			define("APP\TOTAL_TIME", (microtime(true) - \APP\START_TIME) * 1000);
-		}
+		$router = $this->_map->router();
+		$router::dispatchController($this->_controller, $this->_action);
+		die;
 	}
 
 	/**
@@ -156,10 +147,7 @@ class Route {
 	 */
 	public function fillGET()
 	{
-		$_GET = array_merge(array(
-			'controller' => $this->_controller,
-			'action'     => $this->_action
-		), $this->_params, $_GET);
+		$_GET = array_merge($this->_options, $this->_params, $_GET);
 	}
 
 	/**
@@ -229,9 +217,10 @@ class Route {
 	 *
 	 * @return string Route's View Path
 	 */
-	public function getViewPath()
+	public function getViewPath($action = null)
 	{
-		return str_replace('\\', '/', $this->getNamespace()).$this->_controller.'/'.$this->_action;
+		$action = is_null($action) ? $this->_action : $action;
+		return str_replace('\\', '/', $this->getNamespace()).$this->_controller.'/'.$action;
 	}
 
 	/**
@@ -244,8 +233,6 @@ class Route {
 	 */
 	public function match($path, $method = null)
 	{
-		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
-
 		$path = rtrim($path, '/');
 		$method = is_null($method) ? strtolower($_SERVER['REQUEST_METHOD']) : $method;
 
@@ -253,8 +240,8 @@ class Route {
 		if(!$this->_validateMethod($method)) return false;
 
 		/* Handle Default route */
-		if($this->_path == '')
-			return $path == '' ? $this : false;
+		if($path == '')
+			return $this->_path == '' || $this->_path == '/' ? $this : false;
 
 		/* Match Tokens */
 		if($this->_matchTokens($path)) return $this;
@@ -306,7 +293,6 @@ class Route {
 
 		if($passed_len > $self_len)
 			return false;
-
 
 		/* Loop through tokens and check'm out */
 		for($x = 0; $x < $self_len; $x++) {
@@ -409,7 +395,19 @@ class Route {
 	public function __call($func, $args)
 	{
 		$options = isset($args[1]) ? $args[1] : array();
-		$options['prefix'] = isset($options['prefix']) ? $options['prefix'] : $this(':'.\str::singularize($this->_controller).'_id');
+
+		if(isset($this->_options['prefix'])) {
+			$tmp = $this->_options;
+			unset($tmp['prefix']);
+			$options = array_merge($tmp, $options);
+		} else {
+			$options = array_merge($this->_options, $options);
+		}
+
+		if(!isset($options['prefix']))
+			$options['prefix'] = $this();
+
+
 		$options['prefix'] = rtrim($options['prefix'], '/').'/';
 
 
@@ -424,15 +422,17 @@ class Route {
 	 * @param array $args
 	 * @return string
 	 */
-	public function __invoke($ids, $options = array())
+	public function __invoke($ids = null, $options = array())
 	{
 		$ret = $this->_path;
 
-		if(is_array($ids)) {
-			foreach($ids as $k => $v)
-				$ret = str_replace(':'.$k, $v, $ret);
-		} else {
-			$ret = str_replace(':id', $ids, $ret);
+		if(!is_null($ids)) {
+			if(is_array($ids)) {
+				foreach($ids as $k => $v)
+					$ret = str_replace(':'.$k, $v, $ret);
+			} else {
+				$ret = str_replace(':id', $ids, $ret);
+			}
 		}
 
 		$ret = preg_replace('/\[.:format\]$/', '', $ret);

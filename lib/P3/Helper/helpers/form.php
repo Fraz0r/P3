@@ -14,6 +14,8 @@ class form extends P3\Helper\Base
 	 */
 	private $_action = null;
 
+	private $_namespaces = array();
+
 	/**
 	 * Model
 	 * @var P3\ActiveRecord\Base
@@ -49,10 +51,16 @@ class form extends P3\Helper\Base
 //Public
 	public function  __construct($model, array $options = array())
 	{
+		/* If array is passed, we're looking for a specific namespace */
+		if(is_array($model)) {
+			$tmp = $model;
+			$model = array_pop($tmp);
+			$this->_namespaces = $tmp;
+		}
+
 		$this->_model   = $model;
 
 		$this->_options = $options;
-
 		$this->_uri = isset($options['url']) ? $options['url'] : null;
 
 		$this->_inspect();
@@ -130,7 +138,15 @@ class form extends P3\Helper\Base
 	{
 		$this->_options['multipart'] = true;
 
-		echo '<input type="file" name="'.$this->_getFieldName($field).'" />';
+		$attrs = array(
+			'type' => 'file',
+			'name' => isset($options['name']) ? $options['name'] : $this->_getFieldName($field)
+		);
+
+		if(isset($options['id']))
+			$attrs['id'] = $options['id'];
+
+		echo \html::_t('input', $attrs);
 	}
 
 	/**
@@ -406,6 +422,9 @@ class form extends P3\Helper\Base
 			$router = P3::getRouter();
 			$controller = $this->_model->getController();
 
+			if(count($this->_namespaces))
+				$controller = implode('/', $this->_namespaces).'/'.$controller;
+
 			if(!$controller)
 				throw new \P3\Exception\HelperException("Cant build URI for form because I don't know what controller belongs to %s", array($this->_model));
 
@@ -462,6 +481,11 @@ class form extends P3\Helper\Base
 		if($print)
 			$options = array_merge(array('print' => true), $options);
 
+		return new self($model, $options);
+	}
+
+	public static function fieldsForModel($model, array $options = array())
+	{
 		return new self($model, $options);
 	}
 

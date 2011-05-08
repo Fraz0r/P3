@@ -121,5 +121,13 @@ class str
 		return ($titleize) ? self::titleize($ret) : $ret;
 	}
 
+	public static function toPlural($quantity, $object_name)
+	{
+		if($quantity > 1)
+			$object_name = self::pluralize($object_name);
+
+		return implode(' ', array($quantity, $object_name));
+	}
+
 }
 ?>

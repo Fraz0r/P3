@@ -30,12 +30,6 @@ class Base
 	protected $_layout;
 
 	/**
-	 * Last dirname from render
-	 * @var string
-	 */
-	protected $_lastBase;
-
-	/**
 	 * Template page to render
 	 * @var string
 	 */
@@ -110,11 +104,11 @@ class Base
 	 */
 	public function display($path = null)
 	{
-		if(is_null($path))
-			$path = $this->_route->getViewPath();
+		if(is_null($path)) {
+			$path = $this->_route->getController().'/'.$this->_route->getAction();
+		} else {
+		}
 
-
-		$this->_lastBase = dirname($path);
 		$display =  $this->render($path);
 
 		if(isset($this->_attributes[self::ATTR_DOWNLOAD_AS_ATTACHMENT])) {
@@ -156,9 +150,9 @@ class Base
 			$partial = true;
 
 		if(count($parts) == 1) 
-			$path = $this->_lastBase.'/'.$path;
+			$path = $this->_route->getController().'/'.$path;
 
-		$file = $this->_path.'/'.$path.'.tpl';
+		$file = $this->viewPath($path);
 
 
 		if(!is_readable($file))
@@ -220,6 +214,11 @@ class Base
 	public function getAttribute($attr)
 	{
 		return $this->_attributes[$attr];
+	}
+
+	public function viewPath($path)
+	{
+		return $this->_path.'/'.$path.'.tpl';
 	}
 
 	/**

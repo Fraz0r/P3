@@ -66,9 +66,6 @@ abstract class Base
 		$route = is_null($route) ? Router::getDispatched() : $route;
 
 		$this->_route = $route;
-
-		/* Call init */
-		$this->_init();
 	}
 
 	/**

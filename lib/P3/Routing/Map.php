@@ -58,13 +58,23 @@ class Map
 	public function connect($path, array $options = array(), $method = 'any', $accept_format = true)
 	{
 		$prefix = isset($options['prefix']) ? $options['prefix'] : $this->_getPrefix($path);
+		
+		$prefix = rtrim($prefix, '/').'/';
+
+
+		if(isset($options['method']))
+			$method = $options['method'];
+
+		if($path != '/')
+			$path = $prefix.ltrim($path, '/');
+		else 
+			$path = $prefix;
 
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		if($accept_format) {
+		if($accept_format)
 			$path = rtrim($path, '/').'[.:format]';
-		}
 
 		$router = $this->_router;
 		$route = new Route($path, $options, $method, $this);
@@ -85,9 +95,14 @@ class Map
 	{
 	}
 
-	public function namespaced($namespace)
+	public function namespaced($namespace, array $options = array(), $closure = null)
 	{
-		return $this->withOptions(array('namespace' => $namespace));
+		$map = $this->withOptions(array_merge(array('namespace' => $namespace), $options));
+
+		if(!is_null($closure))
+			$closure($map);
+
+		return $map;
 	}
 
 	/**
@@ -103,32 +118,48 @@ class Map
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
+		$only_set = isset($options['only']);
+
+		if($only_set)
+			$only = $options['only'];
+
 		$class = \str::toCamelCase($resource, true);
 
 		$front = isset($options['as']) ? $options['as'] : $resource;
 		$controller = $class::$_controller;
 
-		/* Index */ // I dont think i need/want this?  Ill drink on it
-		//$index = $this->connect($prefix.'/', array('controller' => $controller, 'action' => 'index'), 'get');  //  \url\<model>s
-
 		/* Create */
-		$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
+		if(!$only_set || in_array('index', $only))
+			$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
 
 		/* New */
-		$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
-		$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		if(!$only_set || in_array('new', $only) || in_array('add', $only)) {
+			$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+			$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		}
 
 		/* Edit */
-		$this->connect($front.'/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
+		if(!$only_set || in_array('edit', $only))
+			$this->connect($front.'/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
 
 		/* Show */
-		$show = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
+		if(!$only_set || in_array('show', $only))
+			$show = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
 
 		/* Update */
-		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
+		if(!$only_set || in_array('update', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
 
 		/* Delete */
-		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
+		if(!$only_set || in_array('delete', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
+
+		/* Members */
+		if(isset($show) && isset($options['member'])) {
+			foreach($options['member'] as $member => $method){
+				$show->connect('/'.$member, array('action' => $member), $method);
+			}
+		}
 
 		return $show;
 	}
@@ -146,42 +177,55 @@ class Map
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
+		$only_set = isset($options['only']);
+
+		if($only_set)
+			$only = $options['only'];
+
 
 		$front = isset($options['as']) ? $options['as'] : $controller;
 
 		/* Index */
-		$index = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'index')), 'get', true);
+		if(!$only_set || in_array('index', $only))
+			$index = $this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'index')), 'get', true);
 
-		/* Create */
-		$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'create')), 'post', true);
-
-		/* New */
-		$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
-		$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
-
-		/* Edit */
-		$this->connect($front.'/:id/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
-
-		/* Show */
-		$show = $this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
-
-		/* Update */
-		$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
-
-		/* Delete */
-		$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
-
-		/* Members */
-		if(isset($options['member'])) {
-			foreach($options['member'] as $member => $method){
-				$show->connect('/'.$member, array('action' => $member), $method);
+		/* Collections */
+		if(isset($index) && isset($options['collection'])) {
+			foreach($options['collection'] as $collection => $method){
+				$index->connect('/'.$collection, array('action' => $collection, 'method' => $method));
 			}
 		}
 
-		/* Collections */
-		if(isset($options['collection'])) {
-			foreach($options['collection'] as $collection => $method){
-				$index->connect('/'.$collection, array('action' => $collection, 'method' => $method));
+		/* Create */
+		if(!$only_set || in_array('create', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'create')), 'post', true);
+
+		/* New */
+		if(!$only_set || in_array('add', $only) || in_array('new', $only)) {
+			$this->connect($front.'/new', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+			$this->connect($front.'/add', array_merge($options, array('controller' => $controller, 'action' => 'add')), 'get', true);
+		}
+
+		/* Edit */
+		if(!$only_set || in_array('edit', $only))
+			$this->connect($front.'/:id/edit', array_merge($options, array('controller' => $controller, 'action' => 'edit')), 'get', true);
+
+		/* Show */
+		if(!$only_set || in_array('show', $only))
+			$show = $this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'show')), 'get', true);
+
+		/* Update */
+		if(!$only_set || in_array('update', $only))
+			$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'update')), 'put', true);
+
+		/* Delete */
+		if(!$only_set || in_array('delete', $only))
+			$this->connect($front.'/:id', array_merge($options, array('controller' => $controller, 'action' => 'delete')), 'delete', true);
+
+		/* Members */
+		if(isset($show) && isset($options['member'])) {
+			foreach($options['member'] as $member => $method){
+				$show->connect('/'.$member, array('action' => $member), $method);
 			}
 		}
 
@@ -191,7 +235,7 @@ class Map
 			$func($show);
 		}
 
-		return $show;
+		return isset($show) ? $show : null;
 	}
 
 	/**
@@ -213,15 +257,25 @@ class Map
 		return $this->connect('/', $options, 'get', false);
 	}
 
+	public function router()
+	{
+		return $this->_router;
+	}
+
 	/**
 	 * Just a stub for now
 	 */
-	public function withOptions(array $options = array())
+	public function withOptions(array $options = array(), $closure = null)
 	{
 		if(!empty($this->_options))
 				$options = array_merge($this->_options, $options);
 
-		return new self($this, $this->_router, $options);
+		$map = new self($this, $this->_router, $options);
+
+		if(!is_null($closure))
+			$closure($map);
+
+		return $map;
 	}
 
 //- Protected
@@ -232,16 +286,13 @@ class Map
 	 *
 	 * @return string Prefix for Route
 	 */
-	protected function _getPrefix($path)
+	protected function _getPrefix()
 	{
-		$path = ltrim($path, '/');
 		$ret = '/';
 
 		if(isset($this->_options['namespace'])) {
-			$ret .= $this->_options['namespace'].'/';
+			$ret .= $this->_options['namespace'];
 		}
-
-		$ret .= $path;
 
 		return $ret;
 	}

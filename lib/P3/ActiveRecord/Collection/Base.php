@@ -22,8 +22,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected $_countQuery   = null;
 	protected $_statement    = null;
 	
-	private $_fetchPointer = -1;
-	private $_indexPointer = 0;
+	protected $_fetchPointer = -1;
+	protected $_indexPointer = 0;
 
 //- Public
 	/**
@@ -39,6 +39,62 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_parentModel = $parentModel;
 
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
+	}
+
+	public function all(array $options = array())
+	{
+		$builder = clone $this->_builder;
+
+		$class = $this->_options['class'];
+		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : $class::pk().' ASC';
+		$only_one = isset($options['one']) ? $options['one'] : false;
+		$limit    = isset($options['limit']) ? $options['limit'] : null;
+		$flags    = 0;
+
+		if($only_one) {
+			$limit = 1;
+			$flags = $flags | FLAG_SINGLE_MODE;
+		}
+
+		if($class::$_extendable)
+			$flags = $flags | FLAG_DYNAMIC_TYPES;
+
+		$builder->select();
+
+		if(!isset($options['conditions'])) {
+			$builder->where('1');
+		} else {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
+			}
+		}
+
+		if($class::$_extendable) {
+			$parent_class = array_shift(class_parents($class));
+
+			if($parent_class !== __CLASS__)
+				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
+		} 
+
+		$builder->order($order);
+
+		if(!is_null($limit)) {
+			if(!is_array($limit))
+				$offset = null;
+			else
+				list($limit, $offset) = $limit;
+
+			$builder->limit($limit, $offset);
+		}
+
+		$collection = new self($builder, null, $flags);
+
+
+		return $only_one ? $collection->first() : $collection;
 	}
 
 	/**
@@ -97,6 +153,9 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 	public function export()
 	{
+		if(!$this->complete())
+			$this->_fetchAll();
+
 		return $this->_data;
 	}
 
@@ -144,31 +203,34 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * @param type $where where for ActiveRecords find
 	 * @param array $options options 
 	 */
-	public function find($where, array $options = array())
+	public function find($id, array $options = array())
 	{
 		/* TODO: Same code from ActiveRecord's find (minus extension checks) (needs to be refactored) */
 
 		$builder = clone $this->_builder;
 
 		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
-		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
-		$skip_int_check = isset($options['skip_int_check']) ? $options['skip_int_check'] : false;
 		$flags    = 0;
 		$class = $this->_options['class'];
 
+		$only_one = true;
+
 		if($only_one) {
 			$limit = 1;
-			$flags = $flags | Collection\FLAG_SINGLE_MODE;
+			$flags = $flags | FLAG_SINGLE_MODE;
 		}
 
 		/* Uses MODE_PREPEND to attempt to preserve indexed keys */
-		if(!empty($where)) {
-			if(!$skip_int_check && is_int($where)) {
-				$builder->where($class::pk().' = '.$where, QueryBuilder::MODE_PREPEND);
-				$only_one = true;
-			} else {
-				$builder->where($where, QueryBuilder::MODE_PREPEND);
+		$builder->where($class::pk().' = '.$id, QueryBuilder::MODE_PREPEND);
+
+		if(isset($options['conditions'])) {
+			foreach($options['conditions'] as $k => $v) {
+				if(!is_numeric($k) && !is_array($v))
+					$builder->where($k.'=\''.$v.'\'', QueryBuilder::MODE_APPEND);
+				else {
+					$builder->where($v, QueryBuilder::MODE_APPEND);
+				}
 			}
 		}
 
@@ -192,6 +254,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			return $this->fetch();
 
 		return $this->_data[0];
+	}
+
+	public function getBuilder()
+	{
+		return $this->_builder;
 	}
 
 	public function getContentClass()
@@ -230,6 +297,18 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function key()
 	{
 		return $this->_indexPointer;
+	}
+
+	public function last()
+	{
+		if(count($this)) {
+			if(!$this->complete())
+				$this->_fetchAll();
+
+			return $this->_data[count($this) - 1];
+		}
+
+		return null;
 	}
 
 	public function next()
@@ -289,14 +368,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function offsetSet($offset, $value) 
 	{
-		if (is_null($offset)) {
-			$this->_data[] = $value;
-		} else {
-			if(!isset($this->_data[$offset]))
-				while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
-
-			$this->_data[$offset] = $value;
-		}
+		if(!is_null($offset))
+			throw new \P3\Exception\ActiveRecordException("Replacing a model in the collection is not supported (You passed a key to set into the collection array).  You should add models using \$collection[].");
 	}
 
 	/**
@@ -311,6 +384,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			while(!$this->complete() && $this->_fetchPointer < $offset && $this->fetch());
 
 		unset($this->_data[$offset]);
+	}
+
+	public function paginate(array $options)
+	{
+		return new Paginized(clone $this->_builder, $options, $this->_parentModel, $this->_flags);
 	}
 
 
@@ -337,8 +415,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			return (bool)count($this);
 	}
 
-//- Private
-	private function _countQuery() 
+//- Protected
+	protected function _countQuery() 
 	{
 		if(is_null($this->_countQuery)) {
 			$builder = clone $this->_builder;
@@ -348,6 +426,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_countQuery;
 	}
 
+//- Private
 	private function _fetchAll()
 	{
 		$this->_setState(STATE_STARTED);
