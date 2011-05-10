@@ -179,8 +179,8 @@ class Base extends \P3\Model\Base
 
 				$rendered .= "Content-Type: multipart/alternative; boundary=\"".static::$_altBoundry.static::$_mimeHash."\"\r\n";
 
-				$html_path  = $path.'.html.tpl';
-				$plain_path = $path.'.txt.tpl';
+				$html_path  = $path.'.html';
+				$plain_path = $path.'.txt';
 
 				$rendered .= '--'.static::$_altBoundry.static::$_mimeHash."\r\n";
 				$rendered .= "Content-Type: text/plain; charset=\"iso-8859-1\r\n";
@@ -196,14 +196,14 @@ class Base extends \P3\Model\Base
 				break;
 
 			case self::MAIL_TYPE_HTML:
-				$path     .= '.html.tpl';
+				$path     .= '.html';
 				$rendered .= "Content-Type: text/html; charset=\"iso-8859-1\r\n";
 				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
 				$rendered .= $template->render($path);
 				break;
 
 			case self::MAIL_TYPE_PLAINTEXT:
-				$path     .= '.txt.tpl';
+				$path     .= '.txt';
 				$rendered .= "Content-Type: text/plain; charset=\"iso-8859-1\r\n";
 				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
 				$rendered .= $template->render($path);
