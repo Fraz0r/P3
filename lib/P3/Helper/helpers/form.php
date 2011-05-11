@@ -294,7 +294,6 @@ class form extends P3\Helper\Base
 
 		if(isset($options['format'])) {
 			if($options['format'] == 'phone') {
-				$val = '(660) 909-2628';
 				$val = preg_replace('/([^\d])/', '', $val);
 
 				if(preg_match('/([\d]{3})([\d]{3})([\d]{4})([\d]*)/', $val, $m)) {
