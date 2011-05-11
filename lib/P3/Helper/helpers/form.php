@@ -292,6 +292,22 @@ class form extends P3\Helper\Base
 	{
 		$val = isset($options['value']) ? $options['value'] : $this->_model->{$field};
 
+		if(isset($options['format'])) {
+			if($options['format'] == 'phone') {
+				$val = '(660) 909-2628';
+				$val = preg_replace('/([^\d])/', '', $val);
+
+				if(preg_match('/([\d]{3})([\d]{3})([\d]{4})([\d]*)/', $val, $m)) {
+					$val = '('.$m[1].') '.$m[2].'-'.$m[3];
+					if(!empty($m[4]))
+						$val .= ' ext. '.$m[4];
+				}
+
+				$options['onkeyup'] = "var ev = event || window.event; if(event.keyCode != 8){ var v = this.value.replace(/([^\d])/g, ''); m = v.match(/([\d]{3})([\d]{1,3})?([\d]{1,4})?([\d]*)?/); if(m) { this.value = '(' + m[1]; if(m[1].length == 3) this.value += ') '; if(m[2]) this.value += m[2]; if(m[2].length == 3) this.value += '-'; if(m[3]) this.value += m[3]; if(m[4] && m[3].length == 4) this.value += ' ext ' + m[4]; } }";
+			}
+			unset($options['format']);
+		}
+
 		echo html::_t('input',
 				array_merge(array(
 					'type'  => 'text',
@@ -323,6 +339,13 @@ class form extends P3\Helper\Base
 					'value' => $this->_model->{$field}
 				), $options)
 		);
+	}
+
+	public function phoneField($field, array $options = array())
+	{
+		$options['format'] = 'phone';
+
+		$this->textField($field, $options);
 	}
 
 	/**
@@ -382,7 +405,7 @@ class form extends P3\Helper\Base
 		$this->_modelField = $name;
 	}
 
-//Private
+//- Private
 	private function _fieldRequired($field)
 	{
 		$class = $this->_modelClass;
