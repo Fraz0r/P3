@@ -60,13 +60,14 @@ class Base
 	{
 		if(is_null($route)) {
 			$router = \P3::getRouter();
-			$route = \P3\Router::getDispatched();
 		}
 
 		$this->_route = $route;
 
 		if(empty($path)) {
 			$path = \P3\APP_PATH.'/views';
+	 	} else {
+			$path = \P3\APP_PATH.'/views/'.$path;
 		}
 
 		$this->_path = rtrim($path, '/');
@@ -149,7 +150,7 @@ class Base
 		if($parts[count($parts)-1][0] == '_')
 			$partial = true;
 
-		if(count($parts) == 1) 
+		if(count($parts) == 1 && !is_null($this->_route)) 
 			$path = $this->_route->getController().'/'.$path;
 
 		$file = $this->viewPath($path);

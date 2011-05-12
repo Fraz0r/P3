@@ -14,9 +14,14 @@ class Message
 	private $_headers = array();
 	private $_subject = null;
 	private $_to      = null;
+	private $_options = null;
 
-	public function __construct()
+	public function __construct($to, $subject, $contents, array $options = array())
 	{
+		$this->_to      = $to;
+		$this->_subject = $subject;
+		$this->_body    = is_string($contents) ? $contents : $this->_parseParts($contents);
+		$this->_options = $options;
 	}
 
 	public function addHeader($header)
@@ -36,6 +41,16 @@ class Message
 			$this->addHeader('From: '.$this->_from);
 
 		return implode("\r\n", $this->_headers);
+	}
+
+	private function _parseParts($contents)
+	{
+		if(is_array($contents)) {
+		} elseif(is_subclass_of($contents, 'P3\Mail\Message\Part')) {
+			echo 'hit';
+		} else {
+			/* Need Exception */
+		}
 	}
 
 }

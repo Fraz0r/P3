@@ -71,9 +71,9 @@ abstract class Base extends \P3\Controller\Base
 			$this->setAttribute($k, $v);
 		}
 
-		$this->_prepareView();
-
 		parent::__construct($route);
+
+		$this->_prepareView();
 	}
 
 	public function dispatch($action = null)

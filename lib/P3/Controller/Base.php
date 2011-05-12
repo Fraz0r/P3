@@ -63,8 +63,6 @@ abstract class Base
 	 */
 	public function __construct($route = null)
 	{
-		$route = is_null($route) ? Router::getDispatched() : $route;
-
 		$this->_route = $route;
 	}
 

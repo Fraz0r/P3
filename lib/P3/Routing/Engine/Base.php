@@ -92,7 +92,7 @@ abstract class Base {
 
 		$fully_qualified = $namespace.$controller_name;
 
-		$controller = new $fully_qualified;
+		$controller = new $fully_qualified(self::$_dispatchedRoute);
 		return $controller->process($action);
 	}
 
