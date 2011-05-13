@@ -167,7 +167,7 @@ class Base extends \P3\Model\Base
 		$rendered = '';
 		$path     = 'notifier/'.$msg;
 		$template = static::$_view;
-		$template->setLayout(static::$_layout);
+		//$template->setLayout(static::$_layout);
 
 		if(count(static::$_attachments)) {
 			$rendered .= "Content-Type: multipart/mixed; boundary=\"".static::$_mixedBoundry.static::$_mimeHash."\"\r\n";
@@ -204,8 +204,6 @@ class Base extends \P3\Model\Base
 
 			case self::MAIL_TYPE_PLAINTEXT:
 				$path     .= '.txt';
-				$rendered .= "Content-Type: text/plain; charset=\"iso-8859-1\r\n";
-				$rendered .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
 				$rendered .= $template->render($path);
 				break;
 		}
