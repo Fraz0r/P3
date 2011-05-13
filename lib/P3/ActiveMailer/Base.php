@@ -236,7 +236,6 @@ class Base extends \P3\Model\Base
 		static::$_subject    = null;
 		static::$_body       = null;
 
-		static::$_attrs    = array();
 		static::$_route    = Router::getDispatched();
 		static::$_args    = $_GET;
 		static::$_view    = new \P3\Template\Base;
