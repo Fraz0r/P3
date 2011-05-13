@@ -223,11 +223,14 @@ final class Loader
 				return;
 			}
 
-			$path = APP_PATH.'/models/'.strtolower(\str::fromCamelCase($model)).'.php';
+			$cameled = strtolower(\str::fromCamelCase($model));
+			$path = APP_PATH.'/models/'.$cameled.'.php';
 
-			self::loadClass('\P3\Exception\LoaderException');
 			if(!is_readable($path)) {
-				throw new Exception\LoaderException('Couldn\'t read Model "%s" into the system', array($model));
+				/* We could also be here looking for a Mailer.. so lets give that a shot */
+				$path = APP_PATH.'/mailers/'.$cameled.'.php';
+				if(!is_readable($path))
+					throw new Exception\LoaderException('Couldn\'t read Model "%s" into the system', array($model));
 			}
 
 			require_once($path);

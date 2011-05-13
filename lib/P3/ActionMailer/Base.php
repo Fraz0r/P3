@@ -20,11 +20,14 @@ class Base extends \P3\ActionController\Base
 		$options    = array();
 		$mime_parts = array();
 
-		if($this->templateExists($action.'.text.plain'))
-			$mime_parts[] = new MessagePart\Plain($this->render($action.'.text.plain'));
+		if(!is_null($this->from))
+			$options['from'] = $this->from;
 
 		if($this->templateExists($action.'.text.html'))
 			$mime_parts[] = new MessagePart\HTML($this->render($action.'.text.html'));
+
+		if($this->templateExists($action.'.text.plain'))
+			$mime_parts[] = new MessagePart\Plain($this->render($action.'.text.plain'));
 
 		if(count($mime_parts))
 			return new Message($this->to, $this->subject, $mime_parts, $options);
@@ -65,25 +68,27 @@ class Base extends \P3\ActionController\Base
 	 * @param array $arguments Arguments that were passed to function call
 	 * @magic
 	 */
-	public static function  __callStatic($name, $arguments)
+	public static function  __callStatic($function, $arguments)
 	{
 		$deliver = false;
 
-		if(FALSE !== strpos($name, 'deliver_')) {
-			$name = str_replace('deliver_', '', $name);
+		if(substr($function, 0, 8) == 'deliver_') {
+			$action = substr($function, 8);
 			$deliver = true;
-		} elseif(FALSE !== strpos($name, 'create_')) {
-			$name = str_replace('deliver_', '', $name);
+		} elseif(substr($function, 0, 7) == 'create_') {
+			$action = substr($function, 7);
 			$deliver = false;
+		} else {
+			/* Otherwise pass it on */
+			return call_user_func_array(array(current(class_parents(get_called_class())), $function), $arguments);
 		}
 
-		if(isset($name)) {
+		if(isset($action)) {
 			$mailer = new static;
-			$message = $mailer->process($name, $arguments);
+			$message = $mailer->process($action, $arguments);
 		}
 
-		var_dump($message);
-
+		return $deliver ? $message->deliver() : $message;
 	}
 }
 
