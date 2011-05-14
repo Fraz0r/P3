@@ -36,6 +36,9 @@ class Message
 		if(isset($options['boundaries']['alt']))
 			$this->_boundaries['alt'] = $options['alt'];
 
+		if(isset($options['attachments']))
+			$this->_attachments = $options['attachments'];
+
 		$this->_to      = $to;
 		$this->_subject = $subject;
 		$this->_options = $options;
@@ -47,15 +50,19 @@ class Message
 		if(!is_null($this->_x_mailer))
 			$this->addHeader('X-Mailer: '.$this->_x_mailer);
 
-		if(isset($options['attach']))
-			$this->_parseAttachments();
-
 		$this->_body    = $this->_parseParts($contents);
 	}
 
 	public function addHeader($header)
 	{
 		$this->_headers[] = $header;
+	}
+
+	public function attach($attachment, $inline = false)
+	{
+		$options = $inline ? array('disposition' => 'inline') : array();
+
+		$this->_attachments[] = new Attachment($attachment);
 	}
 
 	public function boundry($type, $val = null)
@@ -70,9 +77,7 @@ class Message
 
 	public function deliver()
 	{
-		var_dump($this->_headers());
-		var_dump($this->_body);
-		//return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
+		return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
 	}
 
 //- Private
@@ -87,16 +92,6 @@ class Message
 	private function _headers()
 	{
 		return implode($this->_eol, $this->_headers);
-	}
-
-	private function _parseAttachments()
-	{
-		foreach($this->_attachments as &$v) {
-			if(file_exists($v)) {
-			} else {
-				/* TODO: Need exception here */
-			}
-		}
 	}
 
 	private function _parseParts($contents)
@@ -144,9 +139,17 @@ class Message
 			/* Need Exception */
 		}
 
-		if(count($this->_attachments)) {
-			$ret .= '--'.$this->boundry('mixed').'--';
+		if(0 < ($c = count($this->_attachments))) {
+			$x = 0;
+			foreach($this->_attachments as $attachment) {
+				$attachment->boundary($this->boundry('mixed'));
+				$ret .= $attachment->render().$eol;
+
+				if(++$x == $c)
+					$ret .= '--'.$this->boundry('mixed').'--'.$eol;
+			}
 		}
+
 
 		return $ret;
 	}

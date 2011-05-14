@@ -11,8 +11,14 @@ use       P3\Mail\Message\Part as MessagePart;
  */
 class Base extends \P3\ActionController\Base
 {
+	private $_attachments = array();
 
 //- Public
+	public function attach($filepath, array $options = array())
+	{
+		$this->_attachments[] = new \P3\Mail\Attachment($filepath, $options);
+	}
+
 	public function process($action, array $arguments = array())
 	{
 		call_user_func_array(array($this, $action), $arguments);
@@ -28,6 +34,9 @@ class Base extends \P3\ActionController\Base
 
 		if($this->templateExists($action.'.text.plain'))
 			$mime_parts[] = new MessagePart\Plain($this->render($action.'.text.plain'));
+
+		if(count($this->_attachments))
+			$options['attachments'] = $this->_attachments;
 
 		if(count($mime_parts))
 			return new Message($this->to, $this->subject, $mime_parts, $options);
