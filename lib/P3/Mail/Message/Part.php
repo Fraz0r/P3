@@ -34,21 +34,37 @@ class Part
 		$this->_content_type = isset($options['content_type']) ? $options['content_type'] : 'text/plain';
 	}
 
-	public function renderContents()
+	public function header($type)
+	{
+		switch($type) {
+			case 'content':
+				return 'Content-Type: '.$this->_content_type.'; charset="'.$this->_encoding.'"';
+			case 'xfr':
+			case 'transfer':
+				return 'Transfer-Encoding: '.$this->_xfr_enc;
+			default:
+				return null;
+		}
+	}
+
+	public function renderContents($include_headers = true)
 	{
 		$eol = $this->_eol;
 
 		$ret = '';
 		
-		if(!is_null($this->_boundary))
-			$ret .= '--'.$this->_boundary.$eol;
+		if($include_headers) {
+			if(!is_null($this->_boundary))
+				$ret .= '--'.$this->_boundary.$eol;
 
-		$ret .= 'Content-Type: '.$this->_content_type.'; charset="'.$this->_encoding.'"'.$eol;
-		$ret .= 'Transfer-Encoding: '.$this->_xfr_enc.$eol.$eol;
-		$ret .= $this->_contents.$eol.$eol;
+			$ret .= $this->header('content').$eol;
+			$ret .= $this->header('transfer').$eol.$eol;
+		}
 
-		if(!is_null($this->_boundary))
-			$ret .= '--'.$this->_boundary.'--'.$eol.$eol;
+		$ret .= $this->_contents;
+
+		if($include_headers && !is_null($this->_boundary))
+			$ret .= $eol.$eol.'--'.$this->_boundary.'--'.$eol.$eol;
 
 		return $ret;
 	}

@@ -9,6 +9,7 @@ namespace P3\Mail;
  */
 class Message 
 {
+	private $_attachments = array();
 	private $_body    = '';
 	private $_boundaries = array('mixed' => null, 'alt' => null);
 	private $_eol     = "\n";
@@ -37,16 +38,19 @@ class Message
 
 		$this->_to      = $to;
 		$this->_subject = $subject;
-		$this->_body    = is_string($contents) ? $contents : $this->_parseParts($contents);
 		$this->_options = $options;
+		$this->_x_mailer = isset($options['x_mailer']) ? $option['x_mailer'] : 'PHP v'.PHP_VERSION;
 
 		if(isset($options['from']))
-			$this->_from = $options['from'];
+			$this->addHeader('From: '.$options['from']);
 
-		$this->_x_mailer = isset($options['x_mailer']) ? $option['x_mailer'] : 'PHP '.PHP_VERSION;
+		if(!is_null($this->_x_mailer))
+			$this->addHeader('X-Mailer: '.$this->_x_mailer);
 
 		if(isset($options['attach']))
 			$this->_parseAttachments();
+
+		$this->_body    = $this->_parseParts($contents);
 	}
 
 	public function addHeader($header)
@@ -58,7 +62,7 @@ class Message
 	{
 		if(is_null($val)) {
 			if(is_null($this->_boundaries[$type]))
-				$this->_boundaries[$type] = $this->_generateBoundary();
+				$this->_boundaries[$type] = $this->_generateBoundary($type);
 
 			return $this->_boundaries[$type];
 		}
@@ -66,46 +70,82 @@ class Message
 
 	public function deliver()
 	{
-		return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
+		var_dump($this->_headers());
+		var_dump($this->_body);
+		//return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
 	}
 
 //- Private
-	private function _generateBoundary()
+	private function _generateBoundary($prepend)
 	{
 		if(is_null($this->_rand))
 			$this->_rand = uniqid('p3m');
 
-		return '==Multipart_Boundary_'.$this->_rand;
+		return '==Multipart_Boundary_'.$prepend.'-'.$this->_rand;
 	}
 
 	private function _headers()
 	{
-		if(!is_null($this->_from))
-			$this->addHeader('From: '.$this->_from);
-
-		if(!is_null($this->_x_mailer))
-			$this->addHeader('X-Mailer: '.$this->_x_mailer);
-
 		return implode($this->_eol, $this->_headers);
+	}
+
+	private function _parseAttachments()
+	{
+		foreach($this->_attachments as &$v) {
+			if(file_exists($v)) {
+			} else {
+				/* TODO: Need exception here */
+			}
+		}
 	}
 
 	private function _parseParts($contents)
 	{
 		$eol = $this->_eol;
+		$ret = '';
+
+		if(is_string($contents))
+			$contents = new Message\Part\Plain($contents);
+		elseif(is_array($contents) && count($contents) == 1)
+			$contents = current($contents);
+
+		if(count($this->_attachments)) {
+			$this->addHeader('Content-Type: multipart/mixed; boundary="'.$this->boundry('mixed').'"');
+			$ret .= '--'.$this->boundry('mixed').$eol;
+		}
 
 		if(is_array($contents)) {
-			$this->addHeader('Content-Type: multipart/alternative; boundary="'.$this->boundry('alt').'"');
+			if(!count($this->_attachments)) {
+				$this->addHeader('Content-Type: multipart/alternative; boundary="'.$this->boundry('alt').'"');
+			} else {
+				$ret .= 'Content-Type: multipart/alternative; boundary="'.$this->boundry('alt').'"'.$eol.$eol;
+			}
 
-			$ret = $this->_notice.$eol.$eol;
+			$ret .= $this->_notice.$eol.$eol;
 
 			foreach($contents as $part) {
 				$part->setBoundary($this->boundry('alt'));
 				$ret .= $part->renderContents();
 			}
 		} elseif(is_subclass_of($contents, 'P3\Mail\Message\Part')) {
-			$ret = $contents->renderContents();
+			if(!count($this->_attachments)) {
+				$this->addHeader($contents->header('content'));
+			} else {
+				$ret .= $contents->header('content').$eol;
+				$ret .= $contents->header('transfer').$eol.$eol;
+			}
+
+			$ret .= $contents->renderContents(false);
+
+			if(count($this->_attachments)) {
+				$ret .= $eol.$eol;
+			}
 		} else {
 			/* Need Exception */
+		}
+
+		if(count($this->_attachments)) {
+			$ret .= '--'.$this->boundry('mixed').'--';
 		}
 
 		return $ret;
