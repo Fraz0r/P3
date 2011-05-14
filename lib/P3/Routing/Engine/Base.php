@@ -213,12 +213,10 @@ abstract class Base {
 	 * Counts and returns number of Routes
 	 *
 	 * @return int Number of Routes
-	 *
-	 * @todo fix numRoutes
 	 */
 	public static function numRoutes()
 	{
-		return count(self::$_routes);
+		return count(self::$_routes, COUNT_RECURSIVE) - count(self::$_routes);
 	}
 
 	/**

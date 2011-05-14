@@ -24,17 +24,13 @@ class Attachment
 		if(isset($options['inline']) && $options['inline'])
 			$this->_dispostion = 'inline';
 
-		if(!file_exists($filepath)) {
-			var_dump("TODO: NEED EXCEPTION HERE");
-			die;
-		}
+		if(!file_exists($filepath))
+			throw new \P3\Exception\MailAttachmentException("File does not exist");
 
 		$ih = finfo_open(FILEINFO_MIME_TYPE);
 
-		if(!$ih) {
-			var_dump("TODO: NEED EXCEPTION HERE");
-			die;
-		}
+		if(!$ih)
+			throw new \P3\Exception\MailAttachmentException("Failed to stat file");
 
 		$this->_contents  = chunk_split(base64_encode(file_get_contents($filepath)));
 		$this->_mime_type = finfo_file($ih, $filepath);
@@ -54,10 +50,8 @@ class Attachment
 	public function render()
 	{
 		$eol = $this->_eol;
-		if(is_null($this->_boundary)) {
-			var_dump("TODO: NEED EXCEPTION HERE");
-			die;
-		}
+		if(is_null($this->_boundary))
+			throw new \P3\Exception\MailAttachmentException("No Multi-Part MIME boundary was set before render()");
 
 		$ret = '';
 		$ret .= '--'.$this->_boundary.$eol;

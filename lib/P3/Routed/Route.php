@@ -127,8 +127,6 @@ class Route {
 	 * Dispatches self
 	 *
 	 * @return void
-	 *
-	 * @todo Remove Print statements from dispatch()
 	 */
 	public function dispatch()
 	{
@@ -261,7 +259,6 @@ class Route {
 	 */
 	public function reverseMatch($controller, $action, $method)
 	{
-		//printf("Checking Route: [%s] %s#%s (%s)<br />", $this->_method, $this->_controller, $this->_action, $this->_path);
 		return
 			($this->_controller == $controller
 				&& $this->_action == $action
@@ -301,8 +298,6 @@ class Route {
 
 			$self_sep   = $self_seps[$x];
 			$passed_sep = isset($passed_seps[$x]) ? $passed_seps[$x] : null;
-
-			//var_dump("Self T: ({$self_sep}){$self_token},   Passed T:({$passed_sep}){$passed_token}");
 
 			/* If we are missing the token, and it's not optional - then we're done here */
 			if($self_sep[0] == '[') {

@@ -278,7 +278,8 @@ class Builder
 	public function where($conditions, $mode = self::MODE_OVERRIDE)
 	{
 		if(is_array($conditions)) {
-			/* Todo:  create this functionality */
+			$format = array_shift($conditions);
+			$clause = sprintf($format, $conditions);
 		} else {
 			$clause = $conditions;
 		}
@@ -291,9 +292,8 @@ class Builder
 //- Private
 	private function _buildQuery()
 	{
-		/* TODO:  Switch to query builder exception */
 		if(empty($this->_sections['base']))
-				throw new \Exception("You asked me to build a query for which you have not started?");
+				throw new \P3\Exception\QueryBuilderException("You asked me to build a query for which you have not started?");
 
 		$query = $this->_sections['base'];
 
