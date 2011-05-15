@@ -5,12 +5,25 @@ use       P3\Database\Query\Builder as QueryBuilder;
 
 
 /**
- * Description of BelongsToAssociation
+ * Returns Collection (with SINGLE flag set) for the parent model of $model (passed in __construct())
+ * 
+ * Options:
+ * 	class:  Class to instantiate
+ * 	fk:     Foreign Key Collumn (self side)
  *
- * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\ActiveRecord\Association
+ * @version $Id$
  */
 class BelongsToAssociation extends Base 
 {
+	/**
+	 * Instantiates a new BelongsToAssociation
+	 * 
+	 * This is never to be called outside of P3s internal structure.
+	 * 
+	 * @param type $model parent in the association
+	 * @param array $options options
+	 */
 	public function __construct($model, array $options = array())
 	{
 		$this->_options = $options;

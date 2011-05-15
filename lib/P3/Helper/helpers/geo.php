@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Description of geo
+ * Geo helpers
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\ActiveRecord\Association
+ * @version $Id$
  */
 class geo extends \P3\Helper\Base
 {

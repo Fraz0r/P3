@@ -1,11 +1,14 @@
 <?php
 
-
-\P3\Loader::loadHelper('str');
-\P3\Loader::loadHelper('html');
-
 use P3\Router as Router;
 
+/**
+ * Form Helper
+ *  
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Helper
+ * @version $Id$
+ */
 class form extends P3\Helper\Base
 {
 	/**

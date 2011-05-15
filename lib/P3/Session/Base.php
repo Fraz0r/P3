@@ -4,9 +4,11 @@ namespace P3\Session;
 use       P3\Exception\SessionException as Error;
 
 /**
- * Description of Session
+ * This is the class used to use $_SESSION as an object
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\Session
+ * @version $Id$
  */
 class Base extends \ArrayObject
 {

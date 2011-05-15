@@ -2,13 +2,16 @@
 
 namespace P3\Config;
 
+/**
+ * This is the class used to read config.ini files into your app
+ * 
+ * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\Config
+ * @version $Id$
+ */
 class Parser
 {
 	protected $_config = array();
-
-	public function __construct(array $options = array())
-	{
-	}
 
 	/**
 	 * Returns section from config file

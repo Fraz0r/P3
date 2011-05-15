@@ -4,33 +4,92 @@ namespace P3\ActiveRecord\Collection;
 use       P3\Database\Query\Builder as QueryBuilder;
 
 /**
- * P3\Active\Record\Collection\Base
- *
- * Container for ActiveRecords
+ * Container for a collection of ActiveRecords.  Note, no query has hit the database
+ * when this is returned.  Fetch() is called as the array is accessed.  count() should
+ * be used to verify you have a valid collection, before accessing elements.
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\ActiveRecord\Collection
+ * @version $Id$
  */
 class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 {
 //- attr-protected
+	/**
+	 * Query Builder to use for ActiveRecord retreival
+	 * 
+	 * @var type P3\Database\Query\Builder
+	 */
 	protected $_builder      = null;
+
+	/**
+	 * Containing model class name.  This is the class used for FETCH_INTO on the pdo
+	 * 
+	 * @var string 
+	 */
 	protected $_contentClass = null;
-	protected $_data         = array();
-	protected $_flags        = 0;
-	protected $_parentModel  = null;
-	protected $_state        = 0;
+
+	/**
+	 * Query string used to count records
+	 * 
+	 * @see _countQuery
+	 * @var string
+	 */
 	protected $_countQuery   = null;
+
+	/**
+	 * Container for loaded ActiveRecords
+	 * @var array
+	 */
+	protected $_data         = array();
+
+	/**
+	 * Pointer for fetch()
+	 * 
+	 * @var int 
+	 */
+	protected $_fetchPointer = -1;
+
+	/**
+	 * Flags set on Collection
+	 * @var int
+	 */
+	protected $_flags        = 0;
+
+	/**
+	 * Pointer for array access
+	 * 
+	 * @var int
+	 */
+	protected $_indexPointer = 0;
+
+	/**
+	 * Parent model (if any)
+	 * 
+	 * @var P3\ActiveRecord\Base
+	 */
+	protected $_parentModel  = null;
+
+	/**
+	 * Current state of collection
+	 * 
+	 * @var int
+	 */
+	protected $_state        = 0;
+
+	/**
+	 * PDO Statement used for model retreival
+	 * @var \PDOStatement
+	 */
 	protected $_statement    = null;
 	
-	protected $_fetchPointer = -1;
-	protected $_indexPointer = 0;
 
 //- Public
 	/**
-	 * Construct
+	 * This is to be called internally from P3 only
 	 *
-	 * @param array $input Array of records
-	 * @param P3\ActiveRecord\Base $parent Parent model, if any
+	 * @param P3\Database\Query\Builder $builder builder to use for retrieval
+	 * @param P3\ActiveRecord\Base $parent parent model, if any
 	 */
 	public function __construct(QueryBuilder $builder, $parentModel = null, $flags = 0)
 	{
@@ -41,6 +100,13 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		if(!is_null($parentModel)) $this->_parentClass = \get_class($parentModel);
 	}
 
+	/**
+	 * Search all records whithin collection
+	 * 
+	 * @param array $options
+	 * @return mixed ActiveRecord if 'one' option is set to TRUE, Collection\Base if multiple
+	 * @see \P3\ActiveRecord\Base::find()
+	 */
 	public function all(array $options = array())
 	{
 		$builder = clone $this->_builder;
@@ -98,7 +164,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 	/**
-	 * Counts number of containing records
+	 * Counts number of containing records.  Uses count query if collection hasn't
+	 * yet fetched all records
 	 *
 	 * (Required by \Counatable)
 	 *
@@ -118,6 +185,14 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		}
 	}
 
+	/**
+	 * Loops through records within self, and collections $attr field.  If
+	 * $attr starts with a ':', it is collected as a function - using $args if passed.
+	 * 
+	 * @param string $attr attribute to retreive
+	 * @param array $args arguments for function, if a symbol was pased
+	 * @return array returned values
+	 */
 	public function collect($attr, array $args = array())
 	{
 		$is_func = $attr[0] == ':';
@@ -132,16 +207,33 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $ret;
 	}
 
+	/**
+	 * Returns true if collection has finished fetching records (reached end of record set)
+	 * 
+	 * @return boolean
+	 */
 	public function complete()
 	{
 		return $this->_state & STATE_COMPLETE;
 	}
 
+	/**
+	 * Returns current active record
+	 * 
+	 * @return P3\ActiveRecord\Base
+	 */
 	public function current()
 	{
 		return $this[$this->_indexPointer];
 	}
 
+	/**
+	 * This is only for if the collection is in single model.  Determines if the
+	 * one model that SHOULD be there, really is
+	 * 
+	 * @return boolean
+	 * @throws P3\Exception\ActiveRecordException
+	 */
 	public function exists()
 	{
 		if($this->_flags & FLAG_SINGLE_MODE) {
@@ -151,6 +243,13 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		}
 	}
 
+	/**
+	 * Returns an array of ActiveRecords.  
+	 * 
+	 * Legacy functionality (this is discouraged)
+	 * 
+	 * @return array
+	 */
 	public function export()
 	{
 		if(!$this->complete())
@@ -159,6 +258,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_data;
 	}
 
+	/**
+	 * Fetches next ActiveRecord in record set.  If false is returned, the Collection
+	 * switches it's state to COMPLETE
+	 * 
+	 * @return mixed ActiveRecord if successfully, false if completed
+	 */
 	public function fetch()
 	{
 		if(!$this->started())
@@ -193,6 +298,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $record;
 	}
 
+	/**
+	 * Filters collection based on closure
+	 * 
+	 * @param Closure $closure function to use in filtering
+	 * @todo Finish filter() in P3\ActiveRecord\Collection\Base
+	 */
 	public function filter($closure)
 	{
 	}
@@ -248,6 +359,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $only_one ? $collection->first() : $collection;
 	}
 
+	/**
+	 * Retrieves the first record in the collection
+	 * 
+	 * @return ActiveRecord\Base First record in collection
+	 */
 	public function first()
 	{
 		if(!isset($this->_data[0]))
@@ -256,16 +372,31 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return $this->_data[0];
 	}
 
+	/**
+	 * Returns query builder being used by collection 
+	 * 
+	 * @return P3\Database\Query\Builder builder being used by collection
+	 */
 	public function getBuilder()
 	{
 		return $this->_builder;
 	}
 
+	/**
+	 * Returns class of child models
+	 * 
+	 * @return string Class of children
+	 */
 	public function getContentClass()
 	{
 		return $this->_contentClass;
 	}
 
+	/**
+	 * Returns controler of child class
+	 * 
+	 * @return string name of controller
+	 */
 	public function getController()
 	{
 		$class = $this->_contentClass;
@@ -284,21 +415,41 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return new \P3\ActiveRecord\Collection\Iterator($this);
 	}
 
+	/**
+	 * Determines whether or not the collection is in progress (fetch() has started, but not reached end of record set)
+	 * 
+	 * @return boolean true if in progress, false otherwise
+	 */
 	public function inProgress()
 	{
 		return $this->started() && !$this->complete();
 	}
 
+	/**
+	 * Determines if FLAG_SINGLE_MODE is set
+	 * 
+	 * @return type boolean
+	 */
 	public function inSingleMode()
 	{
 		return (bool)($this->_flags & FLAG_SINGLE_MODE);
 	}
 
+	/**
+	 * Returns current key (index pointer)
+	 * 
+	 * @return int current index pointer
+	 */
 	public function key()
 	{
 		return $this->_indexPointer;
 	}
 
+	/**
+	 * Returns last record in collecion
+	 * 
+	 * @return ActiveRecord\Base last record in collection
+	 */
 	public function last()
 	{
 		if(count($this)) {
@@ -311,6 +462,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return null;
 	}
 
+	/**
+	 * Moves collection to next record.  Calls fetch first if not yet complete
+	 * 
+	 * @return void
+	 */
 	public function next()
 	{
 		if(!$this->complete())
@@ -319,6 +475,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_indexPointer++;
 	}
 
+	/**
+	 * Set content class to instantiate on fetch()
+	 * 
+	 * @param string $class class to intantiate models as
+	 * @see fetch
+	 */
 	public function setContentClass($class)
 	{
 		$this->_contentClass = $class;
@@ -330,7 +492,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * (Required by \ArrayAccess)
 	 *
 	 * @param mixed $offset Key to check
-	 *
 	 * @return boolean True if already set, false otherwise
 	 */
 	public function offsetExists($offset) 
@@ -346,7 +507,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * (Required by \ArrayAccess)
 	 *
 	 * @param mixed $offset Key of item to grab
-	 *
 	 * @return mixed Returns item at given $offset, or null
 	 */
 	public function offsetGet($offset) {
@@ -363,7 +523,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 *
 	 * @param mixed $offset Key to set
 	 * @param mixed $value  Value to set
-	 *
 	 * return void
 	 */
 	public function offsetSet($offset, $value) 
@@ -378,6 +537,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 * (Required by \ArrayAccess)
 	 *
 	 * @param mixed $offset Unset given $offset key
+	 * @return void
 	 */
 	public function offsetUnset($offset) {
 		if(!isset($this->_data[$offset]))
@@ -386,27 +546,53 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		unset($this->_data[$offset]);
 	}
 
+	/**
+	 * Returns a paginized version of self, based on options
+	 * 
+	 * @param array $options
+	 * @return P3\ActiveRecord\Collection\Paginized 
+	 */
 	public function paginate(array $options)
 	{
 		return new Paginized(clone $this->_builder, $options, $this->_parentModel, $this->_flags);
 	}
 
 
+	/**
+	 * Moves our index pointer back to the start of the collection
+	 * 
+	 * @return void
+	 */
 	public function rewind()
 	{
 		$this->_indexPointer = 0;
 	}
 
+	/**
+	 * Sets a flag on the collection
+	 * 
+	 * @param int $flag flag to set
+	 */
 	public function setFlag($flag)
 	{
 		$this->_flags = $this->_flags | $flag;
 	}
 
+	/**
+	 * Determines whether or not the colletion has started fetching records
+	 * 
+	 * @return boolean true if started, false otherwise 
+	 */
 	public function started()
 	{
 		return (bool)$this->_state & STATE_STARTED;
 	}
 
+	/**
+	 * Lets foreach() loops know when to `break`
+	 * 
+	 * @return boolean returns false when the end of a record set has been reached
+	 */
 	public function valid()
 	{
 		if($this->started())
@@ -416,6 +602,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 //- Protected
+	/**
+	 * Returns count query to use for count().  Builds it on the first call
+	 * 
+	 * @return string returns query to use for count() 
+	 */
 	protected function _countQuery() 
 	{
 		if(is_null($this->_countQuery)) {
@@ -427,6 +618,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 //- Private
+	/**
+	 * Fetches all records and completes collection.
+	 * Should be avoided unless absolutely necessary
+	 * 
+	 * @return void
+	 */
 	private function _fetchAll()
 	{
 		$this->_setState(STATE_STARTED);
@@ -442,11 +639,22 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_setState(STATE_COMPLETE);
 	}
 
+	/**
+	 * Sets state of collection
+	 * 
+	 * @param int $state sets state of collection
+	 */
 	private function _setState($state)
 	{
 		$this->_state = $this->_state | $state;
 	}
 
+	/**
+	 * Instantiates PDOStatemnts used by fetch().  Called by fetch() [on first call]
+	 * 
+	 * @return void
+	 * @see fetch
+	 */
 	private function _start()
 	{
 		$this->_setState(STATE_STARTED);
@@ -454,6 +662,16 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 //- Magic
+	/**
+	 * Passes function calls onto containing model.
+	 * 
+	 * Single Mode ONLY
+	 * 
+	 * @param string $name function name
+	 * @param array $args arguments for function
+	 * @return mixed return of function call
+	 * @magic
+	 */
 	public function __call($name, $args)
 	{
 		/* TODO:  This is old and needs some work */
@@ -469,6 +687,15 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		}
 	}
 
+	/**
+	 * Passes get calls onto containing model.  
+	 * 
+	 * Single Mode ONLY
+	 * 
+	 * @param string $name var to retreive
+	 * @return mixed val of var from record
+	 * @magic
+	 */
 	public function __get($name)
 	{
 		/* TODO:  This is old and needs some work */

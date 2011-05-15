@@ -4,12 +4,14 @@ namespace P3\Routing\Engine;
 use       P3\Loader;
 
 /**
- * P3\Routing\Engine
- *
  * This is the base model for for P3\Router.  Handles Interpreting and dispatching
  * P3\Routing\Route's
+ * 
+ * Please see wiki pages on Routing for information
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Routing\Engine
+ * @version $Id$
  */
 abstract class Base {
 	/**

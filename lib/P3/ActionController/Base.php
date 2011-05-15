@@ -1,14 +1,17 @@
 <?php
-/**
- * Description of ActionController
- *
- * @author Tim Frazier <tim.frazier@gmail.com>
- */
 
 namespace P3\ActionController;
+use       P3\Router;
 
-use P3\Router;
-
+/**
+ * This is the class to extend your Base controllers from.  Typically, only one 
+ * to few controllers should extend this class directly.  Your controllers should
+ * extend eachother to help stay DRY.
+ *
+ * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\ActionController
+ * @version $Id$
+ */
 abstract class Base extends \P3\Controller\Base
 {
 //- ATTRIBUTES
@@ -17,52 +20,62 @@ abstract class Base extends \P3\Controller\Base
 //- attr-protected
 	/**
 	 * An Array of CSS Files for the layout to include
-	 *
+	 * 
+	 * @see _prepareView
 	 * @var array
 	 */
 	protected $_styles = array();
 
 	/**
 	 * An Array of JS Files for the laout to include
-	 *
+	 * 
+	 * @see _prepareView
 	 * @var array
 	 */
 	protected $_scripts = array();
 
 	/**
 	 * Layout to render
-	 *
+	 * 
+	 * @see _prepareView
 	 * @var string
 	 */
 	protected $_layout;
 
 	/**
 	 * Whether or not controller has been rendered
-	 *
+	 * 
+	 * @see rendered
 	 * @var boolean
 	 */
 	protected $_rendered = false;
 
 	/**
 	 * Whether or not controller has been processed
-	 *
+	 * 
+	 * @see process
 	 * @var boolean
 	 */
 	protected $_processed = false;
 
 	/**
 	 * Template to use for rendering
-	 *
+	 * 
+	 * @see _prepareView
 	 * @var \P3\Template\Base
 	 */
 	protected $_view = null;
 
 //- Public
 	/**
-	 * Constructor
+	 * You typically wont instantiate new controllers in your code.  This is used
+	 * in P3 during the Dispatch Process
+	 * 
+	 * @see P3\Routing\Engine\Base::dispatch()
 	 *
-	 * @param P3\Routing\Route $route Dispatched Route (this needs to be gone)
-	 * @param array $option Options for controller
+	 * @param P3\Routing\Route $route dispatched route (this needs to be gone)
+	 * @param array $option options for controller
+	 * @return void
 	 */
 	public function  __construct($route = null, array $options = array())
 	{
@@ -76,6 +89,13 @@ abstract class Base extends \P3\Controller\Base
 		$this->_prepareView();
 	}
 
+	/**
+	 * Dispatches controller, and renders action template (If action didn't return
+	 * FALSE, and didn't render on it's own
+	 * 
+	 * @param string $action action to process and render
+	 * @return void
+	 */
 	public function dispatch($action = null)
 	{
 		if($this->process($action) !== FALSE && !$this->rendered())
@@ -85,8 +105,7 @@ abstract class Base extends \P3\Controller\Base
 	/**
 	 * Process action and returns result
 	 *
-	 * @param string $action
-	 *
+	 * @param string $action action to proccess.  If action is null, it will be pulled from the route
 	 * @return void
 	 */
 	public function process($action = null)
@@ -110,7 +129,6 @@ abstract class Base extends \P3\Controller\Base
 	 * Renders controller#action view, or other disired view
 	 *
 	 * @param string $path path to view to render
-	 *
 	 * @return void
 	 */
 	public function render($path = null)
@@ -185,22 +203,23 @@ abstract class Base extends \P3\Controller\Base
 
 //- Magic
 	/**
-	 * Called by php if function is missing.  Put this here to avoid the necessity
-	 * of the action having to be in the controller
-	 *
-	 * THIS WILL BE GONE, I dont like it
-	 *
-	 * @param string $func
-	 * @param array $args
+	 * Sets variable in view
+	 * 
+	 * @param string $var var to set
+	 * @param string $val value to set
+	 * @magic
 	 */
-	//public function __call($func, $args) {
-	//}
-
 	public function __set($var, $val)
 	{
 		$this->_view->$var = $val;
 	}
 
+	/**
+	 * Retrieves variable from view
+	 * 
+	 * @param string $var var to get
+	 * @return mixed var value
+	 */
 	public function __get($var)
 	{
 		return $this->_view->$var;

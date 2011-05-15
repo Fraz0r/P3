@@ -3,9 +3,14 @@
 namespace P3\Model;
 
 /**
- * Description of Base
+ * Base Model class in P3.  This is extended by P3\ActiveRecord\Base, which should
+ * be used by all your models
+ * 
+ * P3\Model\Base isn't tied to a database in anyway!
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Model
+ * @version $Id$
  */
 abstract class Base {
 //- attr-static-public

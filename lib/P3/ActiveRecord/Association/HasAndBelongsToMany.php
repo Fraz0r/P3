@@ -4,12 +4,32 @@ namespace P3\ActiveRecord\Association;
 use       P3\Database\Query\Builder as QueryBuilder;
 
 /**
- * Description of HasAndBelongsToMany
+ * HasAndBelongsToMany exists to establish many-to-many associations.  For this
+ * association to exist, a join table is required to sit in between the two associating
+ * models.  Such a table typically only has 2 fields, (fk from first and second table).
+ * Both these collumn names(fk, efk) must be included in the options, along with the name
+ * of the join table 
+ * 
+ * Options:
+ * 	class:  Class to instantiate
+ * 	table:  Join Table
+ * 	fk:     Foreign Key Collumn (self side)
+ * 	efk:    Extended Foreign Key (other side)
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\ActiveRecord\Association
+ * @version $Id$
  */
 class HasAndBelongsToMany extends Base
 {
+	/**
+	 * Instantiates a new HasAndBelongsToMany
+	 * 
+	 * This is never to be called outside of P3s internal structure.
+	 * 
+	 * @param type $model parent in the association
+	 * @param array $options options
+	 */
 	public function __construct($parent, array $options = array())
 	{
 		$this->_options = $options;

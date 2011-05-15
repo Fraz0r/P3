@@ -1,18 +1,14 @@
 <?php
-/**
- * Description of Filter
- *
- * @author Tim Frazier <tim.frazier@gmail.com>
- */
-
-/**
- * P3_Filter
- *
- * The filter class is an OOP wrapper for PHP's filter extension
- */
 
 namespace P3;
 
+/**
+ * The filter class is an OOP wrapper for PHP's filter extension
+ * 
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3
+ * @version $Id$
+ */
 class Filter
 {
 	// <editor-fold defaultstate="collapsed" desc="Constants">

@@ -6,31 +6,94 @@ namespace P3\Database\Query;
  * This class is responsible for building SQL queries throughout P3
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Database\Query
+ * @version $Id$
  */
 class Builder 
 {
+	/**
+	 * Modes - Determine how to handle values that already exist for clause
+	 */
 	const MODE_APPEND   = 1;
 	const MODE_PREPEND  = 2;
 	const MODE_OVERRIDE = 3;
 
+	/**
+	 * Query Types
+	 */
 	const TYPE_DELETE = 1;
 	const TYPE_INSERT = 2;
 	const TYPE_SELECT = 3;
 	const TYPE_UPDATE = 4;
 
+	/**
+	 * Join types
+	 */
 	const JOINTYPE_INNER  = 1;
 	const JOINTYPE_LOUTER = 2;
 	const JOINTYPE_ROUTER = 3;
 
-	private $_intoClass = null;
+	/**
+	 * PDO Statement used in fetch()
+	 *  
+	 * @var PDOStatement 
+	 * @see fetch
+	 */
 	private $_fetchStmnt = null;
+
+	/**
+	 * Pointer for fetch()
+	 * 
+	 * @var int
+	 * @see fetch
+	 */
 	private $_fetchPointer = null;
-	private $_queryType = null;
-	private $_sections  = array();
-	private $_table     = null;
+
+	/**
+	 * Flags set on Builder
+	 * 
+	 * @var int
+	 */
 	private $_flags     = 0;
 
+	/**
+	 * Type of query being built
+	 * 
+	 * @var int 
+	 */
+	private $_queryType = null;
+
+
+	/**
+	 * Class to fetch_into (on pdo)
+	 * 
+	 * @var string
+	 */
+	private $_intoClass = null;
+
+	/**
+	 * Container for SQL clauses
+	 * 
+	 * @var array
+	 */
+	private $_sections  = array();
+
+	/**
+	 * Database table being built on
+	 * 
+	 * @var string
+	 */
+	private $_table     = null;
+
 //- Public
+	/**
+	 * Intantiates new Query Builder
+	 * 
+	 * @param mixed $table_or_model Can be (string) table, or (ActiveRecord) model
+	 * @param type $alias alias of table, if any
+	 * @param type $intoClass fetch class for PDO
+	 * @param type $flags flags to set on Builder
+	 */
 	public function __construct($table_or_model = null, $alias = null, $intoClass = null, $flags = 0)
 	{
 		$this->_flags = $flags;
@@ -54,6 +117,12 @@ class Builder
 
 	}
 
+	/**
+	 * Get or Set table alias
+	 * 
+	 * @param string $alias alias to set, current alias is returned if this is null
+	 * @return mixed alias or null
+	 */
 	public function alias($alias = null)
 	{
 		if(!is_null($alias)) {
@@ -66,6 +135,11 @@ class Builder
 		}
 	}
 
+	/**
+	 * Starts a count query
+	 * 
+	 * @return P3\Database\Query\Builder 
+	 */
 	public function count()
 	{
 		$this->_sections = array('base' => 'SELECT COUNT(*) FROM '.$this->_table);
@@ -74,6 +148,11 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Starts a DELETE query
+	 * 
+	 * @return Builder 
+	 */
 	public function delete()
 	{
 		$this->_sections = array('base' => 'DELETE FROM '.$this->_table);
@@ -82,17 +161,33 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Execute query based on whats in _sections
+	 * 
+	 * @return mixed 
+	 */
 	public function execute()
 	{
 		$query = $this->_buildQuery();
 		return \P3::getDatabase()->exec($query);
 	}
 
+	/**
+	 * Returns fetch class being used by PDOStatement
+	 * 
+	 * @return string class being fetched into
+	 */
 	public function getFetchClass()
 	{
 		return $this->_intoClass;
 	}
 
+	/**
+	 * Fetches next record on PDOStatement
+	 * 
+	 * @param int $fetchMode fetch mode pass to PDOStatement (if any)[:w
+	 * @return mixed
+	 */
 	public function fetch($fetchMode = null)
 	{
 		if(is_null($this->_fetchStmnt)) {
@@ -117,6 +212,12 @@ class Builder
 
 	}
 
+	/**
+	 * Calls and returns fetchAll on PDOStatement
+	 * 
+	 * @param int $fetchMode fetch mode to pass to PDOStatement
+	 * @return array return from PDOSTatement
+	 */
 	public function fetchAll($fetchMode = null)
 	{
 		$db    = \P3::getDatabase();
@@ -134,19 +235,23 @@ class Builder
 		return $stmnt->fetchAll();
 	}
 
-	public function selectFrom($from)
-	{
-		if(is_object($from))
-			$from = '('.$from->getQuery().') as t';
-
-		$this->_section('from', $from);
-	}
-
+	/**
+	 * Returns query as executable string
+	 * 
+	 * @return string query string
+	 */
 	public function getQuery()
 	{
 		return $this->_buildQuery();
 	}
 
+	/**
+	 * Sets GROUP BY clause.  (override by default)
+	 * 
+	 * @param string,array $fields Fields to group
+	 * @param type $mode append mode (MODE_OVERRIDE by default)
+	 * @return Builder  self
+	 */
 	public function group($fields, $mode = self::MODE_OVERRIDE)
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
@@ -155,6 +260,13 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Sets HAVING  clause.  (Append by default)
+	 * 
+	 * @param string,array $having
+	 * @param type $mode append mode (MODE_APPEND by default)
+	 * @return Builder 
+	 */
 	public function having($having, $mode = self::MODE_APPEND)
 	{
 		$having= is_array($having) ? implode(', ', $having) : $having;
@@ -162,6 +274,12 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Starts an INSERT query
+	 * 
+	 * @param array $fields fields to insert
+	 * @return Builder 
+	 */
 	public function insert(array $fields)
 	{
 		$this->_sections = array('base' => "INSERT INTO ".$this->_table.'('.implode(', ', array_keys($fields)).')');
@@ -171,6 +289,15 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Joins a table to the query
+	 * 
+	 * @param string $table table to join
+	 * @param string $on clause for `ON` statement
+	 * @param int $join_type join type (JOINTYPE_INNER by default)
+	 * @param int $mode append mode (MODE_APPEND by default)
+	 * @return Builder self
+	 */
 	public function join($table, $on, $join_type = self::JOINTYPE_INNER, $mode = self::MODE_APPEND)
 	{
 		switch($join_type) {
@@ -191,6 +318,12 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Sets LIMIT clause, with optional $offset
+	 * 
+	 * @param type $limit number of records to limit to
+	 * @param type $offset records to offset (if any)
+	 */
 	public function limit($limit, $offset = null)
 	{
 		$this->_section('limit', $limit);
@@ -199,16 +332,31 @@ class Builder
 			$this->offset($offset);
 	}
 
+	/**
+	 * Sets `OFFSET` in query
+	 * 
+	 * @param int $offset number of records to offset
+	 */
 	public function offset($offset)
 	{
 		$this->_section('offset', $offset);
 	}
 
+	/**
+	 * Sets `ORDER BY` clause
+	 * 
+	 * @param string,array $order fields to sort by
+	 */
 	public function order($order) 
 	{
 		$this->_section('order', $order, self::MODE_OVERRIDE);
 	}
 
+	/**
+	 * Removes set section from query
+	 * 
+	 * @param string $section section to remove
+	 */
 	public function removeSection($section)
 	{
 		if(is_array($section)) {
@@ -218,6 +366,12 @@ class Builder
 		}
 	}
 
+	/**
+	 * Starts a SELECT query
+	 * 
+	 * @param string,array $fields fields to select
+	 * @return Builder self
+	 */
 	public function select($fields = '*')
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
@@ -230,6 +384,27 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Sets `FROM` class
+	 * 
+	 * @param string $from table to select from
+	 * @return Builder self
+	 */
+	public function selectFrom($from)
+	{
+		if(is_object($from))
+			$from = '('.$from->getQuery().') as t';
+
+		$this->_section('from', $from);
+		return $this;
+	}
+
+	/**
+	 * Sets up `SET` clause
+	 * 
+	 * @param array $fields fields to set
+	 * @param int $mode append mode (MODE_APPEND by default)
+	 */
 	public function set(array $fields, $mode = self::MODE_APPEND)
 	{
 		$set = array();
@@ -242,11 +417,25 @@ class Builder
 		$this->_section('set', $set, $mode);
 	}
 
+	/**
+	 * Set class to fetch into
+	 * 
+	 * @param string $class class to fetch records into
+	 */
 	public function setFetchClass($class)
 	{
 		$this->_intoClass = $class;
 	}
 
+	/**
+	 * Gets table name (if table is null) 
+	 * - OR -
+	 * Sets name, and optionally, alias for table
+	 * 
+	 * @param string $table table name
+	 * @param string $alias table alias
+	 * @return mixed void or string 
+	 */
 	public function table($table = null, $alias = null)
 	{
 		if(!is_null($table)) {
@@ -259,6 +448,12 @@ class Builder
 		}
 	}
 
+	/**
+	 * Starts UPDATE query
+	 * 
+	 * @param array,string $fields Fields to update
+	 * @return Builder  self
+	 */
 	public function update($fields)
 	{
 		$this->_sections = array('base' => 'UPDATE '.$this->_table);
@@ -268,6 +463,13 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Sets up VALUES clause
+	 * 
+	 * @param string,array $values values for clause
+	 * @param int $mode apend mode (default MODE_OVERRIDE)
+	 * @return Builder 
+	 */
 	public function values($values, $mode = self::MODE_OVERRIDE)
 	{
 		$values = is_array($values) ? implode(', ', $values) : $values;
@@ -275,6 +477,13 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Sets up WHERE clause
+	 * 
+	 * @param array,string $conditions Conditions for WHERE clause
+	 * @param int $mode append mode (Default MODE_OVERRIDE)
+	 * @return Builder self
+	 */
 	public function where($conditions, $mode = self::MODE_OVERRIDE)
 	{
 		if(is_array($conditions)) {
@@ -290,6 +499,12 @@ class Builder
 
 
 //- Private
+	/**
+	 * Uses TYPE to join the propper clauses for the current query, and returns the 
+	 * built query
+	 * 
+	 * @return type string rendered SQL Query from _sections
+	 */
 	private function _buildQuery()
 	{
 		if(empty($this->_sections['base']))
@@ -325,6 +540,12 @@ class Builder
 		return $query;
 	}
 
+	/**
+	 * Returns clause [section]
+	 * 
+	 * @param string $section section to get
+	 * @return string section value
+	 */
 	private function _getSection($section)
 	{
 		if(!isset($this->_sections[$section])) 
@@ -387,6 +608,13 @@ class Builder
 		}
 	}
 
+	/**
+	 * Sets section, or appends/prepends to it (based on $mode)
+	 * 
+	 * @param string $section Section to setup
+	 * @param mixed $val value for section
+	 * @param int $mode append mode (MODE_OVERRIDE by default)
+	 */
 	private function _section($section, $val, $mode = self::MODE_OVERRIDE)
 	{
 		switch($mode) {
@@ -416,6 +644,11 @@ class Builder
 		}
 	}
 
+	/**
+	 * Sets type of query
+	 * 
+	 * @param int $type TYPE flag
+	 */
 	private function _setQueryType($type)
 	{
 		$this->_queryType = $type;

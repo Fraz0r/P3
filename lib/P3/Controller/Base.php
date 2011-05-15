@@ -1,14 +1,15 @@
 <?php
 
-
 namespace P3\Controller;
-
-use P3\Router;
+use       P3\Router;
 
 /**
- * P3_Controller_Abstract
- *
- * Base Class for P3's Controllers
+ * Base Class for P3's Controllers.  Rarely needed - Use ActionController\Base for
+ * your controllers unless you need only the very basic functionaly of a controller
+ * 
+ * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\Controller
+ * @version $Id$
  */
 abstract class Base
 {
@@ -43,17 +44,9 @@ abstract class Base
 	/**
 	 * Holds whatever was returned by the action
 	 *
-	 * @var <unkown>
+	 * @var mixed
 	 */
 	protected $_actionReturn;
-
-//- attr-public
-	/**
-	 * Array of models to load before running action
-	 *
-	 * @var array
-	 */
-	public $_models = array();
 
 //- Public
 	/**
@@ -70,7 +63,7 @@ abstract class Base
 	 * Retrives an attribute
 	 *
 	 * @param int $attr
-	 * @return <unknown>
+	 * @return mixed
 	 */
 	public function getAttribute($attr)
 	{
@@ -81,24 +74,31 @@ abstract class Base
 	 * Sets an attribute
 	 *
 	 * @param int $attr
-	 * @param <unknown> $value
+	 * @param mixed $value
 	 */
 	public function setAttribute($attr, $value)
 	{
 		$this->_attributes[$attr] = $value;
 	}
 
+	/**
+	 * Convinience method for P3\Router::redirect
+	 * 
+	 * @param string $path path to send to P3\Router::redirect
+	 * @see P3\Router::redirect()
+	 */
 	public function redirect($path)
 	{
 		\P3\Router::redirect($path);
 	}
 
-//- Static
-
 //- Protected
 	/**
 	 * Overridable stub
+	 * 
 	 * Runs prior to action being processed.  Use this as a before_filter
+	 * 
+	 * @return void
 	 */
 	protected function _init()
 	{

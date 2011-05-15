@@ -5,11 +5,11 @@ use       P3\Loader;
 use       P3\Database\Query\Builder as QueryBuilder;
 
 /**
- * P3\ActiveRecord\Base
- *
- * P3's Database Model Class
+ * This is the base class for your models to extend.
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\ActiveRecord
+ * @version $Id$
  */
 abstract class Base extends \P3\Model\Base
 {
@@ -152,7 +152,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param P3\ActiveRecord\Base $related_model
 	 * @param array $options Options
-	 *
 	 * @return void
 	 */
 	public function addModelToMany($related_model, array $options = array())
@@ -170,7 +169,6 @@ abstract class Base extends \P3\Model\Base
 	 * Adds error to model
 	 *
 	 * @param string $str
-	 *
 	 * @return void
 	 */
 	public function addError($str)
@@ -183,7 +181,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $field Name of Field
 	 * @param string $str Error message
-	 *
 	 * @return void
 	 */
 	public function addFieldError($field, $str)
@@ -197,7 +194,6 @@ abstract class Base extends \P3\Model\Base
 	 * Returns path for given attachment
 	 *
 	 * @param int $path_type Path type (Public or system)
-	 *
 	 * @return string Attachment Path
 	 */
 	public function attachmentPath($attachment, $path_type = null)
@@ -215,7 +211,6 @@ abstract class Base extends \P3\Model\Base
 	 * Returns URL for attachment
 	 *
 	 * @param string $attachment Attachment
-	 *
 	 * @return string Public URL for attachment
 	 */
 	public function attachmentURL($attachment)
@@ -227,7 +222,6 @@ abstract class Base extends \P3\Model\Base
 	 * Binds Listeners to model
 	 *
 	 * @param array $listeners Mult. Dim. Array of closures to be bound [per event]
-	 *
 	 * @return void
 	 */
 	protected function bindEventListeners(array $listeners = array())
@@ -253,7 +247,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $model_name Name of model to build
 	 * @param array $record_array Array of field/vals for new model
-	 *
 	 * @return P3\ActiveRecord\Base
 	 */
 	public function build($model_name, array $record_array = array())
@@ -292,6 +285,13 @@ abstract class Base extends \P3\Model\Base
 		}
 	}
 
+	/**
+	 * Returns formatted created_at field
+	 * 
+	 * @see date()
+	 * @param type $format format for date()
+	 * @return type string
+	 */
 	public function createdAt($format = 'n/d/y')
 	{
 		return date($format, strtotime($this->created_at));
@@ -327,7 +327,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $field Field to decrement
 	 * @param array $options
-	 *
 	 * @return int Decremented value
 	 */
 	public function decrement($field, array $options = array())
@@ -382,6 +381,12 @@ abstract class Base extends \P3\Model\Base
 		return $this->{$this->pk()};
 	}
 
+	/**
+	 * Returns a subclass of Association\Base, or false on falure
+	 * 
+	 * @param string $field field association to retrieve
+	 * @return Association\Base association for field
+	 */
 	public function getAssociationForField($field)
 	{
 		$belongsTo   = static::getBelongsTo();
@@ -413,7 +418,6 @@ abstract class Base extends \P3\Model\Base
 	 * Returns requested attribute
 	 *
 	 * @param int $attr Attribute flag
-	 *
 	 * @return mixed Attribute value
 	 */
 	public function getAttr($attr)
@@ -435,7 +439,6 @@ abstract class Base extends \P3\Model\Base
 	 * Returns all, or requested fields as an associative array
 	 *
 	 * @param array $fields Array of fields requested
-	 *
 	 * @return array Array of field => val
 	 */
 	public function getFields(array $fields = array())
@@ -458,7 +461,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param string $field Field to increment
 	 * @param array $options
-	 *
 	 * @return int Incremented Value
 	 */
 	public function increment($field, array $options = array())
@@ -470,6 +472,11 @@ abstract class Base extends \P3\Model\Base
 		return $this->{$field};
 	}
 
+	/**
+	 * Determines if model is extendable.  See wiki pages for information.
+	 * 
+	 * @return boolean whether or not the model is extendable 
+	 */
 	public function isExtendable()
 	{
 		return static::$_extendable;
@@ -480,7 +487,6 @@ abstract class Base extends \P3\Model\Base
 	 *
 	 * @param mixed $class_or_object
 	 * @param integer $id
-	 *
 	 * @return boolean
 	 */
 	public function isInMany($class_or_object, $id = null)
@@ -682,12 +688,25 @@ abstract class Base extends \P3\Model\Base
 		$this->_attr[$attr] = $val;
 	}
 
+	/**
+	 * Update fields and save record
+	 * 
+	 * @param array $fields
+	 * @return boolean true for success, false for failure
+	 */
 	public function updateAndSave(array $fields)
 	{
 		$this->update($fields);
 		return $this->save();
 	}
 
+	/**
+	 * Returns formatted updated_at field
+	 * 
+	 * @see date()
+	 * @param string $format format for date
+	 * @return string formatted date/time
+	 */
 	public function updatedAt($format = 'n/d/y')
 	{
 		return date($format, strtotime($this->updated_at));
@@ -764,6 +783,12 @@ abstract class Base extends \P3\Model\Base
 		return $success && $this->_triggerEvent('afterCreate');
 	}
 
+	/**
+	 * Get or Set Query Builder for the ActiveRecord
+	 * 
+	 * @param P3\Query\Builder $builder builder to set, get() mode if null
+	 * @return mixed void if set(), P3\Query\Builder if get()
+	 */
 	protected static function _queryBuilder($builder = null)
 	{
 		if($builder == null) {
@@ -817,10 +842,14 @@ abstract class Base extends \P3\Model\Base
 
 //- Static
 	/**
-	 * Returns all models
+	 * Returns all models.  
+	 * 
+	 * Options:
+	 * 	order:  Clause for `ORDER BY` (dont include "ORDER BY" when you set this)
+	 * 	one:    Set true if you want only one model, and not a collection
+	 * 	limit:  number of records to pull
 	 *
 	 * @param array $options
-	 *
 	 * @return array Array of all models
 	 */
 	public static function all(array $options = array())
@@ -908,10 +937,12 @@ abstract class Base extends \P3\Model\Base
 
 	/**
 	 * Find a record, or array of records
+	 * 
+	 * Options:
+	 * 	conditions:  Additional conditions for WHERE clause
 	 *
-	 * @param string,int $where If $where parses as an int, it's used to check the pk in the table.  Otherwise its places after "WHERE" in the sql query
-	 * @param array $options List of options for the query
-	 *
+	 * @param $id id of record to retrieve
+	 * @param array $options list of options for the query
 	 * @return P3\ActiveRecord\Base
 	 */
 	public static function find($id, array $options = array())
@@ -972,26 +1003,51 @@ abstract class Base extends \P3\Model\Base
 		return $only_one ? $collection->first() : $collection;
 	}
 
+	/**
+	 * Get Merged belongsTo.  See Model Extensions on wiki pages;
+	 * 
+	 * @return array
+	 */
 	public static function getBelongsTo()
 	{
 		return static::getMergedProp('_belongsTo');
 	}
 
+	/**
+	 * Get Merged getHasAndBelongsToMany.  See Model Extensions on wiki pages;
+	 * 
+	 * @return array
+	 */
 	public static function getHasAndBelongsToMany()
 	{
 		return static::getMergedProp('_hasAndBelongsToMany');
 	}
 
+	/**
+	 * Get Merged getHasOne.  See Model Extensions on wiki pages;
+	 * 
+	 * @return array
+	 */
 	public static function getHasOne()
 	{
 		return static::getMergedProp('_hasOne');
 	}
 
+	/**
+	 * Get Merged HasMany.  See Model Extensions on wiki pages;
+	 * 
+	 * @return array
+	 */
 	public static function getHasMany()
 	{
 		return static::getMergedProp('_hasMany');
 	}
 
+	/**
+	 * Get Merged static Property. See Model Extensions on wii pages
+	 * 
+	 * @return array
+	 */
 	public static function getMergedProp($prop)
 	{
 		if(static::$_extendable) {
@@ -1014,7 +1070,6 @@ abstract class Base extends \P3\Model\Base
 	 * Gets or Sets Database to use for models
 	 *
 	 * @param P3\Database\Connection $db
-	 *
 	 * @return mixed Returns Database object if get()
 	 */
 	public static function db($db = null)
@@ -1033,7 +1088,6 @@ abstract class Base extends \P3\Model\Base
 	 * Gets or Sets PK Field for Model
 	 *
 	 * @param string $pk
-	 *
 	 * @return mixed Returns pk field if get()
 	 */
 	public static function pk($pk = null)
@@ -1049,7 +1103,6 @@ abstract class Base extends \P3\Model\Base
 	 * Gets or Sets the db table name for the Model
 	 *
 	 * @param string $table Table to set
-	 *
 	 * @return mixed Returns database table if get()
 	 */
 	public static function table($table = null)
@@ -1062,6 +1115,12 @@ abstract class Base extends \P3\Model\Base
 	}
 
 //- Private
+	/**
+	 * Cascades delete action to children (Nullify or Delete).  This is only called if the 'cascade'
+	 * option is set in the association
+	 * 
+	 * @return void
+	 */
 	private function _cascade()
 	{
 		$children_assoc = array_merge(static::getHasMany(), static::getHasOne());
@@ -1119,9 +1178,8 @@ abstract class Base extends \P3\Model\Base
 	 * Adds relations to isset check
 	 *
 	 * @param string $name Variable
-	 * @magic
-	 *
 	 * @return boolean True if set, False if not
+	 * @magic
 	 */
 	public function  __isset($name)
 	{
@@ -1132,9 +1190,8 @@ abstract class Base extends \P3\Model\Base
 	 * Retrievse value from desired field, also handles relations
 	 *
 	 * @param string $name Field to retrieve
-	 * @magic
-	 *
 	 * @return mixed Value in field
+	 * @magic
 	 */
 	public function  __get($name)
 	{
@@ -1167,6 +1224,7 @@ abstract class Base extends \P3\Model\Base
 	 * Returns an easily distinguishable string for Model
 	 *
 	 * @return string String representation of model
+	 * @magic
 	 */
 	public function __toString()
 	{

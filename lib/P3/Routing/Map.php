@@ -4,11 +4,13 @@ namespace P3\Routing;
 use       P3\Routed\Route;
 
 /**
- * P3\Routing\Map
- *
  * The Routing Map is used by app/routes.php to load routes into the Routing Engine
+ * 
+ * Please see wiki pages for information on Routing.
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Routing
+ * @version $Id$
  */
 class Map
 {

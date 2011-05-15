@@ -2,12 +2,12 @@
 
 namespace P3;
 
-Loader::loadHelper('str');
-
 /**
- * P3\Loader
- *
  * Handles loading anything and everything throughout P3
+ * 
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3
+ * @version $Id$
  */
 final class Loader
 {
@@ -16,6 +16,7 @@ final class Loader
 	 * Calling, or Instantiating an unloaded Class
 	 *
 	 * @param string $class Class being searched for by PHP
+	 * @return void
 	 */
 	public static function autoload($class){
 		if(substr($class, -10) == "Controller") {
@@ -36,7 +37,6 @@ final class Loader
 	 *
 	 * @param string class Class to see if loaded
 	 * @param bool $autoload whether or not to try and autoload it
-	 *
 	 * @return bool Class Exists
 	 */
 	public static function classExists($class, $autoload = false)
@@ -58,6 +58,7 @@ final class Loader
 	 * Load Bootstrap into application
 	 *
 	 * @param string $file Bootstrap File
+	 * @return void
 	 */
 	public static function loadBootstrap($file = null){
 		if(empty($file)){
@@ -78,7 +79,6 @@ final class Loader
 	 *
 	 * @param string $controller
 	 * @param array $routing_data
-	 *
 	 * @return Controller
 	 */
 	public static function loadController($controller)
@@ -111,7 +111,6 @@ final class Loader
 	 * Loads a class into the Application
 	 *
 	 * @param string $class
-	 *
 	 * @return void
 	 */
 	public static function loadClass($class){
@@ -149,7 +148,6 @@ final class Loader
 	 * load the bootstrap, and load the routes
 	 *
 	 * @param array $options Options for environment loading
-	 *
 	 * @return boolean Returns true if successfully loaded
 	 */
 	public static function loadEnv(array $options = array())
@@ -190,6 +188,7 @@ final class Loader
 	 * Loads helpers into system
 	 *
 	 * @param string $helper Helper to load
+	 * @return void
 	 */
 	public static function loadHelper($helper)
 	{
@@ -213,7 +212,6 @@ final class Loader
 	 * Loads a Model into the application
 	 *
 	 * @param string $model Model to load
-	 *
 	 * @return void
 	 */
 	public static function loadModel($model)
@@ -242,7 +240,6 @@ final class Loader
 	 *
 	 * @param string $file File containing routing statements.  The Default
 	 * path is attempted if left null.
-	 *
 	 * @return void
 	 */
 	public static function loadRouter($file = null)
@@ -266,7 +263,6 @@ final class Loader
 	 * Replaces the '\' in a classes name with '/' and returns it
 	 *
 	 * @param string $class Name of Class
-	 *
 	 * @return string Returns Path to Class (from lib/)
 	 */
 	public static function getClassPath($class){
@@ -284,7 +280,6 @@ final class Loader
 	 * Enables AutoLoading via SPL's spl_autoload_register()
 	 *
 	 * @param string $class AutoLoading Class [must contain autoload, like self]
-	 *
 	 * @return void
 	 */
 	public static function registerAutoload($class = '\P3\Loader'){

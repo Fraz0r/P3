@@ -1,11 +1,9 @@
 <?php
 
-
 /* Global P3 Constants */
-
 namespace P3 
 {
-	const VERSION = '1.0.0-experimental';
+	const VERSION = '1.0.0';
 }
 
 namespace P3\ActiveRecord\Collection
@@ -17,31 +15,46 @@ namespace P3\ActiveRecord\Collection
 	const STATE_COMPLETE = 2;
 }
 
-
-
-
-namespace  //Clear Namespace from defining global constants above
+namespace
 {
 	require_once(dirname(__FILE__).'/Loader.php');
 
 	/**
-	 * Description of P3
-	 *
+	 * Convinience class for P3
+	 * 
+	 * Not To be instantiated
+	 * 
 	 * @author Tim Frazier <tim.frazier at gmail.com>
+	 * @package P3
+	 * @version $Id$
 	 */
 	final class P3
 	{
+		/**
+		 * Current environment
+		 * 
+		 * @var string
+		 */
 		private static $_env = null;
 
+		/**
+		 * Class to use in Routing
+		 * 
+		 * @var string
+		 */
 		private static $_routingClass = '\P3\Router';
 
 		/**
+		 * Database Connection for application
+		 * 
 		 * @var P3\Database\Base
 		 */
 		private static $_database = null;
 
 		/**
 		 * Boots app
+		 * 
+		 * @return void
 		 */
 		public static function boot()
 		{
@@ -49,6 +62,11 @@ namespace  //Clear Namespace from defining global constants above
 			P3\Router::dispatch();
 		}
 
+		/**
+		 * Returns useable database connection - Esstablishes connection on first call
+		 * 
+		 * @return P3\Database\Connection
+		 */
 		public static function getDatabase()
 		{
 			if(empty(self::$_database)) {
@@ -60,6 +78,7 @@ namespace  //Clear Namespace from defining global constants above
 
 		/**
 		 * Returns current development environment
+		 * 
 		 * @return string Development Environment
 		 */
 		public static function getEnv()
@@ -71,6 +90,7 @@ namespace  //Clear Namespace from defining global constants above
 
 		/**
 		 * Returns Routing class
+		 * 
 		 * @return string Routing class
 		 */
 		public static function getRouter()
@@ -80,6 +100,7 @@ namespace  //Clear Namespace from defining global constants above
 
 		/**
 		 * Checks whether or not in development
+		 * 
 		 * @return boolean True if in development, false otherwise
 		 */
 		public static function development()
@@ -89,6 +110,7 @@ namespace  //Clear Namespace from defining global constants above
 
 		/**
 		 * Checks whether or not in production
+		 * 
 		 * @return boolean True if in production, false otherwise
 		 */
 		public static function production()
@@ -97,19 +119,11 @@ namespace  //Clear Namespace from defining global constants above
 		}
 
 		/**
-		 * Renders bases on options (Partial or full loads)
-		 *
-		 * @param array $options
-		 *
-		 * @return null
+		 * Returns convinience object w/ parse_url() functionality
+		 * 
+		 * @return P3\Routed\Request
+		 * @see parse_url()
 		 */
-		public static function render($options = null)
-		{
-			if(!is_array($options)) {
-				var_dump($options);
-			}
-		}
-
 		public static function request()
 		{
 			return P3\Routed\Request::singleton();
@@ -119,7 +133,6 @@ namespace  //Clear Namespace from defining global constants above
 		 * Sets default routing class
 		 *
 		 * @param string $routingClass Class to use as default router
-		 *
 		 * @return void
 		 */
 		public static function setRouter($routingClass)
@@ -139,7 +152,7 @@ namespace  //Clear Namespace from defining global constants above
 		}
 	}
 
-	/*  Run after included  */
+	/*  Determine current environment after loaded */
 	P3::getEnv();
 }
 

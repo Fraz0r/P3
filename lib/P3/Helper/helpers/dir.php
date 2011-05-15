@@ -4,6 +4,8 @@
  * Directory Helper
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Helper
+ * @version $Id$
  */
 class dir extends P3\Helper\Base
 {

@@ -1,10 +1,10 @@
 <?php
 /**
- * html
- *
- * A helper class, mainly for views
+ * HTML Helpers
  *
  * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\ActiveRecord\Association
+ * @version $Id$
  */
 abstract class html extends P3\Helper\Base
 {

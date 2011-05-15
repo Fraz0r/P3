@@ -1,19 +1,25 @@
 <?php
 
 /**
-* Description of str
-*
-* @author Tim Frazier <tim.frazier at gmail.com>
-*/
+ * String Helpers
+ * 
+ * @package P3\ActiveRecord\Association
+ * @version $Id$
+ */
 class str
 {
+	/**
+	 * Words to not caplitalize, unless forced
+	 * 
+	 * @var array
+	 * @see titleize
+	 */
 	public static $_noCap = array('a', 'an', 'is', 'from', 'for', 'of', 'the');
 
 	/**
 	* Translates a camel case string into a string with underscores (e.g. firstName -&gt; first_name)
 	*
 	* @param string $str String in camel case format
-	*
 	* @return string $str Translated into underscore format
 	*/
 	public static function fromCamelCase($str) {
@@ -28,7 +34,6 @@ class str
 	* NOTE:  This only handles "regular nouns" (IE: "person" would return "persons")
 	*
 	* @param string $str String to pluralize
-	*
 	* @return string Pluralized string
 	*/
 	public static function pluralize($str)
@@ -46,6 +51,14 @@ class str
 		return $str;
 	}
 
+	/**
+	* Returns singular form of passed string
+	*
+	* NOTE:  This only handles "regular nouns" 
+	*
+	* @param string $str String to pluralize
+	* @return string signular string
+	*/
 	public static function singularize($str)
 	{
 		$flag = 0;
@@ -65,7 +78,6 @@ class str
 	* Titleizes (capitalizes each word in a string)
 	*
 	* @param string $str String to titleize
-	*
 	* @return string Titelized string
 	*/
 	public static function titleize($str, $ignore_predicates = true)
@@ -85,7 +97,6 @@ class str
 	*
 	* @param string $str String in underscore format
 	* @param bool $capitalise_first_char If true, capitalise the first char in $str
-	*
 	* @return string $str translated into camel caps
 	*/
 	public static function toCamelCase($str, $capitalise_first_char = false) {
@@ -103,7 +114,6 @@ class str
 	*
 	* @param string $str String in camel case or underscore notation to convert.
 	* @param boolean $titleize Titleizes string, if true
-	*
 	* @return string Converted string
 	*/
 	public static function toHuman($str, $titleize = false)
@@ -121,6 +131,17 @@ class str
 		return ($titleize) ? self::titleize($ret) : $ret;
 	}
 
+	/**
+	 * Takes quantity and object name, and returns plural form of the two together
+	 * 
+	 * Example:
+	 * 	str::toPlural(1, 'programmer'); // "1 programmer"
+	 * 	str::toPlural(3, 'programmer'); // "3 programmers"
+	 * 
+	 * @param numeric $quantity quantity of object
+	 * @param string $object_name name of object(s)
+	 * @return string  parsed text
+	 */
 	public static function toPlural($quantity, $object_name)
 	{
 		if($quantity > 1)

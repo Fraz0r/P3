@@ -5,13 +5,13 @@ use       P3\Loader;
 use       P3\Exception\RouteException as Exception;
 
 /**
- * P3\Routing\Route
- *
  * A Route is a possible path to be routed into the Application.
  * P3\Routing\Engine\Base is responsible for looping through and dispatching
  * the approriate Route.
- *
+ * 
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Routed
+ * @version $Id$
  */
 class Route {
 //- attr-protected

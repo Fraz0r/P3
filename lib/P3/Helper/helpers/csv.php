@@ -1,7 +1,7 @@
 <?php
 
 /**
- * csv
+ * CSV File helper
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */

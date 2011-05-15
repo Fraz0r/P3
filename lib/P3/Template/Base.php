@@ -3,9 +3,11 @@
 namespace P3\Template;
 
 /**
- * Template
- *
  * Template class used to render views
+ * 
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Template
+ * @version $Id$
  */
 class Base
 {

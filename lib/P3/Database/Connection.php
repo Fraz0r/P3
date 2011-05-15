@@ -2,6 +2,14 @@
 
 namespace P3\Database;
 
+/**
+ * This is an extension of PDO used by P3 to communicate with your database.
+ * (configuraable in ./config/database.ini)
+ * 
+ * @author Tim Frazier <tim.frazier@gmail.com>
+ * @package P3\Database
+ * @version $Id$
+ */
 class Connection extends \PDO
 {
 	/**
