@@ -75,10 +75,10 @@ abstract class Base extends \P3\ActionController\Base
 		if(count($this->_attachments))
 			$options['attachments'] = $this->_attachments;
 
-		if(isset($this->cc))
+		if($this->cc)
 			$options['cc'] = $this->cc;
 
-		if(isset($this->bcc))
+		if($this->bcc)
 			$options['bcc'] = $this->bcc;
 
 		if(!count($mime_parts)) {
