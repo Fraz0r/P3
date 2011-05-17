@@ -75,6 +75,14 @@ abstract class Base extends \P3\ActionController\Base
 		if(count($this->_attachments))
 			$options['attachments'] = $this->_attachments;
 
+		if(!count($mime_parts)) {
+			if(!empty($this->body)) {
+				$mime_parts[] = new MessagePart\Plain($this->body);
+			} else {
+				throw new \P3\Exception\ActionMailerException('No content was assigned to the mail Message: %s', array($action), 500);
+			}
+		}
+
 		if(count($mime_parts))
 			return new Message($this->to, $this->subject, $mime_parts, $options);
 
@@ -146,10 +154,11 @@ abstract class Base extends \P3\ActionController\Base
 			return call_user_func_array(array(current(class_parents(get_called_class())), $function), $arguments);
 		}
 
-		if(isset($action)) {
-			$mailer = new static;
-			$message = $mailer->process($action, $arguments);
-		}
+		$mailer = new static;
+		$message = $mailer->process($action, $arguments);
+
+		if(!$message)
+			throw new \P3\Exception\ActionMailerException("No Message was returned from process()");
 
 		return $deliver ? $message->deliver() : $message;
 	}
