@@ -75,6 +75,12 @@ abstract class Base extends \P3\ActionController\Base
 		if(count($this->_attachments))
 			$options['attachments'] = $this->_attachments;
 
+		if(isset($this->cc))
+			$options['cc'] = $this->cc;
+
+		if(isset($this->bcc))
+			$options['bcc'] = $this->bcc;
+
 		if(!count($mime_parts)) {
 			if(!empty($this->body)) {
 				$mime_parts[] = new MessagePart\Plain($this->body);

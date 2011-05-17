@@ -135,6 +135,12 @@ class Message
 		if(isset($options['from']))
 			$this->addHeader('From: '.$options['from']);
 
+		if(isset($options['cc']))
+			$this->addHeader('CC: '.$options['cc']);
+
+		if(isset($options['bcc']))
+			$this->addHeader('BCC: '.$options['bcc']);
+
 		if(!is_null($this->_x_mailer))
 			$this->addHeader('X-Mailer: '.$this->_x_mailer);
 
