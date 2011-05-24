@@ -371,6 +371,11 @@ abstract class Base extends \P3\Model\Base
 		return new static($fields);
 	}
 
+	public function export()
+	{
+		return $this->_data;
+	}
+
 	/**
 	 * Returns Primary Key value for the model
 	 *
