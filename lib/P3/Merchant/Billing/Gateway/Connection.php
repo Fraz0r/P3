@@ -8,6 +8,8 @@ use       P3\Net\HTTP;
  * This class wraps Net\HTTP to add capability of retries
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Merchant\Billing\Gateway
+ * @version $Id$
  */
 class Connection 
 {

@@ -8,6 +8,11 @@ namespace P3\Merchant\Billing;
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
 class AVSResult {
+	/**
+	 * Mapping for codes to messages
+	 * 
+	 * @var array 
+	 */
 	public static $MESSAGES = array(
 		'A' => 'Street address matches, but 5-digit and 9-digit postal code do not match.',
 		'B' => 'Street address matches, but postal code not verified.',
@@ -37,11 +42,40 @@ class AVSResult {
 		'Z' => 'Street address does not match, but 5-digit postal code matches.'
 	);
 
+	/**
+	 * AVS Code
+	 * 
+	 * @var string 
+	 */
 	public $code = null;
+
+	/**
+	 * AVS Message
+	 * 
+	 * @var string 
+	 */
 	public $message = null;
+
+	/**
+	 * Street matches?
+	 * 
+	 * @var boolean 
+	 */
 	public $street_match = null;
+
+	/**
+	 * Postal matches?
+	 * 
+	 * @var boolean 
+	 */
 	public $postal_match = null;
 
+//- Public
+	/**
+	 * Instatiate new AVS object
+	 * 
+	 * @param array $attrs array of attributes
+	 */
 	public function __construct($attrs = null) 
 	{
 		$attrs = !is_null($attrs) ? $attrs : array();
@@ -56,6 +90,11 @@ class AVSResult {
 		$this->postal_match = isset($attrs['postal_match']) ? strtoupper($attrs['postal_match']) : false;
 	}
 
+	/**
+	 * Parses and returns self as array
+	 * 
+	 * @return array 
+	 */
 	public function toArray()
 	{
 		return array(

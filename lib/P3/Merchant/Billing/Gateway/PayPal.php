@@ -8,6 +8,8 @@ use       P3\Merchant\Billing\Response;
  * PayPal Gateway wrapper
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Merchant\Billing\Gateway
+ * @version $Id$
  */
 class PayPal extends Base 
 {

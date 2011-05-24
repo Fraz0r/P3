@@ -9,16 +9,71 @@ namespace P3\Merchant\Billing;
  */
 class Response 
 {
+	/**
+	 * Was successful?
+	 * 
+	 * @var boolean
+	 */
 	private $_success      = false;
+
+	/**
+	 * Under fraud review?
+	 * 
+	 * @var booelan 
+	 */
 	private $_fraud_review = false;
+
+	/**
+	 * Was test?
+	 * 
+	 * @var boolean
+	 */
 	private $_test         = false;
 
+	/**
+	 * Reference number for transaction
+	 * 
+	 * @var string
+	 */
 	public $authorization = null;
+
+	/**
+	 * AVS Result from association
+	 * 
+	 * @var array 
+	 */
 	public $avs_result    = null;
+
+	/**
+	 * CVV result from association
+	 * 
+	 * @var array 
+	 */
 	public $cvv_result    = null;
+
+	/**
+	 * Message from association
+	 * 
+	 * @var string 
+	 */
 	public $message       = null;
+
+	/**
+	 * Additional params
+	 * 
+	 * @var array 
+	 */
 	public $params        = array();
 
+//- Public
+	/**
+	 * Instantiate new Gateway Response
+	 * 
+	 * @param boolean $success was successful?
+	 * @param string $message message
+	 * @param array $params parameters
+	 * @param array $options options
+	 */
 	public function __construct($success, $message, array $params = array(), array $options = array())
 	{
 		$this->_success = $success;
@@ -44,21 +99,41 @@ class Response
 		}
 	}
 
+	/**
+	 * Needs fraud review?
+	 * 
+	 * @return booelan 
+	 */
 	public function needsFraudReview()
 	{
 		return $this->_fraud_review;
 	}
 
+	/**
+	 * Was success?
+	 * 
+	 * @return boolean 
+	 */
 	public function success()
 	{
 		return $this->wasSuccessfull();
 	}
 
+	/**
+	 * Was success?
+	 * 
+	 * @return boolean 
+	 */
 	public function wasSuccessfull()
 	{
 		return $this->_success;
 	}
 
+	/**
+	 * Was test??
+	 * 
+	 * @return boolean 
+	 */
 	public function wasTest()
 	{
 		return $this->_test;
