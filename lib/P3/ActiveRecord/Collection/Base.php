@@ -128,7 +128,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$builder->select();
 
 		if(!isset($options['conditions'])) {
-			$builder->where('1');
+			if(!$builder->sectionCount('where'))
+				$builder->where('1');
 		} else {
 			foreach($options['conditions'] as $k => $v) {
 				if(!is_numeric($k) && !is_array($v))
