@@ -1,8 +1,15 @@
 <?php 
 
 namespace P3\Net;
-use P3\Net\Header\Collection as HeaderList;
+use       P3\Net\Header\Collection as HeaderList;
 
+/**
+ * This class is used to interact with a collection of headers
+ *
+ * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Net
+ * @version $Id$
+ */
 class HTTP {
 	private $host;
 	private $port;
