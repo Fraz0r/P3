@@ -366,6 +366,17 @@ class Builder
 		}
 	}
 
+	public function sectionCount($section)
+	{
+		if(!isset($this->_sections[$section])) {
+			return 0;
+		} elseif(is_array($this->_sections[$section])) {
+			return count($this->_sections[$section]);
+		} else {
+			return 1;
+		}
+	}
+
 	/**
 	 * Starts a SELECT query
 	 * 
