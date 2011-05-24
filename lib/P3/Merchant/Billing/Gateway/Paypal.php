@@ -434,14 +434,14 @@ class PayPal extends Base
 	 */
 	private function _authorizationFrom($response)
 	{
-		if(isset($response['transaction_id']))
-			return $response['transaction_id'];
+		if(isset($response['TransactionID']))
+			return $response['TransactionID'];
 
-		elseif(isset($response['authorization_id']))
-			return $response['authorization_id'];
+		elseif(isset($response['AuthorizationID']))
+			return $response['AuthorizationID'];
 
-		elseif(isset($response['refund_transaction_id']))
-			return $response['refund_transaction_id'];
+		elseif(isset($response['RefundTransactionID']))
+			return $response['RefundTransactionID'];
 
 		return false;
 	}
