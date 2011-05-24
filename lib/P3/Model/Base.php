@@ -92,6 +92,11 @@ abstract class Base {
 		}
 	}
 
+	public function isNew()
+	{
+		return true;
+	}
+
 	public function pluralize()
 	{
 		return \str::pluralize(lcfirst($this->_class));
@@ -291,9 +296,9 @@ abstract class Base {
 	 * @param int $value value to set
 	 * @magic
 	 */
-	public function  __set($name,  $value)
+	public function __set($name,  $value)
 	{
-		if($name != static::pk() && isset($this->_data[$name]) && (!is_null($this->_data[$name]) && ($value != $this->_data[$name])))
+		if((!method_exists(get_class($this), 'pk') || $name != static::pk()) && isset($this->_data[$name]) && (!is_null($this->_data[$name]) && ($value != $this->_data[$name])))
 			$this->_changed[] = $name;
 
 		$this->_data[$name] = $value;
