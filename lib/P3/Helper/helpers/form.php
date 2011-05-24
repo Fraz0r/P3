@@ -69,7 +69,7 @@ class form extends P3\Helper\Base
 		$this->_inspect();
 
 		$class = $this->_modelClass;
-		if(count($class::$_hasAttachment)) $this->_options['multipart'] = true;
+		if(isset($class::$_hasAttachment) && count($class::$_hasAttachment)) $this->_options['multipart'] = true;
 
 		if(isset($this->_options['print']) && $this->_options['print'])
 			$this->open();
@@ -240,6 +240,11 @@ class form extends P3\Helper\Base
 		echo ($required ? '<span class="req-astr">*</span>':'').$ret;
 	}
 
+	public function monthSelect($field, array $options = array())
+	{
+		return $this->select($field, date::monthsForSelect(), array('blankOption' => false));
+	}
+
 	/**
 	 * Renders <select> menu for field in model, using assoc. array as value => display
 	 *
@@ -407,6 +412,11 @@ class form extends P3\Helper\Base
 		$this->_modelField = $name;
 	}
 
+	public function yearSelect($field, array $options = array())
+	{
+		return $this->select($field, date::yearsForSelect($options), array('blankOption' => false));
+	}
+
 //- Private
 	private function _fieldRequired($field)
 	{
@@ -422,7 +432,7 @@ class form extends P3\Helper\Base
 	 */
 	private function _getFieldID($field)
 	{
-		return $this->_modelField.'-'.$this->_model->id().'-'.$field;
+		return $this->_modelField.'-'.(!$this->_model->isNew() ? $this->_model->id().'-' : '').$field;
 	}
 
 	/**
