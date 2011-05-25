@@ -1179,6 +1179,28 @@ abstract class Base extends \P3\Model\Base
 	}
 
 //- Magic
+	public static function __callStatic($name, $arguments) 
+	{
+		if(substr($name, 0, 8) == 'find_by_') {
+			$all   = false;
+			$field = substr($name, 8);
+		} if(substr($name, 0, 12) == 'find_all_by_') {
+			$all   = true;
+			$field = substr($name, 12);
+		}
+
+		if(isset($field)) {
+			if(!$all)
+				$arguments['one'] = true;
+
+			$arguments['conditions'] = array($field => array_shift($arguments));
+
+			return self::all($arguments);
+		}
+
+		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
+	}
+
 	/**
 	 * Adds relations to isset check
 	 *

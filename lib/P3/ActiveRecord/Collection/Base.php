@@ -663,29 +663,27 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 //- Magic
-	/**
-	 * Passes function calls onto containing model.
-	 * 
-	 * Single Mode ONLY
-	 * 
-	 * @param string $name function name
-	 * @param array $args arguments for function
-	 * @return mixed return of function call
-	 * @magic
-	 */
-	public function __call($name, $args)
+	public function __call($name, $arguments)
 	{
-		/* TODO:  This is old and needs some work */
-		if($this->_flags & FLAG_SINGLE_MODE) {
-			if(!$this->complete()) {
-				$this->_fetchAll();
-			}
-
-			if(count($this->_data) == 1)
-				return call_user_func_array(array($this->_data[0], $name), $args);
-			else 
-				var_dump("NEED EXCEPTION HERE"); die;
+		if(substr($name, 0, 8) == 'find_by_') {
+			$all   = false;
+			$field = substr($name, 8);
+		} if(substr($name, 0, 12) == 'find_all_by_') {
+			$all   = true;
+			$field = substr($name, 12);
 		}
+
+		if(isset($field)) {
+			if(!$all)
+				$arguments['one'] = true;
+
+
+			$arguments['conditions'] = array($field => array_shift($arguments));
+
+			return $this->all($arguments);
+		}
+
+		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
 	}
 
 	/**
