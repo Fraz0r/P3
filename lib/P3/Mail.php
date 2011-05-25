@@ -11,7 +11,7 @@ class Mail
 {
 	public static $SMTP = array(
 		'host' => null,
-		'port' => null,
+		'port' => 25,
 		'auth' => true,
 		'username' => null,
 		'password' => null
