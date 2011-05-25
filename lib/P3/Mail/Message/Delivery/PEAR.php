@@ -10,6 +10,7 @@ namespace P3\Mail\Message\Delivery;
 class PEAR implements IDelivers
 {
 	private $_message = null;
+	private $_to  = null;
 
 	public function deliver($message)
 	{
@@ -21,8 +22,10 @@ class PEAR implements IDelivers
 		if(FALSE === (@include_once("Net/SMTP.php")))
 			throw new \P3\Exception\MailMessageException("PEAR Net/SMPT package required to be in global include path");
 
+		$headers = $this->_parseHeaders($message->headers(false));
+
 		$pear_obj = \Mail::factory($message->flags & \P3\Mail\FLAG_SEND_USING_SMTP ? 'smtp' : 'mail', \P3\Mail::$SMTP);
-		return $pear_obj->send($message->to, $this->_parseHeaders($message->headers(false)), $message->body);
+		return $pear_obj->send($this->_to, $headers, $message->body);
 	}
 
 	private function _parseHeaders(array $headers)
@@ -32,9 +35,17 @@ class PEAR implements IDelivers
 		$new['To'] = $this->_message->to;
 		$new['Subject'] = $this->_message->subject;
 		foreach($headers as $h) {
-			list($n, $v) = explode(':', $h, 2);
+			list($n, $v) = explode(': ', $h, 2);
 			$new[$n] = $v;
 		}
+
+		/* PEAR handles BCC/CC diff */
+		$this->_to = $this->_message->to;
+		if(isset($new['CC']))
+			$this->_to .= ', '.$new['CC'];
+
+		if(isset($new['BCC']))
+			$this->_to .= ', '.$new['BCC'];
 
 		return $new;
 	}
