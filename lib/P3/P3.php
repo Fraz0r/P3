@@ -15,6 +15,14 @@ namespace P3\ActiveRecord\Collection
 	const STATE_COMPLETE = 2;
 }
 
+namespace P3\Mail
+{
+	const SEND_HANDLER_P3   = 1;
+	const SEND_HANDLER_PEAR = 2;
+
+	const FLAG_SEND_USING_SMTP = 1;
+}
+
 namespace
 {
 	require_once(dirname(__FILE__).'/Loader.php');

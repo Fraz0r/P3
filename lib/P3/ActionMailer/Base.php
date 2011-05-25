@@ -34,6 +34,9 @@ abstract class Base extends \P3\ActionController\Base
 	 */
 	private $_attachments = array();
 
+	protected $_send_handler = \P3\Mail\SEND_HANDLER_P3;
+	protected $_flags = 0;
+
 //- Public
 	/**
 	 * Attaches file to email.
@@ -58,6 +61,7 @@ abstract class Base extends \P3\ActionController\Base
 	 */
 	public function process($action, array $arguments = array())
 	{
+		$this->_init();
 		call_user_func_array(array($this, $action), $arguments);
 
 		$options    = array();
@@ -88,6 +92,10 @@ abstract class Base extends \P3\ActionController\Base
 				throw new \P3\Exception\ActionMailerException('No content was assigned to the mail Message: %s', array($action), 500);
 			}
 		}
+
+		$options['flags'] = $this->_flags;
+		$options['send_handler'] = $this->_send_handler;
+
 
 		if(count($mime_parts))
 			return new Message($this->to, $this->subject, $mime_parts, $options);

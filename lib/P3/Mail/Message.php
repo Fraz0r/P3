@@ -41,7 +41,13 @@ class Message
 	 * 
 	 * @var string
 	 */
-	private $_eol     = "\n";
+	private $_eol = "\n";
+
+	private $_deliveryHandler = SEND_HANDLER_P3;
+
+	private $_flags = 0;
+
+	private $_handler = null;
 
 	/**
 	 * Array of headers to be sent with message
@@ -141,10 +147,18 @@ class Message
 		if(isset($options['bcc']))
 			$this->addHeader('BCC: '.$options['bcc']);
 
+		$this->addHeader('Date: '.date('r', time()));
+
 		if(!is_null($this->_x_mailer))
 			$this->addHeader('X-Mailer: '.$this->_x_mailer);
 
-		$this->_body    = $this->_parseParts($contents);
+		if(isset($options['send_handler']))
+			$this->_deliveryHandler = $options['send_handler'];
+
+		if(isset($options['flags']))
+			$this->_flags = $options['flags'];
+
+		$this->_body = $this->_parseParts($contents);
 	}
 
 	/**
@@ -199,7 +213,19 @@ class Message
 	 */
 	public function deliver()
 	{
-		return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
+		return $this->_handler()->deliver($this);
+		//return mail($this->_to, $this->_subject, $this->_body, $this->_headers());
+	}
+
+	/**
+	 * Retreives headers for message, glueing them together with $this->_eol
+	 * 
+	 * @see mail()
+	 * @return string headers ready for mail()
+	 */
+	public function headers($glue = true)
+	{
+		return $glue ? implode($this->_eol, $this->_headers) : $this->_headers;
 	}
 
 //- Private
@@ -217,15 +243,24 @@ class Message
 		return '==Multipart_Boundary_'.$prepend.'-'.$this->_rand;
 	}
 
-	/**
-	 * Retreives headers for message, glueing them together with $this->_eol
-	 * 
-	 * @see mail()
-	 * @return string headers ready for mail()
-	 */
-	private function _headers()
+	private function _handler()
 	{
-		return implode($this->_eol, $this->_headers);
+		if(is_null($this->_handler)) {
+			switch($this->_deliveryHandler) {
+				case \P3\Mail\SEND_HANDLER_P3:
+					$class = '\P3\Mail\Message\Delivery\Standard';
+					break;
+				case \P3\Mail\SEND_HANDLER_PEAR:
+					$class = '\P3\Mail\Message\Delivery\PEAR';
+					break;
+				default:
+					throw new \P3\Exception\MailMessageException("Unknown delivery handler set");
+			}
+
+			$this->_handler = new $class();
+		}
+
+		return $this->_handler;
 	}
 
 	/**
@@ -292,6 +327,21 @@ class Message
 
 
 		return $ret;
+	}
+
+//- Magic
+	public function __get($var)
+	{
+		switch($var) {
+			case 'to':
+			case 'subject':
+			case 'body':
+			case 'flags':
+				return $this->{"_{$var}"};
+				break;
+		}
+
+		return null;
 	}
 
 }
