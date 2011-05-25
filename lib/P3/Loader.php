@@ -268,7 +268,7 @@ final class Loader
 	public static function getClassPath($class){
 
 		$exp = explode('\\', ltrim($class, '\\'));
-		$file = ucfirst(\str::toCamelCase(array_pop($exp), true).'.php');
+		$file = \str::toCamelCase(array_pop($exp), true).'.php';
 		$dir  = implode(DIRECTORY_SEPARATOR, $exp);
 
 		$path = LIB_PATH.DIRECTORY_SEPARATOR.$dir.DIRECTORY_SEPARATOR.$file;
