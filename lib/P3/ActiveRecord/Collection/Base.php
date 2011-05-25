@@ -321,10 +321,10 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 
 		$builder = clone $this->_builder;
 
-		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : static::pk().' ASC';
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
 		$flags    = 0;
 		$class = $this->_options['class'];
+		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : $class::pk().' ASC';
 
 		$only_one = true;
 
