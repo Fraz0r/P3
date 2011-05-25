@@ -7,7 +7,7 @@ namespace P3\Mail\Message\Delivery;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-interface iDelivers {
+interface IDelivers {
 	public function deliver($message);
 }
 

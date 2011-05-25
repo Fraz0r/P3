@@ -7,7 +7,7 @@ namespace P3\Mail\Message\Delivery;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class Standard implements iDelivers
+class Standard implements IDelivers
 {
 	public function deliver($message)
 	{

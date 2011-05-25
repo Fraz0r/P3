@@ -7,7 +7,7 @@ namespace P3\Mail\Message\Delivery;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class PEAR implements iDelivers
+class PEAR implements IDelivers
 {
 	private $_message = null;
 
