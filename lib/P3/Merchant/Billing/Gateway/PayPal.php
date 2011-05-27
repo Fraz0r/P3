@@ -65,7 +65,9 @@ class PayPal extends Base
 			'signature'   => 'https://api-3t.sandbox.paypal.com/2.0/'
 		),
 		'live' => array(
-			'certificate' => 'https://api-aa.paypal.com/2.0/',
+			/* TODO: Fix endpoint detection in Live mode.. no time right now (its pulling the cert url, instead of the signature one*/
+			//'certificate' => 'https://api-aa.paypal.com/2.0/',
+			'certificate'   => 'https://api-3t.paypal.com/2.0/',
 			'signature'   => 'https://api-3t.paypal.com/2.0/'
 		)
 	);
