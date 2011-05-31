@@ -36,12 +36,12 @@ class HasAndBelongsToMany extends Base
 
 		$class = $options['class'];
 
-		$builder = new QueryBuilder($class::table(), 'a', $class);
+		$builder = new QueryBuilder($class::table(), null, $class);
 
 		$builder
-			->select('a.*')
-			->join($options['table'].' b', 'b.'.$options['efk'].' = a.'.$parent::pk())
-			->where('b.'.$options['fk'].' = '.$parent->id());
+			->select($class::table().'.*')
+			->join($options['table'], $options['table'].'.'.$options['efk'].' = '.$class::table().'.'.$parent::pk())
+			->where($options['table'].'.'.$options['fk'].' = '.$parent->id());
 
 		$flags = 0;
 
