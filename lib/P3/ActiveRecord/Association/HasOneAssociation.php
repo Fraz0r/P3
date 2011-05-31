@@ -55,9 +55,9 @@ class HasOneAssociation extends Base
 		if(isset($options['conditions'])) {
 			foreach($options['conditions'] as $k => $v) {
 				if(!is_numeric($k) && !is_array($v))
-					$builder->where($k.' = \''.$v.'\'');
+					$builder->where($k.' = \''.$v.'\'', QueryBuilder::MODE_APPEND);
 				else
-					$builder->where($v);
+					$builder->where($v, QueryBuilder::MODE_APPEND);
 			}
 		}
 
