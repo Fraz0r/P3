@@ -1,6 +1,6 @@
 <?php
 
-namespace Routed;
+namespace P3\Routed;
 
 /**
  * Description of Request
