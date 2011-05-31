@@ -136,6 +136,17 @@ class Builder
 	}
 
 	/**
+	 * Clears any entry for given section
+	 * 
+	 * @param string $section section to clear
+	 * @return void
+	 */
+	public function clearSection($section)
+	{
+		unset($this->_sections[$section]);
+	}
+
+	/**
 	 * Starts a count query
 	 * 
 	 * @return P3\Database\Query\Builder 
