@@ -600,9 +600,9 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function save($options = null)
 	{
-		if(isset($options['validate']) && $options['validate']) {
-			if(count($this->getErrors(true))) return false;
-			if(!$this->valid()) return false;
+		if(!isset($options['validate']) || $options['validate']) {
+			if(!$this->valid()) 
+					return false;
 		}
 
 		$save_attachments = (!is_array($options) || !isset($options['save_attachments'])) ? true : $options['save_attachments'];
@@ -777,7 +777,7 @@ abstract class Base extends \P3\Model\Base
 			}
 		}
 
-		return $flag;
+		return !(bool)count($this->_errors);
 	}
 
 //- Protected
