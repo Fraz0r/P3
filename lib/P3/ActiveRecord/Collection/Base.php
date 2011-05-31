@@ -569,6 +569,12 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$this->_indexPointer = 0;
 	}
 
+	public function setBuilder($builder)
+	{
+		$this->_builder = $builder;
+		$this->rewind();
+	}
+
 	/**
 	 * Sets a flag on the collection
 	 * 
