@@ -89,6 +89,12 @@ abstract class Base extends \P3\Controller\Base
 		$this->_prepareView();
 	}
 
+	public function contents($path = null, array $options = array())
+	{
+		$options['render'] = false;
+		return $this->render($path, $options);
+	}
+
 	/**
 	 * Dispatches controller, and renders action template (If action didn't return
 	 * FALSE, and didn't render on it's own
@@ -124,17 +130,23 @@ abstract class Base extends \P3\Controller\Base
 		return $this->_actionReturn;
 	}
 
-
 	/**
 	 * Renders controller#action view, or other disired view
 	 *
 	 * @param string $path path to view to render
 	 * @return void
 	 */
-	public function render($path = null)
+	public function render($path = null, array $options = array())
 	{
-		$this->_view->display($path);
-		$this->_rendered = true;
+		$path = is_null($path) ? $this->_route->getController().'/'.$this->_route->getAction() : $path;
+		$contents = $this->_view->render($path, array(), $options);
+
+		if(!isset($options['render']) || $options['render']) {
+			echo $contents;
+			$this->_rendered = true;
+		} else {
+			return $contents;
+		}
 	}
 
 	/**

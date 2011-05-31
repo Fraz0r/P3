@@ -680,6 +680,14 @@ abstract class Base extends \P3\Model\Base
 		return $ret;
 	}
 
+	public function send($what, array $arguments = array())
+	{
+		if($what[0] == ':')
+			return(call_user_method(substr($what, 1), $this, $arguments));
+		else
+			return $this->{$what};
+	}
+
 	/**
 	 * Sets attribute
 	 *
@@ -691,6 +699,35 @@ abstract class Base extends \P3\Model\Base
 	public function setAttribute($attr, $val)
 	{
 		$this->_attr[$attr] = $val;
+	}
+
+	public function toCSV()
+	{
+		if(!isset(static::$_comma))
+			throw new \P3\Exception\ActiveRecordException('You must set a public static::$_comma with the fields you want to render in csv format.');
+
+		$fields = array();
+		foreach(static::$_comma as $k => $v)
+			$fields[] = is_numeric($k) ? $v : $k;
+
+		$line = array();
+		foreach($fields as $field)
+			$line[] = '"'.$this->send($field).'"';
+
+		return implode(',', $line);
+	}
+
+	public function toCSVHeader()
+	{
+		if(!isset(static::$_comma))
+			throw new \P3\Exception\ActiveRecordException('You must set a public static::$_comma with the fields you want to render in csv format.');
+
+		$header = array_values(static::$_comma);
+
+		foreach($header as &$h)
+			$h = '"'.$h.'"';
+
+		return implode(',', $header);
 	}
 
 	/**

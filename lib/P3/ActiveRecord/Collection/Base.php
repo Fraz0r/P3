@@ -589,6 +589,22 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return (bool)$this->_state & STATE_STARTED;
 	}
 
+	public function toCSV($eol = "\n")
+	{
+		$this->rewind();
+		$lines = array();
+		
+		$x = 0;
+		foreach($this as $item) {
+			if($x++ == 0)
+				$lines[] = $item->toCSVHeader();
+
+			$lines[] = $item->toCSV();
+		}
+
+		return implode($eol, $lines);
+	}
+
 	/**
 	 * Lets foreach() loops know when to `break`
 	 * 

@@ -18,6 +18,12 @@ class Base
 	const CONTENT_TYPE_HTML      = 'text/html; charset=utf-8';
 	const CONTENT_TYPE_PLAINTEXT = 'text/plain';
 
+	public static $MIME_RENDER_HEADERS = array(
+		'csv'  => 'text/csv',
+		'json' => 'application/json',
+		'text' => 'text/plain'
+	);
+
 //- attr-protected
 	/**
 	 * Holds set attributes
@@ -101,33 +107,6 @@ class Base
 	}
 
 	/**
-	 * Calls render, and echos the return
-	 *
-	 * @param string $path Page to render.  Null if using URI
-	 */
-	public function display($path = null)
-	{
-		if(is_null($path)) {
-			$path = $this->_route->getController().'/'.$this->_route->getAction();
-		} else {
-		}
-
-		$display =  $this->render($path);
-
-		if(isset($this->_attributes[self::ATTR_DOWNLOAD_AS_ATTACHMENT])) {
-			header('Content-Disposition: attachment; filename="'.$this->getAttribute(self::ATTR_DOWNLOAD_AS_ATTACHMENT).'"');
-			header('Content-Length: '.((int)strlen($display)));
-		}
-
-		if(isset($this->_attributes[self::ATTR_CONTENT_TYPE])) {
-			$content_type = $this->getAttribute(self::ATTR_CONTENT_TYPE);
-			header("Content-type: {$content_type}");
-		}
-
-		echo $display;
-	}
-
-	/**
 	 * Magic Get:  Used to access assigned view vars
 	 *
 	 * @param string $name
@@ -138,13 +117,35 @@ class Base
 		return(!empty($this->_vars[$name]) ? $this->_vars[$name] : false);
 	}
 
+	public function render($what, array $vars = array(), array $options = array())
+	{
+		if(!is_array($what)) {
+			return $this->renderPath($what, $vars);
+		} else {
+			$type    = key($what);	
+			$content = current($what);
+
+			if(!isset(static::$MIME_RENDER_HEADERS))
+				throw new \P3\Exception\ViewException("P3 doesn't know how to render type '%s'.  If you feel it should, Id love to know about it.  Submit an issue on github. ;)", array($type), 500);
+
+			$header = static::$MIME_RENDER_HEADERS[$type];
+
+			header("Content-type: {$header}");
+			if(isset($options['filename'])) {
+				header('Content-Disposition: attachment; filename="'.$options['filename'].'"');
+				header('Content-Length: '.((int)strlen($content)));
+			}
+			echo $content;
+		}
+	}
+
 	/**
 	 * Returns rendered template
 	 *
 	 * @param string $path Page to render
 	 * @return string
 	 */
-	public function render($path, array $vars = array())
+	public function renderPath($path, array $vars = array())
 	{
 		$partial = false;
 		$parts   = explode('/', $path);
