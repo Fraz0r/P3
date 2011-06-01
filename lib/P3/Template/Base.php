@@ -114,7 +114,7 @@ class Base
 	 */
 	public function  __get($name)
 	{
-		return(!empty($this->_vars[$name]) ? $this->_vars[$name] : false);
+		return(!empty($this->_vars[$name]) ? $this->_vars[$name] : null);
 	}
 
 	public function render($what, array $vars = array(), array $options = array())
