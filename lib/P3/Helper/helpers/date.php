@@ -10,6 +10,8 @@
  */
 abstract class date extends P3\Helper\Base
 {
+	const DAYS_IN_YEAR = 365;
+
 	private static $_monthDays = array(
 		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 	);
