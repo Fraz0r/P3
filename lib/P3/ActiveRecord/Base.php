@@ -1230,9 +1230,17 @@ abstract class Base extends \P3\Model\Base
 			if(!$all)
 				$arguments['one'] = true;
 
-			$arguments['conditions'] = array($field => array_shift($arguments));
+			$args = array();
+			$args['conditions'] = array($field => array_shift($arguments));
 
-			return self::all($arguments);
+			foreach($arguments as $arg) {
+				if(is_array($arg)) {
+					foreach($arg as $k => $v)
+						$args[$k] = $v;
+				}
+			}
+
+			return self::all($args);
 		}
 
 		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
