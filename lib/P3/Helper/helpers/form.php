@@ -64,15 +64,21 @@ class form extends P3\Helper\Base
 		$this->_model   = $model;
 
 		$this->_options = $options;
-		$this->_uri = isset($options['url']) ? $options['url'] : null;
+
+		if(isset($options['url'])) {
+			$this->_uri = $options['url'];
+			unset($this->_options['url']);
+		}
 
 		$this->_inspect();
 
 		$class = $this->_modelClass;
 		if(isset($class::$_hasAttachment) && count($class::$_hasAttachment)) $this->_options['multipart'] = true;
 
-		if(isset($this->_options['print']) && $this->_options['print'])
+		if(isset($this->_options['print']) && $this->_options['print']) {
+			unset($this->_options['print']);
 			$this->open();
+		}
 	}
 
 	/**
