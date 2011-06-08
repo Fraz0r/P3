@@ -18,6 +18,15 @@ Features
 * Options scattered litteraly everywhere to modify P3s behavior, and even only use bits and pieces if you so chose.
 * Helpful Documentation 
 
+Changelog
+--------
+v1.1.0
+* Various bug fixes
+* Optimized Collections
+* PayPal Merchant Integration
+* Added new XML Builder Class
+* Added new HTTP Client Class
+
 ## Shoutout to the Rails Community
 I still use RoR for several apps at work and gain ideas from the libary to this day.  I try to keep P3 as seemless of a switch from Rails as possible, as you will notice throughout.  I'm not aiming to recreate the wheel entirely here, just mimic the Rails way the best I can with my own bit of flavor.
 
