@@ -1,6 +1,7 @@
 <?php
 
 namespace P3\ActiveRecord;
+use       P3\System\Path\FileInfo;
 
 /**
  * This is the class that is returned when interfacing with model attachments
@@ -86,7 +87,7 @@ class Attachment extends \P3\Model\Base
 //- Private
 	private function _file_info()
 	{
-		return new \SplFileInfo($this->path());
+		return new FileInfo($this->path());
 	}
 
 	private function _filename()
@@ -132,10 +133,7 @@ class Attachment extends \P3\Model\Base
 		if(is_null($style))
 			$str = str_replace(':style_', '', $str);
 
-		$filename = $this->_filename();
-		$file_sep_pos = strrpos($filename, '.');
-		$basename = substr($filename, 0 , $file_sep_pos);
-		$ext      = substr($filename, $file_sep_pos+1);
+		$info = $this->_file_info();
 
 		$replace = array(
 			':p3_root'    => \P3\ROOT,
@@ -143,8 +141,8 @@ class Attachment extends \P3\Model\Base
 			':attachment' => $this->_name,
 			':id'         => $this->_parent->id(),
 			':style'      => $style,
-			':basename'   => $basename,
-			':extension'  => $ext
+			':basename'   => $info->getBasename(),
+			':extension'  => $info->getExtension()
 		);
 		
 		return str_replace(array_keys($replace), array_values($replace), $str);
