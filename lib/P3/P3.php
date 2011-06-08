@@ -3,7 +3,7 @@
 /* Global P3 Constants */
 namespace P3 
 {
-	const VERSION = '1.0.0';
+	const VERSION = '1.1.0';
 }
 
 namespace P3\ActiveRecord\Collection
