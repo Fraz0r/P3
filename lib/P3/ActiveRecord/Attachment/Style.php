@@ -3,6 +3,9 @@
 namespace P3\ActiveRecord\Attachment;
 use       P3\ActiveRecord\Attachment;
 
+if(!extension_loaded('imagick'))
+	throw new \P3\Exception\IncompatableSystemException('Active Record Attachments require the ImageMagick PHP Extension to process/manipulate sizes');
+
 /**
  * Description of Style
  *
@@ -12,12 +15,6 @@ use       P3\ActiveRecord\Attachment;
  */
 class Style 
 {
-	private $_options = array(
-		'path' => ':p3_root/htdocs/:class/:attachment/:id/:style_:basename.:extension',
-		'url'  => '/:class/:attachment/:id/:style_:basename.:extension',
-		'whiney_thumbnails' => true
-	);
-
 	private $_scale_type = null;
 
 	public function __construct($scale_type, array $options = array())
@@ -28,9 +25,12 @@ class Style
 			$this->_options[$k] = $v;
 	}
 
-	public function scale($save_path)
+	public function resize($input, $output)
 	{
 		$flag = false;
+
+		$image = new \Imagick($input);
+		var_dump($image);
 
 		switch($this->_scale_type) {
 			case Attachment::GEOMETRY_SCALE_NONE:
@@ -50,31 +50,20 @@ class Style
 			case Attachment::GEOMETRY_SCALE_EMPHATIC:
 				break;
 			case Attachment::GEOMETRY_SCALE_IF_GREATER:
+				var_dump($input);
+				var_dump($output);
 				break;
 			case Attachment::GEOMETRY_SCALE_IF_BOTH_GREATER:
 				break;
 			case Attachment::GEOMETRY_SCALE_AREA:
+				break;
+			case Attachment::GEOMETRY_CROP:
 				break;
 			default:
 				throw new \P3\Exception\ActiveRecordException("Unknown scale handler set in attachment style");
 		}
 
 		return $flag;
-	}
-
-	public function _parseTemplateString($str)
-	{
-		$replace = array(
-			':p3_root' => \P3\ROOT,
-			':class'   => 'CLASS_NAME',
-			':attachment' => 'ATTACHMENT_NAME',
-			':id'         => 'MODEL_ID',
-			':style'      => 'STYLENAME',
-			':basename'   => 'BASENAME',
-			':extension' => 'EXT'
-		);
-		
-		return str_replace(array_keys($replace), array_values($replace), $str);
 	}
 }
 

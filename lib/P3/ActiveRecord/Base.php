@@ -13,12 +13,6 @@ use       P3\Database\Query\Builder as QueryBuilder;
  */
 abstract class Base extends \P3\Model\Base
 {
-//- ATTRIBUTES
-	const ATTR_ATTACHMENT_PATH = 1;
-
-	const ATTACHMENT_PATH_PUBLIC = 1;
-	const ATTACHMENT_PATH_SYSTEM = 2;
-
 //- attr-public
 	/**
 	 * Controller to use for model (When generating links)
@@ -417,6 +411,13 @@ abstract class Base extends \P3\Model\Base
 		} 
 
 		return false;
+	}
+
+	public function getAttachmentForField($field)
+	{
+		$attachments = static::getAttachments();
+
+		return isset($attachments[$field]) ? new Attachment($this, $field, $attachments[$field]) : false;
 	}
 
 	/**
@@ -1045,6 +1046,11 @@ abstract class Base extends \P3\Model\Base
 		return $only_one ? $collection->first() : $collection;
 	}
 
+	public static function getAttachments()
+	{
+		return static::getMergedProp('_hasAttachment');
+	}
+
 	/**
 	 * Get Merged belongsTo.  See Model Extensions on wiki pages;
 	 * 
@@ -1269,6 +1275,8 @@ abstract class Base extends \P3\Model\Base
 	{
 		if(null !== ($value = parent::__get($name))) {
 			return $value;
+		} elseif(FALSE !== ($attachment = $this->getAttachmentForField($name))) {
+			return $attachment;
 		} else {
 			$assoc = $this->getAssociationForField($name);
 
