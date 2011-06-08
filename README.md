@@ -32,8 +32,11 @@ Changelog
 Getting started is as easy as:
 
 1) Click GitHub's "Downloads" link above
+
 2) Dowload the latest version
+
 3) Extract the tarball
+
 4) Start coding!
 
 ## Shoutout to the Rails Community
