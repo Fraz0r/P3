@@ -21,6 +21,7 @@ Features
 Changelog
 --------
 v1.1.0
+
 * Various bug fixes
 * Optimized Collections
 * PayPal Merchant Integration
