@@ -20,7 +20,7 @@ Features
 
 Changelog
 --------
-v1.1.0
+<b>v1.1.0</b>
 
 * Various bug fixes
 * Optimized Collections
