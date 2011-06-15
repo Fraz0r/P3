@@ -342,16 +342,10 @@ abstract class Base extends \P3\Model\Base
 		$class = $this->_class;
 
 		foreach($class::$_hasAttachment as $accsr => $opts) {
-			$dir = \P3\ROOT.'/htdocs'.rtrim($opts['path'], '/').'/'.$this->id();
-			if(is_dir($dir)) {
-				$objects = scandir($dir);
-				foreach($objects as $object) {
-					if($object != '.' && $object != '..') {
-						unlink("{$dir}/{$object}");
-					}
-				}
-				rmdir($dir);
-			}
+			$attachment = $this->{$accsr};
+
+			if($attachment)
+				$attachment->delete();
 		}
 
 		return true;
@@ -413,11 +407,23 @@ abstract class Base extends \P3\Model\Base
 		return false;
 	}
 
+	/**
+	 * Returns attachment object for passed field, or false on failure
+	 * 
+	 * @param string $field field being accessed
+	 * 
+	 * @return P3\ActiveRecord\Attachment attachment, or false on failure
+	 */
 	public function getAttachmentForField($field)
 	{
 		$attachments = static::getAttachments();
 
-		return isset($attachments[$field]) ? new Attachment($this, $field, $attachments[$field]) : false;
+		if(isset($attachments[$field])) {
+			$class = isset($attachments[$field]['class']) ? '\\'.$attachments[$field]['class'] : '\P3\ActiveRecord\Attachment';
+			return new $class($this, $field, $attachments[$field]);
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -640,41 +646,11 @@ abstract class Base extends \P3\Model\Base
 
 		foreach(static::$_hasAttachment as $field => $opts) {
 			if(isset($_FILES[$model_field])) {
-				$data = $_FILES[$model_field];
+				$attachment = $this->{$field};
 
-				switch($data['error'][$field])
-				{
-					case \UPLOAD_ERR_OK:
-						break;
-					case \UPLOAD_ERR_NO_FILE:
-						break 2;
-					default:
-						$ret = false;
-						$this->_addError($field, 'Upload Error ['.$data['error'][$field].']');
-						break;
+				if($attachment) {
+					$ret = $ret && $attachment->save($_FILES[$model_field]);
 				}
-
-				$path = \P3\ROOT.'/htdocs'.$opts['path'];
-
-				if(!is_dir($path) && !mkdir($path, 777, true))
-					throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array($class, $path), 500);
-
-				$path .= '/'.$this->id();
-
-				if(!is_dir($path)) mkdir($path);
-
-				$filetype = filetype($data['tmp_name'][$field]);
-
-				//var_dump($data['tmp_name'][$field], $path.'/'.$data['name'][$field]);
-				if(!move_uploaded_file($data['tmp_name'][$field], $path.'/'.$data['name'][$field])) {
-					$ret = false;
-					$this->_addError($field, 'Upload failed');
-					break;
-				}
-
-				$this->_data[$field.'_filename'] = $data['name'][$field];
-				$this->_data[$field.'_filetype'] = $data['type'][$field];
-				$ret = $this->save(array('save_attachments' => false));
 			} 
 		}
 
