@@ -11,13 +11,28 @@ namespace P3\System\Path;
  */
 class FileInfo extends \SplFileInfo
 {
+	/**
+	 * Return file extension (This wasn't added to the SPL Library until PHP 5.3.6)
+	 * If the method is there, it's used.  Otherwise we handle it on our own
+	 * 
+	 * @return string extension
+	 */
 	public function getExtension()
 	{
-		// SPL only added getExtension in 5.3.6 ... so do a check
 		if (method_exists(get_parent_class($this), 'getExtension')) {
 			return(parent::getExtension());
 		} else {
 			return(substr($this->getFilename(), strrpos($this->getFilename(), '.')+1));
 		}
+	}
+
+	/**
+	 * Convenience method for getting the name of the file, minus the extension
+	 * 
+	 * @return string
+	 */
+	public function getFilenameNoExtension()
+	{
+		return $this->getBasename('.'.$this->getExtension());
 	}
 }

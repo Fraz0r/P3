@@ -17,6 +17,8 @@ class Connection extends \PDO
 	 *
 	 * @param array $config Config array for connection
 	 * @param array $options Options
+	 * 
+	 * @todo rid buffered query in the future - this is just a quick fix
 	 */
 	public function __construct(array $config = array(), array $options = array())
 	{
@@ -33,6 +35,7 @@ class Connection extends \PDO
 		$pass = empty($config['password']) ? null : $config['password'];
 
 		parent::__construct($dsn, $user, $pass);
+		$this->setAttribute(self::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
 	}
 
