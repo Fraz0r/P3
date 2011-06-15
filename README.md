@@ -20,6 +20,11 @@ Features
 
 Changelog
 --------
+<b>v1.1.1</b>
+
+* Various bug fixes
+* New handling of Model Attachments - now identical to RoR's AWESOME paperclip plugin
+
 <b>v1.1.0</b>
 
 * Various bug fixes
