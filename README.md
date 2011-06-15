@@ -28,6 +28,17 @@ Changelog
 * Added new XML Builder Class
 * Added new HTTP Client Class
 
+## Getting Started
+Getting started is as easy as:
+
+1) Click GitHub's "Downloads" link above
+
+2) Dowload the latest version
+
+3) Extract the tarball
+
+4) Start coding!
+
 ## Shoutout to the Rails Community
 I still use RoR for several apps at work and gain ideas from the libary to this day.  I try to keep P3 as seemless of a switch from Rails as possible, as you will notice throughout.  I'm not aiming to recreate the wheel entirely here, just mimic the Rails way the best I can with my own bit of flavor.
 
