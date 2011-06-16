@@ -20,6 +20,10 @@ Features
 
 Changelog
 --------
+<b>v1.1.2</b>
+
+* Attachments now clean old files out of attachment directories on record updates.  This was overlooked in the last release
+
 <b>v1.1.1</b>
 
 * Various bug fixes
