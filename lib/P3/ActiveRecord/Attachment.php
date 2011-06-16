@@ -100,22 +100,50 @@ class Attachment extends \P3\Model\Base
 	 * 
 	 * @return boolean
 	 */
-	public function delete()
+	public function delete($delete_dir_if_empty = true)
 	{
 		$flag = true;
-		$dir = dirname($this->path());
+		$path = $this->path();
+		$dir  = dirname($path);
 
-		if(is_dir($dir)) {
-			$objects = scandir($dir);
+		if(file_exists($path))
+			unlink($path);
 
-			foreach($objects as $object)
-				if($object != '.' && $object != '..')
-					unlink("{$dir}/{$object}");
+		if(isset($this->_options['styles']))
+			foreach($this->_options['styles'] as $k => $v)
+				if(file_exists($this->path($k)))
+					unlink($this->path($k));
 
-			$flag = rmdir($dir);
-		}
+		if($delete_dir_if_empty && is_dir($dir) && count(scandir($dir) == 2))
+			rmdir($dir);
 
 		return $flag;
+	}
+
+	/**
+	 * Deletes anything in the attachment folder which does not belong
+	 * 
+	 * @return booelan true, always
+	 */
+	public function deleteJunk()
+	{
+		$path = $this->path();
+		$dir  = dirname($path);
+		$valid   = array(basename($path));
+
+		if(isset($this->_options['styles']))
+			foreach($this->_options['styles'] as $k => $v)
+				$valid[] = basename($this->path($k));
+
+		$valid = array_merge($valid, array('.', '..'));
+
+		$objects = scandir(dirname($this->path()));
+
+		foreach($objects as $object)
+			if(!in_array($object, $valid))
+				unlink("{$dir}/{$object}");					
+
+		return true;
 	}
 
 	/**
@@ -163,12 +191,13 @@ class Attachment extends \P3\Model\Base
 			case \UPLOAD_ERR_OK:
 				break;
 			case \UPLOAD_ERR_NO_FILE:
-				break 2;
+				return true;
 			default:
 				$ret = false;
 				$this->_parent->_addError($field, 'Upload Error ['.$data['error'][$field].']');
-				break;
+				return false;
 		}
+
 
 		$this->_parent->{$field.'_file_name'} = $data['name'][$field];
 		$path = $this->path();
@@ -176,8 +205,6 @@ class Attachment extends \P3\Model\Base
 		if(!is_dir(dirname($path)) && !@mkdir(dirname($path), 0777, true))
 			throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array(get_class($this->_parent), dirname($path)), 500);
 
-
-		$filetype = filetype($data['tmp_name'][$field]);
 
 		if(!move_uploaded_file($data['tmp_name'][$field], $path)) {
 			$ret = false;
@@ -190,14 +217,15 @@ class Attachment extends \P3\Model\Base
 		if(!$finfo)
 			throw new \P3\Exception\ActiveRecordException("Failed to stat file.  See finfo_open on php.net for info.", array(), 500);
 
-
 		$this->_parent->{$field.'_content_type'} = finfo_file($finfo, $path);
 		finfo_close($finfo);
 
 		$this->_parent->{$field.'_file_size'} = $data['size'][$field];
 
-		if($this->exists() && isset($this->_options['styles']))
+		if(isset($this->_options['styles']))
 			$flag = $flag && $this->_generateStyles();
+
+		$this->deleteJunk();
 
 		$flag = $flag && $this->_parent->save(array('save_attachments' => false));
 
