@@ -174,7 +174,7 @@ class form extends P3\Helper\Base
 
 		if(!is_null($this->_model->{$field})) {
 			$vals = preg_match('/^([\d]{4})-([\d]{2})-([\d]{2}).*/', $this->_model->{$field}, $matches);
-			list($full, $y, $m, $d) = array_map(function($v){ static $x = 0; if($x++ != 0) return (int)$v; else return $v;}, $matches);
+			list($full, $y, $m, $d) = array_map(function($v){ static $x = 0; return ($x++ != 0) ? (int)$v : $v;}, $matches);
 		} else {
 			$y = $m = $d = null;
 		}
