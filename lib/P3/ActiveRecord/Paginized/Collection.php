@@ -1,6 +1,6 @@
 <?php
 
-namespace P3\ActiveRecord\Collection;
+namespace P3\ActiveRecord\Paginized;
 use       P3\Database\Query\Builder as QueryBuilder;
 
 /**
@@ -10,7 +10,7 @@ use       P3\Database\Query\Builder as QueryBuilder;
  * @package P3\ActiveRecord\Collection
  * @version $Id$
  */
-class Paginized extends Base
+class Collection extends \P3\ActiveRecord\Collection\Base
 {
 	/**
 	 * Array of options
@@ -18,6 +18,13 @@ class Paginized extends Base
 	 * @var array
 	 */
 	protected $_options = array();
+
+	/**
+	 * Cached full count
+	 * 
+	 * @var int
+	 */
+	private $_fullCount = null;
 
 	/**
 	 * Cached query string for the full colection (excluding limit/offset)
@@ -55,19 +62,30 @@ class Paginized extends Base
 	 */
 	public function __construct($builder, array $options, $parentModel = null, $flags = 0)
 	{
-		$options['page'] = isset($options['page']) ? $options['page'] : 1;
+		$options['page'] = isset($options['page']) ? (int)$options['page'] : 1;
 
-		$limit  = $options['per_page'];
-		$offset = (($options['page'] - 1) * $limit);
-
-		$builder->limit($limit, $offset);
 
 		if(isset($options['order']))
 			$builder->order($options['order']);
 
+		$this->_options = $options;
+
 		parent::__construct($builder, $parentModel, $flags);
 
-		$this->_options = $options;
+		$builder = $this->getBuilder();
+
+		if($this->_options['page'] > $this->pages())
+			$this->_options['page'] = $this->pages();
+
+		if($this->_options['page'] < 1)
+			$this->_options['page'] = 1;
+
+		$limit  = $this->_options['per_page'];
+		$offset = (($this->_options['page'] - 1) * $limit);
+
+		$builder->limit($limit, $offset);
+
+		$this->setBuilder($builder);
 
 		\P3\Loader::loadHelper('pagination'); 
 	}
@@ -97,12 +115,26 @@ class Paginized extends Base
 	 */
 	public function fullCount()
 	{
-		$stmnt = \P3::getDatabase()->query($this->_fullCountQuery());
+		if(is_null($this->_fullCount)) {
+			$stmnt = \P3::getDatabase()->query($this->_fullCountQuery());
 
-		if(!$stmnt)
-			return 0;
+			if(!$stmnt)
+				return 0;
 
-		return (int)$stmnt->fetchColumn();
+			$this->_fullCount = !$stmnt ? 0 : (int)$stmnt->fetchColumn();
+		}
+
+		return $this->_fullCount;
+	}
+
+	/**
+	 * Returns current page
+	 * 
+	 * @return int current page
+	 */
+	public function page()
+	{
+		return $this->_options['page'];
 	}
 
 	/**
@@ -113,7 +145,7 @@ class Paginized extends Base
 	public function pages()
 	{
 		if(is_null($this->_pages))
-			$this->_pages = ceil($this->count(true) / $this->_options['per_page']);
+			$this->_pages = (int)ceil($this->count(true) / $this->_options['per_page']);
 
 		return $this->_pages;
 	}
