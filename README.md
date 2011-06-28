@@ -20,6 +20,10 @@ Features
 
 Changelog
 --------
+<b>v1.1.4</b>
+
+* Added easy pagination rendering to existing pagination support
+
 <b>v1.1.3</b>
 
 * Finished remaining functionality of paginized collections
