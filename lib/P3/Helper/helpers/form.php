@@ -172,6 +172,12 @@ class form extends P3\Helper\Base
 		$parts = array('year' => 1, 'month' => 2, 'day' => 3, 'hour' => 4, 'minute' => 5, 'second' => 6, 'ampm' => 7);
 		$order = isset($options['order']) ? $options['order'] : array('month', 'day', 'year');
 
+		if(!is_null($this->_model->{$field}) && FALSE !== ($vals = preg_match('/^([\d]{4})-([\d]{2})-([\d]{2}).*/', $this->_model->{$field}, $matches))) {
+			list($full, $y, $m, $d) = array_map(function($v){ static $x = 0; return ($x++ != 0) ? (int)$v : $v;}, $matches);
+		} else {
+			$y = $m = $d = null;
+		}
+
 		$ret = '';
 		foreach($order as $item) {
 			switch($item) {
@@ -179,6 +185,7 @@ class form extends P3\Helper\Base
 					if(!isset($options['use_text_year']) || !$options['use_text_year']){
 						$func = $item.'sForSelect';
 						$select_options = \date::$func($options);
+						$options['selected'] = $y;
 						$ret .= self::select($field.'('.$parts[$item].'i)', $select_options, $options);
 						continue;
 					}
@@ -186,6 +193,15 @@ class form extends P3\Helper\Base
 					$ret .= $this->textField($field.'('.$parts[$item].'i)', array_merge(array('size' => 3)));
 				break;
 				default:
+					switch($item) {
+						case 'month':
+							$options['selected'] = $m;
+							break;
+						case 'day':
+							$options['selected'] = $d;
+							break;
+					}
+
 					$func = $item.'sForSelect';
 					$select_options = \date::$func($options);
 					$ret .= self::select($field.'('.$parts[$item].'i)', $select_options, $options);

@@ -20,6 +20,16 @@ Features
 
 Changelog
 --------
+<b>v1.1.4</b>
+
+* Added easy pagination rendering to existing pagination support
+
+<b>v1.1.3</b>
+
+* Finished remaining functionality of paginized collections
+* Cleaned and refactored a couple parts of the library
+* Fixed a couple of bugs
+
 <b>v1.1.2</b>
 
 * Attachments now clean old files out of attachment directories on record updates.  This was overlooked in the last release

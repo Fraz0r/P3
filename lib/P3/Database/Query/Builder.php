@@ -144,6 +144,8 @@ class Builder
 	public function clearSection($section)
 	{
 		unset($this->_sections[$section]);
+
+		return $this;
 	}
 
 	/**

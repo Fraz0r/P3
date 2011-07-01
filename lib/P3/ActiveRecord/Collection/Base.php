@@ -555,7 +555,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function paginate(array $options)
 	{
-		return new Paginized(clone $this->_builder, $options, $this->_parentModel, $this->_flags);
+		return new \P3\ActiveRecord\Paginized\Collection(clone $this->_builder, $options, $this->_parentModel, $this->_flags);
 	}
 
 
