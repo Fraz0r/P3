@@ -23,9 +23,7 @@ class str
 	* @return string $str Translated into underscore format
 	*/
 	public static function fromCamelCase($str) {
-		$str[0] = strtolower($str[0]);
-		$func = create_function('$c', 'return "_" . strtolower($c[1]);');
-		return preg_replace_callback('/([A-Z])/', $func, $str);
+		return trim(strtolower(preg_replace('/((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$))/', "_$1$2", $str)), '_');
 	}
 
 	/**
