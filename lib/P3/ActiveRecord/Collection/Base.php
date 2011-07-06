@@ -611,6 +611,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return implode($eol, $lines);
 	}
 
+	public function toJSON()
+	{
+		return '['.implode(',', $this->collect(':toJSON')).']';
+	}
+
 	/**
 	 * Lets foreach() loops know when to `break`
 	 * 
