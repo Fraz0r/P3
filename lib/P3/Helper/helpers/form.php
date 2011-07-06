@@ -128,11 +128,13 @@ class form extends P3\Helper\Base
 	 */
 	public function collectionSelect($field, $collection, $display_key, array $options = array())
 	{
-		$value_key = !isset($options['value_key']) ? $collection[0]->pk() : $options['value_key'];
 		$select_options = array();
 
-		foreach($collection as $model)
-			$select_options[$model->{$value_key}] = $model->{$display_key};
+		if(count($collection)) {
+			$value_key = !isset($options['value_key']) ? $collection[0]->pk() : $options['value_key'];
+			foreach($collection as $model)
+				$select_options[$model->{$value_key}] = $model->{$display_key};
+		}
 
 		$this->select($field, $select_options, $options);
 	}
