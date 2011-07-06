@@ -1218,7 +1218,10 @@ abstract class Base extends \P3\Model\Base
 			foreach($arguments as $arg) {
 				if(is_array($arg)) {
 					foreach($arg as $k => $v)
-						$args[$k] = $v;
+						if($k == 'conditions')
+							$args['conditions'] = array_merge($args['conditions'], is_array($v) ? $v : array($v));
+						else
+							$args[$k] = $v;
 				}
 			}
 
