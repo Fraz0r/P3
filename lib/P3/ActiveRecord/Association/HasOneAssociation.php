@@ -48,7 +48,8 @@ class HasOneAssociation extends Base
 			$as = $options['as'];
 			$builder->where($as.'_id = '.$parent->id().' AND '.$as.'_type =  \''.get_class($parent).'\'');
 		} else {
-			throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
+			if(!isset($options['conditions']))
+				throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
 		}
 
 

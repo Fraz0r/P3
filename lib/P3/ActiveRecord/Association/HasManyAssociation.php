@@ -56,7 +56,8 @@ class HasManyAssociation extends Base
 
 			throw new \P3\Exception\ActiveRecordException("Unfinished support for 'through' option.  Its a doozy");
 		} else {
-			throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
+			if(!isset($options['conditions']))
+				throw new \P3\Exception\ActiveRecordException("Not enough info to retrieve association");
 		}
 
 		if(isset($options['conditions'])) {
