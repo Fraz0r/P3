@@ -305,7 +305,6 @@ abstract class Base extends \P3\Model\Base
 		$stmnt = self::db()->prepare('DELETE FROM '.static::$_table.' WHERE '.$pk.' = ?');
 
 		$stmnt->execute(array($this->id()));
-
 		$ret = (bool)$stmnt->rowCount();
 
 		if($ret){ 
@@ -1147,30 +1146,38 @@ abstract class Base extends \P3\Model\Base
 	 */
 	private function _cascade()
 	{
-		$children_assoc = array_merge(static::getHasMany(), static::getHasOne());
+		$cascadeables = array_merge(static::getHasMany(), static::getHasOne(), static::getBelongsTo());
 
-		foreach($children_assoc as $accessor => $opts) {
+		foreach($cascadeables as $accessor => $opts) {
 			if(isset($opts['dependent']) && !\is_null($opts['dependent'])) {
 
-				$builder = new QueryBuilder($opts['class']::table());
-
-				switch($opts['dependent']) {
-					case 'destroy':
-					case 'delete':
-						$builder->delete();
-						break;
-					case 'nullify':
-						$builder->update(array($opts['fk'] => 'NULL'));
-						break;
-					default:
-						throw new \P3\Exception\ActiveRecordException("Unknown option passed for 'dependent' in the association for %s->%s", array($this->_class, $accessor));
-				}
-
+				if(!in_array($opts['dependent'], array('destroy', 'delete', 'nullify')))
+					throw new \P3\Exception\ActiveRecordException("Unknown option passed for 'dependent' in the association for %s->%s", array($this->_class, $accessor));
 
 				if(isset($opts['through'])) 
 					throw new \P3\Exception\ActiveRecordException("Cannot %s children accross a 'through' relationship for %s->%s.  Move this dependent option to the other side of the join.", array($opts['dependent'], $this->_class, $accessor));
 
-				$builder->where($opts['fk'].'=\''.$this->id().'\'')->execute();
+				$assoc = $this->__get($accessor);
+
+				if(!$assoc)
+					continue;
+
+				/* If it's not a collection, it's a single model - so put it in array to use same loop below and not dupe logic */
+				if(!is_subclass_of($assoc, 'P3\ActiveRecord\Collection\Base'))
+					$assoc = array($assoc);
+
+				foreach($assoc as $child) {
+					switch($opts['dependent']) {
+						case 'destroy':
+						case 'delete':
+							$child->delete();
+							break;
+						case 'nullify':
+							$child->{$opts['fk']} = null;
+							$child->save(array('validate' => false));
+							break;
+					}
+				}
 			}
 		}
 	}
