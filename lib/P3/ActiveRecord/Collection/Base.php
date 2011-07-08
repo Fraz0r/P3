@@ -229,19 +229,20 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	}
 
 	/**
-	 * This is only for if the collection is in single model.  Determines if the
-	 * one model that SHOULD be there, really is
-	 * 
+	 * Determines if passed $model exists in the collection
+	 *  
 	 * @return boolean
 	 * @throws P3\Exception\ActiveRecordException
 	 */
-	public function exists()
+	public function exists($model)
 	{
-		if($this->_flags & FLAG_SINGLE_MODE) {
-			return $this->count() == 1;
-		} else {
-			throw new \P3\Exception\ActiveRecordException('Calling exists on a collection.  Use count() instead');
-		}
+		$flag = false;
+
+		foreach($this as $record)
+			if(TRUE === ($flag = $model->id() == $record->id()))
+				break;
+
+		return $flag;
 	}
 
 	/**
