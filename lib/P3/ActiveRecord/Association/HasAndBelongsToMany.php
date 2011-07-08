@@ -53,6 +53,40 @@ class HasAndBelongsToMany extends Base
 
 		$this->_contentClass = $class;
 	}
+
+	public function offsetSet($offset, $model)
+	{
+		/* The parent doesn't do anything with this, but it does handle the exception if offset is not null */
+		parent::offsetSet($offset, $model);
+
+		/* TODO:  Need to throw exception if the class isn't allowed in here (Handling extensions as well) */
+		$fk_val = $this->_parentModel->id();
+
+		$pk = $this->_parentModel->id();
+
+		$opts = $this->_options;
+		if(!$this->exists($model))
+			\P3::getDatabase()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$model->id()}')");
+	}
+
+	public function remove($model)
+	{
+		if(!$this->exists($model)) return false;
+
+		$opts = $this->_options;
+
+		$join_table = $opts['table'];
+		$fk = $opts['fk'];
+		$efk = $opts['efk'];
+
+		$sql = "DELETE FROM `{$join_table}`";
+		$sql .= " WHERE {$fk} = ".$this->_parentModel->id();
+		$sql .= " AND {$efk} = ".$model->id();
+		$sql .= " LIMIT 1";
+
+		$stmnt = \P3::getDatabase()->query($sql);
+		return (bool)$stmnt->rowCount();
+	}
 }
 
 ?>
