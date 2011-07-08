@@ -27,6 +27,32 @@ class str
 	}
 
 	/**
+	 * Attempts to format passed string (phone number) and return it
+	 * 
+	 * If the preg match fails, the passed argument will be returned as it was passed
+	 * 
+	 * @param string $number number to format (can include non number chars, but they will be stripped)
+	 * @param array $options options
+	 * @return string formatted phone number 
+	 */
+	public static function phone($number, array $options = array())
+	{
+		$sep = isset($options['seperator']) ? $options['seperator'] : '-';
+
+		$tmp = preg_replace('/([^\d])/', '', $number);
+
+		if(preg_match('/^([\d]{3})([\d]{3})([\d]{4})([\d]*)?$/', $tmp, $m)) {
+			list($full, $area, $pre, $last, $ext) = $m;
+			$number = implode($sep, array($area, $pre, $last));
+
+			if(!empty($ext))
+				$number .= 'ext. '.$ext;
+		}
+
+		return $number;
+	}
+
+	/**
 	* Returns plural form of passed $str
 	*
 	* NOTE:  This only handles "regular nouns" (IE: "person" would return "persons")
