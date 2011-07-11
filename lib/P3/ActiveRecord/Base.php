@@ -1219,16 +1219,20 @@ abstract class Base extends \P3\Model\Base
 			if(!$all)
 				$arguments['one'] = true;
 
+
 			$args = array();
 			$args['conditions'] = array($field => array_shift($arguments));
 
-			foreach($arguments as $arg) {
+
+			foreach($arguments as $key => $arg) {
 				if(is_array($arg)) {
 					foreach($arg as $k => $v)
 						if($k == 'conditions')
 							$args['conditions'] = array_merge($args['conditions'], is_array($v) ? $v : array($v));
 						else
 							$args[$k] = $v;
+				} else {
+					$args[$key] = $arg;
 				}
 			}
 
