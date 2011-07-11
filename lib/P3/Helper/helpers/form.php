@@ -133,7 +133,7 @@ class form extends P3\Helper\Base
 		if(count($collection)) {
 			$value_key = !isset($options['value_key']) ? $collection[0]->pk() : $options['value_key'];
 			foreach($collection as $model)
-				$select_options[$model->{$value_key}] = $model->{$display_key};
+				$select_options[$model->{$value_key}] = $model->send($display_key);
 		}
 
 		$this->select($field, $select_options, $options);
