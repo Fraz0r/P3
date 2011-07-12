@@ -606,6 +606,8 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function save($options = null)
 	{
+		$this->_triggerEvent('beforeSave');
+
 		if(!isset($options['validate']) || $options['validate']) {
 			if(!$this->valid()) 
 					return false;
@@ -613,7 +615,6 @@ abstract class Base extends \P3\Model\Base
 
 		$save_attachments = (!is_array($options) || !isset($options['save_attachments'])) ? true : $options['save_attachments'];
 
-		$this->_triggerEvent('beforeSave');
 		try {
 			$this->_parseFields();
 			if (empty($this->_data[static::pk()]))
@@ -740,16 +741,21 @@ abstract class Base extends \P3\Model\Base
 		$flag = parent::valid();
 
 		/* unique */
-		if($this->isNew()) {
-			foreach(static::$_validatesUnique as $k => $opts) {
-				$field = (!is_array($opts) ? $opts : $k);
-				$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
+		foreach(static::$_validatesUnique as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be unique';
 
-				$class = $this->_class;
-				if(FALSE !== $class::find($field.' = \''.$this->_data[$field].'\'', array('one' => true))) {
-					$flag = false;
-					$this->_addError($field, sprintf($msg, $field));
-				}
+			$class = $this->_class;
+			$func_opts = array();
+
+			if(!$this->isNew())
+				$func_opts['conditions'] = array('id != '.$this->id());
+
+			$search = call_user_func_array($class.'::find_all_by_'.$field, array($this->_data[$field], $func_opts));
+
+			if(count($search)) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, $field));
 			}
 		}
 
