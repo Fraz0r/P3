@@ -61,6 +61,9 @@ class form extends P3\Helper\Base
 			$this->_namespaces = $tmp;
 		}
 
+		if(!isset($options['validate']))
+			$options['validate'] = true;
+
 		$this->_model   = $model;
 
 		$this->_options = $options;
@@ -89,6 +92,9 @@ class form extends P3\Helper\Base
 	 */
 	public function checkBox($field, array $options = array())
 	{
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+
 		$labelBefore = empty($options['labelBefore']) ? false : $options['labelBefore'];
 		unset($options['labelBefore']);
 
@@ -148,6 +154,9 @@ class form extends P3\Helper\Base
 	public function file($field, array $options = array())
 	{
 		$this->_options['multipart'] = true;
+
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
 
 		$attrs = array(
 			'type' => 'file',
@@ -222,6 +231,10 @@ class form extends P3\Helper\Base
 	public function hiddenField($field, array $options = array())
 	{
 		$options['value'] = !isset($options['value']) ? $this->_model->{$field} : $options['value'];
+
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+
 		echo html::_t('input', array_merge(
 			array(
 				'type'  => 'hidden',
@@ -254,7 +267,7 @@ class form extends P3\Helper\Base
 		$text = is_null($text) ? str::toHuman($field, true) : $text;
 
 		$required = false;
-		if($this->_fieldRequired($field) && (!isset($this->_options['noValidate']) || !$this->_options['noValidate'])) {
+		if($this->_fieldRequired($field) && $this->validate()) {
 			$options['class'] = isset($options['class']) ? $options['class'].' required' : 'required';
 			$required = true;
 		}
@@ -280,6 +293,10 @@ class form extends P3\Helper\Base
 	{
 		$options['selected'] = isset($options['selected']) ? $options['selected'] : $this->_model->{$field};
 		$options['id']       = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
+
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+
 		html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
@@ -310,7 +327,12 @@ class form extends P3\Helper\Base
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
 		$id    = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
 
-		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'">'.$this->_model->{$field}.'</textarea>';
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+		else
+			$options['class'] = '';
+
+		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'">'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
@@ -323,6 +345,9 @@ class form extends P3\Helper\Base
 	public function textField($field, array $options = array())
 	{
 		$val = isset($options['value']) ? $options['value'] : $this->_model->{$field};
+
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
 
 		if(isset($options['format'])) {
 			if($options['format'] == 'phone') {
@@ -362,6 +387,9 @@ class form extends P3\Helper\Base
 	 */
 	public function passwordField($field, array $options = array())
 	{
+		if($this->_fieldRequired($field) && $this->validate())
+			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+
 		echo html::_t('input',
 				array_merge(array(
 					'type'  => 'password',
@@ -405,35 +433,17 @@ class form extends P3\Helper\Base
 	 */
 	public function open()
 	{
-		if(isset($this->_options['noValidate'])) {
-			$validate = false;
-			unset($this->_options['noValidate']);
-		} else {
-			$validate = true;
-		}
-
-		$class = $this->_modelClass;
-		if($validate && count($class::$_validatesPresence)) {
-			$scrollError = (isset($this->_options['errorScrolling']) && $this->_options['errorScrolling']) ? true : false;
-			$js    = "var flag = true; ";
-			$js    .= "var req = ".json_encode($class::$_validatesPresence).'; var e = 0; ';
-			$js    .= "for(var i = 0; i < this.elements.length; i++) { for(var j = 0; j < req.length; j++) { if('".$this->_modelField."[' + req[j] + ']' ==  this.elements[i].name){ if(this.elements[i].value == ''){ e++; flag = false; ".(($scrollError) ? "if(e==1) $.scrollTo($(this.elements[1]), {duration: 1000});" : "")." $(this.elements[i]).addClass('error').change(function(){ if(this.value != '') $(this).removeClass('error'); }); break; } } } } ";
-			$js    .= "if(!flag) alert('Please fill in required fields (*)'); ";
-			$js    .= "return flag;";
-
-			if(!isset($this->_options['onsubmit']))
-				$this->_options['onsubmit'] = str_replace('"', '\'', $js);
-			else {
-				$this->_options['onsubmit'] = $this->_options['onsubmit'].' '.str_replace('"', '\'', $js);
-			}
-		}
-
 		self::tag($this->_getUri(), $this->_options);
 	}
 
 	public function setFieldName($name)
 	{
 		$this->_modelField = $name;
+	}
+
+	public function validate()
+	{
+		return($this->_options['validate']);
 	}
 
 	public function yearSelect($field, array $options = array())
@@ -502,6 +512,38 @@ class form extends P3\Helper\Base
 		}
 
 		return $this->_uri;
+	}
+
+	/**
+	 * Generates the class name, including existing [if passed], based on 
+	 * validtions set in the model.  These are design to work with the
+	 * sweet JQ plugin - jQuery Validate
+	 * 
+	 * TODO: Validations Not Current Implemented:
+	 * 			validatesAlpha
+	 * 			validatesAlphaNum
+	 * 			validatesLength
+	 * 
+	 * @param string $field field name
+	 * @param string,null $existing existing class [string], if any
+	 * 
+	 * @return string class name attribute
+	 */
+	private function _getValidationClassForField($field, $existing = null)
+	{
+		$classes = array();
+
+		$model_class = $this->_modelClass;
+
+		if(in_array($field, $model_class::$_validatesEmail))
+			$classes[] = 'email';
+		if(in_array($field, $model_class::$_validatesNum))
+			$classes[] = 'number';
+		if(in_array($field, $model_class::$_validatesPresence))
+			$classes[] = 'required';
+
+		$class = implode(' ', $classes);
+		return is_null($existing) ? $class : $existing.' '.$class;
 	}
 
 	/**
