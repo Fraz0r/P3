@@ -5,6 +5,13 @@ use       P3\System\Path\FileInfo;
 
 /**
  * This is the class that is returned when interfacing with model attachments.
+ * 
+ * A word of warning - The attachment path is indeed overrideable.  However,
+ * if you do so - MAKE SURE your model's images are seperated uniquely by parent type, id
+ * and attachement name.  This class will delete EVERYTHING in a folder for what 
+ * it beleives does not belong.  If you need clarification on this, look through the 
+ * delete() method's source (Definitely do this if you are overriding the path, give yourself
+ * the peace of mind)
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  * @package P3\ActiveRecord
@@ -95,29 +102,25 @@ class Attachment extends \P3\Model\Base
 	}
 
 	/**
-	 * Deletes all files for this attachment (base image, and styles), and then
-	 * deletes the parenting folder
+	 * Deletes all files for this attachment, updates the parent record, and then
+	 * deletes physical folder
 	 * 
 	 * @return boolean
 	 */
 	public function delete($delete_dir_if_empty = true)
 	{
-		$flag = true;
-		$path = $this->path();
-		$dir  = dirname($path);
+		$this->_parent->{$this->_name.'_file_name'}    = '';
+		$this->_parent->{$this->_name.'_file_size'}    = 0;
+		$this->_parent->{$this->_name.'_content_type'} = '';
+		$this->_parent->save(array('validate' => false, 'save_attachments' => false));
 
-		if(file_exists($path))
-			unlink($path);
+		/* Since the parent is updated by this point, this attachment now thinks everything is "junk" */
+		$this->deleteJunk();
 
-		if(isset($this->_options['styles']))
-			foreach($this->_options['styles'] as $k => $v)
-				if(file_exists($this->path($k)))
-					unlink($this->path($k));
+		/* Now, lets remove the parent folder to keeps things clean */
+		rmdir(dirname($this->path()));
 
-		if($delete_dir_if_empty && is_dir($dir) && count(scandir($dir) == 2))
-			rmdir($dir);
-
-		return $flag;
+		return true;
 	}
 
 	/**
@@ -257,6 +260,7 @@ class Attachment extends \P3\Model\Base
 	private function _file_info($use_full_path = false)
 	{
 		$path = $use_full_path ? $this->path() : $this->_filename();
+
 		return new FileInfo($path);
 	}
 
@@ -267,7 +271,9 @@ class Attachment extends \P3\Model\Base
 	 */
 	private function _filename()
 	{
-		return $this->_parent->{$this->_name.'_file_name'};
+		$ret = $this->_parent->{$this->_name.'_file_name'};
+
+		return empty($ret) ? false : $ret;
 	}
 
 	/**
