@@ -114,11 +114,14 @@ class Attachment extends \P3\Model\Base
 		$this->_parent->{$this->_name.'_content_type'} = '';
 		$this->_parent->save(array('validate' => false, 'save_attachments' => false));
 
+
 		/* Since the parent is updated by this point, this attachment now thinks everything is "junk" */
 		$this->deleteJunk();
 
 		/* Now, lets remove the parent folder to keeps things clean */
-		rmdir(dirname($this->path()));
+		$dir = dirname($this->path());
+		if(is_dir($dir))
+			rmdir(dirname($this->path()));
 
 		return true;
 	}
@@ -132,6 +135,11 @@ class Attachment extends \P3\Model\Base
 	{
 		$path = $this->path();
 		$dir  = dirname($path);
+
+		/* If the attachment already doesn't exist, we're "clean" */
+		if(!is_dir($dir))
+			return true;
+
 		$valid   = array(basename($path));
 
 		if(isset($this->_options['styles']))
