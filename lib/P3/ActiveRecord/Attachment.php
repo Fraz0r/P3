@@ -190,7 +190,7 @@ class Attachment extends \P3\Model\Base
 	 */
 	public function reprocess()
 	{
-		return $this->_generateStyles();
+		return $this->exists() ? $this->_generateStyles() : false;
 	}
 
 	/**
