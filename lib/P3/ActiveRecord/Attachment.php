@@ -184,6 +184,16 @@ class Attachment extends \P3\Model\Base
 	}
 
 	/**
+	 * Reprocess attachment styles
+	 * 
+	 * @return boolean whether or not the reprocess was successful
+	 */
+	public function reprocess()
+	{
+		return $this->_generateStyles();
+	}
+
+	/**
 	 * Saves attachment based on data from _FILES super global (passed from ActiveRecord).
 	 * Will generate styled images upon successful upload
 	 * 
