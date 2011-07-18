@@ -262,8 +262,23 @@ class Attachment extends \P3\Model\Base
 	 */
 	public function url($style = null)
 	{
-		$template = $this->_options['url'];
-		return $this->_parseTemplateString($template, $style);
+		if($this->exists()) {
+			$template = $this->_options['url'];
+			return $this->_parseTemplateString($template, $style);
+		} else {
+			if(isset($this->_options['default_url'])) {
+				if(is_array($this->_options['default_url'])) {
+					if(is_null($style))
+						return !isset($this->_options['default_url']['default']) ? false : $this->_options['default_url']['default'];
+					else 
+						return !isset($this->_options['default_url'][$style]) ? false : $this->_options['default_url'][$style];
+				} else {
+					return $this->_options['default_url'];
+				}
+			} else {
+				return false;
+			}
+		}
 	}
 
 //- Private
