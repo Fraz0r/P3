@@ -20,6 +20,18 @@ Features
 
 Changelog
 --------
+<b>v1.1.5</b>
+
+* Added default_url option to ActiveRecord\Attachments
+* Added getJSON to collections
+* Improved ActiveRecord::getData() function to use send(), allowing for methods to be called
+* Fixed exceptions being thrown by ActiveRecord\Attachments, if the directory went missing from outside P3
+* ActiveRecord\Attachments clean up after themselves a lot nicer
+* New str::phone() helper method
+* Acronyms now usable in model names (fixed bug in camel case to underscore conversion)
+* Fixed various other minor bugs
+
+
 <b>v1.1.4</b>
 
 * Added easy pagination rendering to existing pagination support
