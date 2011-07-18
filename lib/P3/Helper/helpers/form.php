@@ -144,6 +144,8 @@ class form extends P3\Helper\Base
 
 		$options['name'] = isset($options['name']) ? $options['name'] : $this->_getFieldName($field);
 
+		$options['selected'] = $this->_model->{$field};
+
 		\html::collectionSelect($collection, $display_key, $options);
 	}
 
