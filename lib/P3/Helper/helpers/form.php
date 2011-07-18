@@ -142,7 +142,9 @@ class form extends P3\Helper\Base
 				$select_options[$model->{$value_key}] = $model->send($display_key);
 		}
 
-		$this->select($field, $select_options, $options);
+		$options['name'] = isset($options['name']) ? $options['name'] : $this->_getFieldName($field);
+
+		\html::collectionSelect($collection, $display_key, $options);
 	}
 
 	public function fieldsFor($child_name, array $options = array())

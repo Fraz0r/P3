@@ -657,14 +657,6 @@ abstract class Base extends \P3\Model\Base
 		return $ret;
 	}
 
-	public function send($what, array $arguments = array())
-	{
-		if($what[0] == ':')
-			return(call_user_method(substr($what, 1), $this, $arguments));
-		else
-			return $this->{$what};
-	}
-
 	/**
 	 * Sets attribute
 	 *

@@ -69,9 +69,19 @@ abstract class Base {
 	/**
 	 * Returns Fields as associative array
 	 */
-	public function getData()
+	public function getData(array $grab = array())
 	{
-		return($this->_data);
+		if(empty($grab))
+			return($this->_data);
+
+		$ret = array();
+
+		foreach($grab as $k => $to_send) {
+			$key = is_numeric($k) ? ($to_send[0] == ':' ? substr($to_send) : $to_send) : $k;
+			$ret[$key] = $this->send($to_send);
+		}
+
+		return $ret;
 	}
 
 	/**
@@ -102,12 +112,20 @@ abstract class Base {
 		return \str::pluralize(lcfirst($this->_class));
 	}
 
+	public function send($what, array $arguments = array())
+	{
+		if($what[0] == ':')
+			return(call_user_func_array(array($this, substr($what, 1)), $arguments));
+		else
+			return $this->{$what};
+	}
+
 	/**
 	 * returns Data encoded as JSON
 	 */
-	public function toJSON()
+	public function toJSON(array $fields = array())
 	{
-		return json_encode($this->_data);
+		return json_encode($this->getData($fields));
 	}
 
 	/**

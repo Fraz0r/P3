@@ -57,6 +57,22 @@ abstract class html extends P3\Helper\Base
 		echo '<base href="'.$base.'" />'."\n";
 	}
 
+	public static function collectionSelect($collection, $display_key, array $options = array())
+	{
+		$select_options = array();
+
+		if(!isset($options['name']))
+			$options['name'] = '';
+
+		if(count($collection)) {
+			$value_key = !isset($options['value_key']) ? $collection[0]->pk() : $options['value_key'];
+			foreach($collection as $model)
+				$select_options[$model->{$value_key}] = $model->send($display_key);
+		}
+
+		self::select($options['name'], $select_options, $options);
+	}
+
 	/**
 	 * Renders base, styles, and scripts
 	 *

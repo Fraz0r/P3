@@ -612,9 +612,9 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		return implode($eol, $lines);
 	}
 
-	public function toJSON()
+	public function toJSON(array $fields = array())
 	{
-		return '['.implode(',', $this->collect(':toJSON')).']';
+		return '['.implode(',', $this->collect(':toJSON', array($fields))).']';
 	}
 
 	/**
