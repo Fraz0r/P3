@@ -25,6 +25,7 @@ class Builder
 	const TYPE_INSERT = 2;
 	const TYPE_SELECT = 3;
 	const TYPE_UPDATE = 4;
+	const TYPE_UNION  = 5;
 
 	/**
 	 * Join types
@@ -497,6 +498,7 @@ class Builder
 			$builders = array($builders);
 
 		$this->_sections = array('base' => self::unionize(array_merge(array($this), $builders)));
+		$this->_setQueryType(self::TYPE_UNION);
 
 		return $this;
 	}
@@ -573,7 +575,11 @@ class Builder
 			case self::TYPE_INSERT:
 				$query .= $this->_getSection('values');
 				break;
+			case self::TYPE_INSERT:
+				$query .= $this->_getSection('values');
+				break;
 			case self::TYPE_SELECT:
+			case self::TYPE_UNION:
 				$query .= $this->_getSection('from');
 				$query .= $this->_getSection('joins');
 				$query .= $this->_getSection('where');
