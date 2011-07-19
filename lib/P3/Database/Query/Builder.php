@@ -343,6 +343,8 @@ class Builder
 
 		if(!is_null($offset))
 			$this->offset($offset);
+
+		return $this;
 	}
 
 	/**
@@ -353,6 +355,8 @@ class Builder
 	public function offset($offset)
 	{
 		$this->_section('offset', $offset);
+
+		return $this;
 	}
 
 	/**
@@ -363,6 +367,8 @@ class Builder
 	public function order($order) 
 	{
 		$this->_section('order', $order, self::MODE_OVERRIDE);
+
+		return $this;
 	}
 
 	/**
@@ -372,8 +378,11 @@ class Builder
 	 */
 	public function removeSection($section)
 	{
-		if(is_array($section)) {
-			foreach($section as $s) unset($this->_sections[$s]);
+		if($section == 'all') {
+			$this->_sections = array();
+		} elseif(is_array($section)) {
+			foreach($section as $s) 
+				unset($this->_sections[$s]);
 		} else {
 			unset($this->_sections[$section]);
 		}
@@ -470,6 +479,26 @@ class Builder
 		} else {
 			return $this->_table;
 		}
+	}
+
+	/**
+	 * Converts this query to union of one or more other builders
+	 * 
+	 * 	NOTE:  You lose access to indivual secions of these builders, you can, however,
+	 * 			add limits and orders on the new builder as you would any others.
+	 * 
+	 * @param array,Builder $builder Builder or array builders to unionize
+	 * 
+	 * @return Builder $this 
+	 */
+	public function union($builders)
+	{
+		if(!is_array($builders))
+			$builders = array($builders);
+
+		$this->_sections = array('base' => self::unionize(array_merge(array($this), $builders)));
+
+		return $this;
 	}
 
 	/**
@@ -676,6 +705,23 @@ class Builder
 	private function _setQueryType($type)
 	{
 		$this->_queryType = $type;
+	}
+
+//- Static
+	/**
+	 * Takes an array of builders, and returns a UNION'ized query string
+	 * 
+	 * @param array $builders array of builders
+	 * @return string SQL query 
+	 */
+	public static function unionize(array $builders)
+	{
+		$q = array();
+
+		foreach($builders as $b)
+			$q[] = $b->getQuery();
+
+		return '('.implode(') UNION (', $q).')';
 	}
 }
 
