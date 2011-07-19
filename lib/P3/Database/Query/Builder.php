@@ -575,9 +575,6 @@ class Builder
 			case self::TYPE_INSERT:
 				$query .= $this->_getSection('values');
 				break;
-			case self::TYPE_INSERT:
-				$query .= $this->_getSection('values');
-				break;
 			case self::TYPE_SELECT:
 			case self::TYPE_UNION:
 				$query .= $this->_getSection('from');
