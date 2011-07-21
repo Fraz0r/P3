@@ -268,7 +268,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::getHasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];
@@ -277,6 +277,8 @@ abstract class Base extends \P3\Model\Base
 				return new $class($record_array, array('afterSave' => array(function($record) use($opts, $pk) {	\P3\ActiveRecord\Base::db()->exec("INSERT INTO `{$opts['table']}`({$opts['fk']}, {$opts['efk']}) VALUES('{$pk}', '{$record->id}')"); })));
 			}
 		}
+
+		throw new \P3\Exception\ActiveRecordException('Can\'t build association for %s, because it doesn\'t exist', array($model_name), 500);
 	}
 
 	/**
