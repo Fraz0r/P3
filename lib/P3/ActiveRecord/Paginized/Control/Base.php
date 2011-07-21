@@ -65,7 +65,7 @@ abstract class Base implements IRendersControl
 		$tmp = array();
 		foreach($arr as $set) {
 			list($k, $v) = explode('=', $set);
-			$tmp[$k] = urldecode($v);
+			$tmp[$k] = $v;
 		}
 
 		$tmp[$page_key] = $page;
