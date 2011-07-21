@@ -112,7 +112,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$builder = clone $this->_builder;
 
 		$class = $this->_options['class'];
-		$order    = (isset($options['order']) && !is_null($options['order'])) ? $options['order'] : $class::pk().' ASC';
+		$order    = isset($options['order']) ? $options['order'] : false;
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
 		$flags    = 0;
@@ -147,7 +147,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 				$builder->where('type = \''.$class.'\'', QueryBuilder::MODE_APPEND);
 		} 
 
-		$builder->order($order);
+		if($order)
+			$builder->order($order);
 
 		if(!is_null($limit)) {
 			if(!is_array($limit))
