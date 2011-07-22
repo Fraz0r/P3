@@ -318,10 +318,6 @@ class Route {
 					return false;
 				} else {
 					/* Otherwise, let's bind the Param */
-
-					if($m[0] == ':id')
-						$passed_token = (int)$passed_token;
-
 					$this->_params[$m[1]] = $passed_token;
 				}
 			}
