@@ -21,7 +21,8 @@ class Base
 	public static $MIME_RENDER_HEADERS = array(
 		'csv'  => 'text/csv',
 		'json' => 'application/json',
-		'text' => 'text/plain'
+		'text' => 'text/plain',
+		'javascript' => 'text/javascript'
 	);
 
 //- attr-protected
