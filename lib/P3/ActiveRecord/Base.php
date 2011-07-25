@@ -352,10 +352,7 @@ abstract class Base extends \P3\Model\Base
 
 	public function duplicate()
 	{
-		$fields = $this->getFields();
-		unset($fields[static::pk()]);
-
-		return new static($fields);
+		return clone $this;
 	}
 
 	public function export()
@@ -1240,16 +1237,9 @@ abstract class Base extends \P3\Model\Base
 		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
 	}
 
-	/**
-	 * Adds relations to isset check
-	 *
-	 * @param string $name Variable
-	 * @return boolean True if set, False if not
-	 * @magic
-	 */
-	public function  __isset($name)
+	public function __clone()
 	{
-		return parent::__isset($name);
+		unset($this->_data[static::pk()]);
 	}
 
 	/**
@@ -1286,6 +1276,18 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		return null;
+	}
+
+	/**
+	 * Adds relations to isset check
+	 *
+	 * @param string $name Variable
+	 * @return boolean True if set, False if not
+	 * @magic
+	 */
+	public function  __isset($name)
+	{
+		return parent::__isset($name);
 	}
 
 	/**
