@@ -12,7 +12,7 @@ use       P3\Database\Query\Builder as QueryBuilder;
  * @package P3\ActiveRecord\Collection
  * @version $Id$
  */
-class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
+class Base implements  \Iterator, \ArrayAccess , \Countable
 {
 //- attr-protected
 	/**
@@ -404,18 +404,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	{
 		$class = $this->_contentClass;
 		return $class::$_controller;
-	}
-
-	/**
-	 * Returns iterator to use
-	 *
-	 * (Required by \IteratorAggregate)
-	 *
-	 * @return \P3\ActiveRecord\Collection\Iterator
-	 */
-	public function getIterator()
-	{
-		return new \P3\ActiveRecord\Collection\Iterator($this);
 	}
 
 	/**
