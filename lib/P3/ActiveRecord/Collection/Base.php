@@ -159,7 +159,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			$builder->limit($limit, $offset);
 		}
 
-		$collection = new self($builder, null, $flags);
+		$collection = new self($builder, $this->_parentModel, $flags);
 
 
 		return $only_one ? $collection->first() : $collection;
@@ -357,7 +357,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			$builder->limit($limit, $offset);
 		}
 
-		$collection = new self($builder, null, $this->_flags | $flags);
+		$collection = new self($builder, $this->_parentModel, $this->_flags | $flags);
 
 		return $only_one ? $collection->first() : $collection;
 	}
@@ -640,8 +640,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected function _countQuery() 
 	{
 		if(is_null($this->_countQuery)) {
-			$builder = clone $this->_builder;
-			$this->_countQuery = $builder->select('COUNT(*)')->getQuery();
+			$builder = new QueryBuilder($this->_builder->table());
+			$this->_countQuery = $builder->select('COUNT(*)')->selectFrom($this->_builder)->getQuery();
 		}
 
 		return $this->_countQuery;
