@@ -1242,7 +1242,9 @@ abstract class Base extends \P3\Model\Base
 			return self::all($args);
 		} else {
 			if(isset(static::$_scope[$name])) {
-				return self::all(array_merge(static::$_scope[$name], $arguments));
+				$args = isset($arguments[0]) && is_array($arguments[0]) ? $arguments[0] : array();
+
+				return self::all(array_merge(static::$_scope[$name], $args));
 			}
 		}
 
