@@ -116,8 +116,16 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public static $_extendable = false;
 
+	/**
+	 * Scopes for record
+	 * 
+	 * @var array
+	 */
+	public static $_scope = array();
+
 
 	protected static $_queryBuilder = null;
+
 
 	/**
 	 * Use get() to fetch an array of models. But if you already have the
@@ -1232,6 +1240,10 @@ abstract class Base extends \P3\Model\Base
 			}
 
 			return self::all($args);
+		} else {
+			if(isset(static::$_scope[$name])) {
+				return self::all(array_merge(static::$_scope[$name], $arguments));
+			}
 		}
 
 		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
