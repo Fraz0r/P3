@@ -115,7 +115,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 		$order    = isset($options['order']) ? $options['order'] : false;
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
-		$flags    = 0;
+		$flags    = $this->_flags;
 
 		if($only_one) {
 			$limit = 1;
