@@ -1140,6 +1140,30 @@ abstract class Base extends \P3\Model\Base
 		}
 	}
 
+	/**
+	 * Starts a transaction, and then runs the passed closure
+	 * 
+	 * If the passed closure throws ANY kind of exception, the transaction
+	 * is rolled back.  Otherewise, COMMIT will be called.
+	 * 
+	 * Remember, save() does NOT throw an exception - it only returns false
+	 * 
+	 * @param type $closure closure containing queries
+	 */
+	public static function transaction($closure)
+	{
+		$_db = static::db();
+		$_db->beginTransaction();
+		try {
+			$closure();
+			$_db->commit();
+		} catch(\Exception $e) {
+			$_db->rollBack();
+
+			throw $e;
+		}
+	}
+
 //- Private
 	/**
 	 * Cascades delete action to children (Nullify or Delete).  This is only called if the 'cascade'
