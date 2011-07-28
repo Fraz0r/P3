@@ -146,6 +146,10 @@ class Route {
 	public function fillGET()
 	{
 		$_GET = array_merge($this->_options, $this->_params, $_GET);
+
+		/* Temporary fix to root route not setting format */
+		if(!isset($_GET['format']))
+			$_GET['format'] = 'html';
 	}
 
 	/**
