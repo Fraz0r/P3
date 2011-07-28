@@ -12,7 +12,7 @@ use       P3\Database\Query\Builder as QueryBuilder;
  * @package P3\ActiveRecord\Collection
  * @version $Id$
  */
-class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
+class Base implements  \Iterator, \ArrayAccess , \Countable
 {
 //- attr-protected
 	/**
@@ -63,6 +63,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	protected $_indexPointer = 0;
 
+	protected $_options = array();
+
 	/**
 	 * Parent model (if any)
 	 * 
@@ -111,11 +113,11 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	{
 		$builder = clone $this->_builder;
 
-		$class = $this->_options['class'];
+		$class    = isset($this->_options['class']) ? $this->_options['class'] : $this->_contentClass;
 		$order    = isset($options['order']) ? $options['order'] : false;
 		$only_one = isset($options['one']) ? $options['one'] : false;
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
-		$flags    = 0;
+		$flags    = $this->_flags;
 
 		if($only_one) {
 			$limit = 1;
@@ -159,8 +161,10 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			$builder->limit($limit, $offset);
 		}
 
-		$collection = new self($builder, null, $flags);
+		$collection = new self($builder, $this->_parentModel, $flags);
 
+		if(isset($this->_contentClass) && !is_null($this->_contentClass))
+			$collection->contentClass($this->_contentClass);
 
 		return $only_one ? $collection->first() : $collection;
 	}
@@ -217,6 +221,14 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	public function complete()
 	{
 		return $this->_state & STATE_COMPLETE;
+	}
+
+	public function contentClass($class = null)
+	{
+		if(is_null($class))
+			return $this->_contentClass;
+		else
+			$this->_contentClass = $class;
 	}
 
 	/**
@@ -357,7 +369,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			$builder->limit($limit, $offset);
 		}
 
-		$collection = new self($builder, null, $this->_flags | $flags);
+		$collection = new self($builder, $this->_parentModel, $this->_flags | $flags);
 
 		return $only_one ? $collection->first() : $collection;
 	}
@@ -404,18 +416,6 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	{
 		$class = $this->_contentClass;
 		return $class::$_controller;
-	}
-
-	/**
-	 * Returns iterator to use
-	 *
-	 * (Required by \IteratorAggregate)
-	 *
-	 * @return \P3\ActiveRecord\Collection\Iterator
-	 */
-	public function getIterator()
-	{
-		return new \P3\ActiveRecord\Collection\Iterator($this);
 	}
 
 	/**
@@ -640,8 +640,8 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	protected function _countQuery() 
 	{
 		if(is_null($this->_countQuery)) {
-			$builder = clone $this->_builder;
-			$this->_countQuery = $builder->select('COUNT(*)')->getQuery();
+			$builder = new QueryBuilder($this->_builder->table());
+			$this->_countQuery = $builder->select('COUNT(*)')->selectFrom($this->_builder)->getQuery();
 		}
 
 		return $this->_countQuery;
@@ -710,15 +710,23 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 			$arguments['conditions'] = array($field => array_shift($arguments));
 
 			return $this->all($arguments);
+		} else {
+			if(!is_null($this->_contentClass)) {
+				$class = $this->_contentClass;
+
+				if(isset($class::$_scope[$name])) {
+					$args = isset($arguments[0]) && is_array($arguments[0]) ? $arguments[0] : array();
+
+					return $this->all(array_merge($class::$_scope[$name], $args));
+				}
+			}
 		}
 
 		throw new \P3\Exception\ActiveRecordException("Method doesnt exist: %s", array($name));
 	}
 
 	/**
-	 * Passes get calls onto containing model.  
-	 * 
-	 * Single Mode ONLY
+	 * Magic Get
 	 * 
 	 * @param string $name var to retreive
 	 * @return mixed val of var from record
@@ -726,17 +734,7 @@ class Base implements  \IteratorAggregate , \ArrayAccess , \Countable
 	 */
 	public function __get($name)
 	{
-		/* TODO:  This is old and needs some work */
-		if($this->_flags & FLAG_SINGLE_MODE) {
-			if(!$this->complete()) {
-				$this->_fetchAll();
-			}
-
-			if(count($this->_data) == 1)
-				return $this->_data[0]->{$name};
-			else 
-				var_dump("NEED EXCEPTION HERE"); die;
-		}
+		return $this->{$name}();
 	}
 
 }

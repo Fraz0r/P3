@@ -14,11 +14,6 @@ use       P3\Database\Query\Builder as QueryBuilder;
  */
 abstract class Base extends \P3\ActiveRecord\Collection\Base 
 {
-	/**
-	 * @var type array
-	 */
-	protected $_options = array();
-
 	public function __construct(QueryBuilder $builder, $parentModel = null, $flags = 0)
 	{
 		parent::__construct($builder, $parentModel, $flags);
