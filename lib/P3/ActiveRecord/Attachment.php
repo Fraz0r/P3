@@ -169,6 +169,26 @@ class Attachment extends \P3\Model\Base
 	}
 
 	/**
+	 * Returns filename of attachment
+	 * 
+	 * @return string filename
+	 */
+	public function filename()
+	{
+		return $this->_filename();
+	}
+
+	/**
+	 * Returns filesize of attachment
+	 * 
+	 * @return int filesize 
+	 */
+	public function filesize()
+	{
+		return (int)$this->_parent->{$this->_name.'_file_size'};
+	}
+
+	/**
 	 * Returns the full path for this attachment.  The style option is optional.
 	 * If it's passed, the path for the style will be returned, otherwise the path
 	 * of the base image will be returned.  Note, the style option is for images
