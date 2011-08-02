@@ -137,14 +137,13 @@ abstract class Base extends \P3\Model\Base
 	{
 		$this->bindEventListeners($options);
 
-
-
 		parent::__construct($record_array);
 
 		if(static::$_extendable) {
 			$this->type = $this->_class;
 		}
 
+		$this->_parseFields();
 	}
 
 	/**
@@ -621,7 +620,6 @@ abstract class Base extends \P3\Model\Base
 		$save_attachments = (!is_array($options) || !isset($options['save_attachments'])) ? true : $options['save_attachments'];
 
 		try {
-			$this->_parseFields();
 			if (empty($this->_data[static::pk()]))
 				$ret = $this->_insert();
 			else
