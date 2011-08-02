@@ -137,14 +137,13 @@ abstract class Base extends \P3\Model\Base
 	{
 		$this->bindEventListeners($options);
 
-
-
 		parent::__construct($record_array);
 
 		if(static::$_extendable) {
 			$this->type = $this->_class;
 		}
 
+		$this->_parseFields();
 	}
 
 	/**
@@ -621,7 +620,6 @@ abstract class Base extends \P3\Model\Base
 		$save_attachments = (!is_array($options) || !isset($options['save_attachments'])) ? true : $options['save_attachments'];
 
 		try {
-			$this->_parseFields();
 			if (empty($this->_data[static::pk()]))
 				$ret = $this->_insert();
 			else
@@ -1137,6 +1135,30 @@ abstract class Base extends \P3\Model\Base
 			static::$_table = $table;
 		} else {
 			return static::$_table;
+		}
+	}
+
+	/**
+	 * Starts a transaction, and then runs the passed closure
+	 * 
+	 * If the passed closure throws ANY kind of exception, the transaction
+	 * is rolled back.  Otherewise, COMMIT will be called.
+	 * 
+	 * Remember, save() does NOT throw an exception - it only returns false
+	 * 
+	 * @param type $closure closure containing queries
+	 */
+	public static function transaction($closure)
+	{
+		$_db = static::db();
+		$_db->beginTransaction();
+		try {
+			$closure();
+			$_db->commit();
+		} catch(\Exception $e) {
+			$_db->rollBack();
+
+			throw $e;
 		}
 	}
 
