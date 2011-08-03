@@ -205,7 +205,7 @@ class form extends P3\Helper\Base
 						continue;
 					}
 
-					$ret .= $this->textField($field.'('.$parts[$item].'i)', array_merge(array('value' => $y, 'size' => 3)));
+					$ret .= $this->textField($field.'('.$parts[$item].'i)', array_merge(array('value' => $y, 'maxlength' => 4, 'size' => 3)));
 				break;
 				default:
 					switch($item) {
