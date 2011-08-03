@@ -383,6 +383,12 @@ class form extends P3\Helper\Base
 		$this->select($field, \date::timezoneForSelect());
 	}
 
+	public function urlField($field, array $options = array())
+	{
+		$options['class'] = isset($options['class']) ? $options['class'].' url' : 'url';
+		$this->textField($field, $options);
+	}
+
 	/**
 	 * Renders <input[:type => password]> for field in model
 	 *
