@@ -21,6 +21,7 @@ abstract class Base {
 	public static $_validatesLength   = array();
 	public static $_validatesNum      = array();
 	public static $_validatesPresence = array();
+	public static $_validatesURL      = array();
 
 //- attr-static-protected
 	/**
@@ -165,6 +166,10 @@ abstract class Base {
 		/* email */
 		foreach(static::$_validatesEmail as $k => $opts) {
 			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be a valid email address';
 
 			if(FALSE === filter_var($this->_data[$field], \P3\Filter::FILTER_VALIDATE_EMAIL)) {
@@ -180,6 +185,10 @@ abstract class Base {
 			}
 
 			$field = $k;
+
+			if(empty($this->_data[$field]))
+				continue;
+
 			$min   = isset($opts['min']) ? $opts['min'] : null;
 			$max   = isset($opts['max']) ? $opts['max'] : null;
 
@@ -200,6 +209,10 @@ abstract class Base {
 		/* num */
 		foreach(static::$_validatesNum as $k => $opts) {
 			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be numeric';
 
 			if(!preg_match('!^([0-9]*)$!', $this->_data[$field])) {
@@ -208,9 +221,13 @@ abstract class Base {
 			}
 		}
 
-		/* num */
+		/* alpha */
 		foreach(static::$_validatesAlpha as $k => $opts) {
 			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must contain characters only';
 
 			if(!preg_match('!^([a-zA-Z]*)$!', $this->_data[$field])) {
@@ -222,9 +239,28 @@ abstract class Base {
 		/* alpha_num */
 		foreach(static::$_validatesAlphaNum as $k => $opts) {
 			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must contain characters and numbers only';
 
 			if(!preg_match('!^([a-zA-Z0-9]*)$!', $this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
+			}
+		}
+
+		/* url */
+		foreach(static::$_validatesURL as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must be a valid web address';
+
+			if(!preg_match('/^[a-zA-Z0-9\-\.]+\.(com|org|net|mil|edu)$/i', $this->_data[$field])) {
 				$flag = false;
 				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
