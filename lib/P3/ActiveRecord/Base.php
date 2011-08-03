@@ -610,6 +610,7 @@ abstract class Base extends \P3\Model\Base
 	 */
 	public function save($options = null)
 	{
+		$this->_parseFields();
 		$this->_triggerEvent('beforeSave');
 
 		if(!isset($options['validate']) || $options['validate']) {
