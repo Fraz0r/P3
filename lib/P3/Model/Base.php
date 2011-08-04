@@ -189,6 +189,12 @@ abstract class Base {
 			if(empty($this->_data[$field]))
 				continue;
 
+			if(isset($opts['exact']) && strlen($this->_data[$field]) != $opts['exact']) {
+				$flag = false;
+				$this->_addError($field, sprintf('%s must be exactly %d characters long', \str::toHuman($field), $opts['exact']));
+				continue;
+			}
+
 			$min   = isset($opts['min']) ? $opts['min'] : null;
 			$max   = isset($opts['max']) ? $opts['max'] : null;
 
