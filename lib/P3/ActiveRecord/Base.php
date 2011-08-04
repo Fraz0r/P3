@@ -1224,6 +1224,10 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		foreach($tmp as $field => $parts) {
+			/* If a "part" was left off, ignore the field all together */
+			if(count($parts) != count(array_filter($parts)))
+				continue;
+
 			ksort($parts);
 			$this->_data[$field] = vsprintf('%04d-%02d-%02d ', $parts);
 		}
