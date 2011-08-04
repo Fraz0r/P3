@@ -187,6 +187,9 @@ class form extends P3\Helper\Base
 		$parts = array('year' => 1, 'month' => 2, 'day' => 3, 'hour' => 4, 'minute' => 5, 'second' => 6, 'ampm' => 7);
 		$order = isset($options['order']) ? $options['order'] : array('month', 'day', 'year');
 
+		if(isset($options['include_blank']) && $options['include_blank'])
+			$options['blankOption'] = ' ';
+
 		if(!is_null($this->_model->{$field}) && FALSE !== ($vals = preg_match('/^([\d]{4})-([\d]{2})-([\d]{2}).*/', $this->_model->{$field}, $matches))) {
 			list($full, $y, $m, $d) = array_map(function($v){ static $x = 0; return ($x++ != 0) ? (int)$v : $v;}, $matches);
 		} else {
