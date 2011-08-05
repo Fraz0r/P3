@@ -39,6 +39,12 @@ class Connection extends \PDO
 		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
 	}
 
+	public function exec($s)
+	{
+		$this->logQuery("\t".$s, 'pdo_exec');
+		return parent::exec($s);
+	}
+
 	/**
 	 * Builds PDO DSN with passed config array
 	 *
@@ -50,6 +56,17 @@ class Connection extends \PDO
 	public function buildDSN(array $config)
 	{
 		return $config['driver'].':'.'host='.(isset($config['host']) ? $config['host'] : 'localhost').((!empty($config['port'])) ? (';port='.$config['port']) : '').';dbname='.$config['database'];
+	}
+
+	public function logQuery($string, $proc = 'pdo_query')
+	{
+		\P3::getLogger()->debug("\t".$string, 'p3['.$proc.']');
+	}
+
+	public function query($string)
+	{
+		$this->logQuery($string);
+		return parent::query($string);
 	}
 
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace P3\ActionController;
+use       P3\System\Logging;
 use       P3\Router;
 
 /**
@@ -116,6 +117,8 @@ abstract class Base extends \P3\Controller\Base
 	 */
 	public function process($action = null)
 	{
+		$this->_logProcessing();
+
 		/* Call init */
 		$this->_init();
 
@@ -126,6 +129,8 @@ abstract class Base extends \P3\Controller\Base
 			if(($this->_actionReturn === true || is_null($this->_actionReturn)) && !$this->rendered())
 				$this->render();
 		}
+
+		$this->_logComplete();
 
 		return $this->_actionReturn;
 	}
@@ -211,6 +216,33 @@ abstract class Base extends \P3\Controller\Base
 		}
 
 		return $this->_view;
+	}
+
+//- Private 
+	private function _logProcessing()
+	{
+		$logger = $this->logger();
+
+		if($logger->loggable(Logging\LEVEL_INFO)) {
+			$logger->info('');
+			$logger->info('');
+			$logger->info(
+				vsprintf('Processing %s#%s (for %s at %s) [%s]', array(
+					get_called_class(), 
+					$_GET['action'], 
+					$_SERVER['REMOTE_ADDR'], 
+					date('Y-m-d H:i:s'), 
+					$_SERVER['REQUEST_METHOD']
+			)));
+
+			$logger->info("\t".'Parameters: '.json_encode(\array_diff_key($_GET, array('action' => null, 'controller' => null))));
+		}
+	}
+
+	private function _logComplete()
+	{
+		if($this->logger()->loggable(Logging\LEVEL_INFO))
+			$this->logger()->info('Completed');
 	}
 
 //- Magic

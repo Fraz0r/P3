@@ -15,6 +15,20 @@ namespace P3\ActiveRecord\Collection
 	const STATE_COMPLETE = 2;
 }
 
+namespace P3\System\Logging
+{
+	const LEVEL_UNKNOWN = 100;
+	const LEVEL_DEBUG   = 1;
+	const LEVEL_INFO    = 2;
+	const LEVEL_WARN    = 3;
+	const LEVEL_ERROR   = 4;
+	const LEVEL_FATAL   = 5;
+
+	const REPORTING_LEVEL_DEV  = LEVEL_DEBUG;
+	const REPORTING_LEVEL_PROD = LEVEL_INFO;
+	const REPORTING_LEVEL_NONE = 200;
+}
+
 namespace P3\Mail
 {
 	const SEND_HANDLER_P3   = 1;
@@ -59,6 +73,8 @@ namespace
 		 */
 		private static $_database = null;
 
+		private static $_logger = null;
+
 		/**
 		 * Boots app
 		 * 
@@ -68,6 +84,18 @@ namespace
 		{
 			P3\Loader::loadEnv();
 			P3\Router::dispatch();
+		}
+
+		/**
+		 * Returns name of app
+		 * 
+		 * 	Note:  Currently only used in logging
+		 * 
+		 * @return string app name 
+		 */
+		public static function getAppName()
+		{
+			return defined('APP\NAME') ? 'app['.\APP\NAME.']' : 'app';
 		}
 
 		/**
@@ -94,6 +122,14 @@ namespace
 			if(is_null(self::$_env)) self::$_env = self::_determineEnv();
 
 			return self::$_env;
+		}
+
+		public static function getLogger()
+		{
+			if(is_null(self::$_logger))
+				self::$_logger = new \P3\System\Logger();
+
+			return self::$_logger;
 		}
 
 		/**

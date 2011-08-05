@@ -59,6 +59,11 @@ abstract class Base
 		$this->_route = $route;
 	}
 
+	public function logger()
+	{
+		return \P3::getLogger();
+	}
+
 	/**
 	 * Retrives an attribute
 	 *
