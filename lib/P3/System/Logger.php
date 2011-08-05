@@ -9,7 +9,7 @@ namespace P3\System;
  * @package P3\System
  * @version $Id$
  */
-class Logger extends Logging\Engine\Base
+final class Logger extends Logging\Engine\Base
 {
 	public function __construct()
 	{
