@@ -30,6 +30,13 @@ class Base implements  \Iterator, \ArrayAccess , \Countable
 	protected $_contentClass = null;
 
 	/**
+	 * Cache'd count, to prevent multiple COUNT(*) from firing
+	 * 
+	 * @var type 
+	 */
+	protected $_count = null;
+
+	/**
 	 * Query string used to count records
 	 * 
 	 * @see _countQuery
@@ -180,15 +187,18 @@ class Base implements  \Iterator, \ArrayAccess , \Countable
 	public function count()
 	{
 		if($this->complete()) {
-			return count($this->_data);
+			$count = count($this->_data);
 		} else {
-			$stmnt = \P3::getDatabase()->query($this->_countQuery());
+			if(is_null($this->_count)) {
+				$stmnt = \P3::getDatabase()->query($this->_countQuery());
 
-			if(!$stmnt)
-				return 0;
-
-			return (int)$stmnt->fetchColumn();
+				$count = $this->_count = !$stmnt ? 0 : (int)$stmnt->fetchColumn();
+			} else {
+				$count = $this->_count;
+			}
 		}
+
+		return $count;
 	}
 
 	/**
