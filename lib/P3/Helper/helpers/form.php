@@ -95,6 +95,7 @@ class form extends P3\Helper\Base
 		if($this->_fieldRequired($field) && $this->validate())
 			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
 
+		$printLabel = empty($options['include_label']) ? false : (bool)$options['include_label'];
 		$labelBefore = empty($options['labelBefore']) ? false : $options['labelBefore'];
 		unset($options['labelBefore']);
 
@@ -117,10 +118,14 @@ class form extends P3\Helper\Base
 		/* Little trick I thought of.. This way 0 is sent if the box is not checked, but overridden to 1 if it is *bows* */
 		$this->hiddenField($field, array('value' => 0));
 
-		if($labelBefore)
-			echo $label.$input;
-		else
-			echo $input.$label;
+		if($printLabel) {
+			if($labelBefore)
+				echo $label.$input;
+			else
+				echo $input.$label;
+		} else {
+			echo $input;
+		}
 	}
 
 	/**
