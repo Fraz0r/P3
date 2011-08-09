@@ -82,6 +82,7 @@ namespace
 		 */
 		public static function boot()
 		{
+			define('P3\START_TIME', microtime(true));
 			P3\Loader::loadEnv();
 			P3\Router::dispatch();
 		}

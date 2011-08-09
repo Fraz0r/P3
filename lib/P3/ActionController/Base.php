@@ -130,6 +130,7 @@ abstract class Base extends \P3\Controller\Base
 				$this->render();
 		}
 
+		define('P3\END_TIME', microtime(true));
 		$this->_logComplete();
 
 		return $this->_actionReturn;
@@ -235,14 +236,18 @@ abstract class Base extends \P3\Controller\Base
 					$_SERVER['REQUEST_METHOD']
 			)));
 
-			$logger->info("\t".'Parameters: '.json_encode(\array_diff_key($_GET, array('action' => null, 'controller' => null))));
+			$logger->info("\t".'Parameters: '.json_encode(\array_diff_key($_GET, array('action' => null, 'controller' => null, 'as' => null, 'prefix' => null, 'member' => null, 'collection' => null))));
 		}
 	}
 
 	private function _logComplete()
 	{
-		if($this->logger()->loggable(Logging\LEVEL_INFO))
-			$this->logger()->info('Completed');
+		$this->logger()->info(
+			vsprintf('Completed in %dms | 200 OK [%s]', array(
+				(\P3\END_TIME - \P3\START_TIME)*1000,
+				\P3\Routed\Request::currentURL()
+			)
+		));
 	}
 
 //- Magic

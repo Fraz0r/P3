@@ -152,6 +152,16 @@ abstract class Base
 	}
 
 	/**
+	 * Set logging level
+	 * 
+	 * @param int $level logger level
+	 */
+	public function level($level)
+	{
+		$this->_level = $level;
+	}
+
+	/**
 	 * Alias of add
 	 * 
 	 * @see add
@@ -169,7 +179,7 @@ abstract class Base
 	 */
 	public function loggable($level)
 	{
-		return $level > $this->_level;
+		return $level >= $this->_level;
 	}
 
 	/**
