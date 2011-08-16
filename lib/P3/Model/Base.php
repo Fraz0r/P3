@@ -21,6 +21,7 @@ abstract class Base {
 	public static $_validatesLength   = array();
 	public static $_validatesNum      = array();
 	public static $_validatesPresence = array();
+	public static $_validatesFormat   = array();
 	public static $_validatesURL      = array();
 
 //- attr-static-protected
@@ -252,6 +253,24 @@ abstract class Base {
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s must contain characters and numbers only';
 
 			if(!preg_match('!^([a-zA-Z0-9]*)$!', $this->_data[$field])) {
+				$flag = false;
+				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
+			}
+		}
+
+		/* format */
+		foreach(static::$_validatesFormat as $k => $opts) {
+			$field = (!is_array($opts) ? $opts : $k);
+
+			if(empty($this->_data[$field]))
+				continue;
+
+			if(!isset($opts['with']))
+				throw new \P3\Exception\HelperException('validatesFormat requires a \'with\' option, containing a valid regular expresion');
+
+			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s is invalid';
+
+			if(!preg_match($opts['with'], $this->_data[$field])) {
 				$flag = false;
 				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
