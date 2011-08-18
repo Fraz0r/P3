@@ -106,7 +106,7 @@ class str
 	*/
 	public static function titleize($str, $ignore_predicates = true)
 	{
-		$ex = explode(' ', $str);
+		$ex = explode(' ', strtolower($str));
 		$x = 0;
 		foreach($ex as &$word) {
 			//Only capitalize the word if it's not a predicate, unless it's the first word.  All words are capped if $ignore_predicates is false
