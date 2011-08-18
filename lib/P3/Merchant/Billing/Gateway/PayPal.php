@@ -65,9 +65,7 @@ class PayPal extends Base
 			'signature'   => 'https://api-3t.sandbox.paypal.com/2.0/'
 		),
 		'live' => array(
-			/* TODO: Fix endpoint detection in Live mode.. no time right now (its pulling the cert url, instead of the signature one*/
-			//'certificate' => 'https://api-aa.paypal.com/2.0/',
-			'certificate'   => 'https://api-3t.paypal.com/2.0/',
+			'certificate' => 'https://api-aa.paypal.com/2.0/',
 			'signature'   => 'https://api-3t.paypal.com/2.0/'
 		)
 	);
@@ -213,7 +211,7 @@ class PayPal extends Base
 	 */
 	public function endpointURL()
 	{
-		return self::$URLS[$this->inTestMode() ? 'test' : 'live'][(isset($this->_options['signature']) && !empty($this->_options['signature'])) ? 'certificate' : 'signature'];
+		return self::$URLS[($this->inTestMode() ? 'test' : 'live')][((isset($this->_options['signature']) && !empty($this->_options['signature'])) ? 'signature' : 'certificate')];
 	}
 
 	/**
