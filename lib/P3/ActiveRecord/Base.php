@@ -923,6 +923,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		$collection = new Collection\Base($builder, null, $flags);
+		$collection->contentClass($class);
 
 
 		return $only_one ? $collection->first() : $collection;
