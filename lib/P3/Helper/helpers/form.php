@@ -339,12 +339,15 @@ class form extends P3\Helper\Base
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
 		$id    = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
 
+		if(isset($options['style']))
+			$style = $options['style'];
+
 		if($this->_fieldRequired($field) && $this->validate())
 			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
 		else
 			$options['class'] = '';
 
-		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'">'.$this->_model->{$field}.'</textarea>';
+		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
