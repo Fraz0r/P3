@@ -973,8 +973,7 @@ abstract class Base extends \P3\Model\Base
 		$flags    = 0;
 		$class    = get_called_class();
 
-		/* Todo: Change this if array is passed as id */
-		$only_one = true;
+		$only_one = !is_array($id);
 
 		if($only_one) {
 			$limit = 1;
@@ -988,7 +987,11 @@ abstract class Base extends \P3\Model\Base
 
 		$builder->select();
 
-		$builder->where(static::pk().' = '.$id);
+		if(!is_array($id)) {
+			$builder->where(static::pk().' = '.$id);
+		} else {
+			$builder->where(static::pk().' IN ('.implode(', ', $id).')');
+		}
 
 		if(isset($options['conditions'])) {
 			foreach($options['conditions'] as $k => $v) {
