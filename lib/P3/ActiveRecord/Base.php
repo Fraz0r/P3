@@ -648,12 +648,13 @@ abstract class Base extends \P3\Model\Base
 		$class = $this->_class;
 		$model_field = isset($options['model_field']) ? $options['model_field'] : \str::fromCamelCase($class);
 
-		foreach(static::$_hasAttachment as $field => $opts) {
-			if(isset($_FILES[$model_field])) {
-				$attachment = $this->{$field};
+		if(isset($_FILES[$model_field])) {
+			foreach(static::$_hasAttachment as $field => $opts) {
+				if(isset($_FILES[$model_field]['size'][$field])) {
+					$attachment = $this->{$field};
 
-				if($attachment) {
-					$ret = $ret && $attachment->save($_FILES[$model_field]);
+					if($attachment)
+						$ret = $ret && $attachment->save($_FILES[$model_field]);
 				}
 			} 
 		}
