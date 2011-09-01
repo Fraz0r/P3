@@ -293,7 +293,7 @@ class Map
 		$ret = '/';
 
 		if(isset($this->_options['namespace'])) {
-			$ret .= $this->_options['namespace'];
+			$ret .= isset($this->_options['prefix']) ? $this->_options['prefix'] : $this->_options['namespace'];
 		}
 
 		return $ret;
