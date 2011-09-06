@@ -165,6 +165,9 @@ class Attachment extends \P3\Model\Base
 	 */
 	public function exists()
 	{
+		if(empty($this->_parent->{$this->_name.'_file_name'}))
+			return false;
+
 		return $this->_file_info(true)->isReadable();
 	}
 
