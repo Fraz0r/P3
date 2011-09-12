@@ -126,7 +126,7 @@ abstract class date extends P3\Helper\Base
 
 	public static function daysForSelect(array $options = array())
 	{
-		$range = \number::range(1, 31);
+		$range = \number::range(1, isset($options['max']) ? $options['max'] : 31);
 
 		return array_combine($range, $range);
 	}

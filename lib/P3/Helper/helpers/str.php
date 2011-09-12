@@ -16,6 +16,10 @@ class str
 	 */
 	public static $_noCap = array('a', 'an', 'is', 'from', 'for', 'of', 'the');
 
+	public static $_irreg = array(
+		'person' => 'people'
+	);
+
 	/**
 	* Translates a camel case string into a string with underscores (e.g. firstName -&gt; first_name)
 	*
@@ -62,6 +66,9 @@ class str
 	*/
 	public static function pluralize($str)
 	{
+		if(isset(self::$_irreg[$str]))
+			return self::$_irreg[$str];
+
 		$flag = 0;
 
 		$str = preg_replace('/s$/', 'ses', $str, 1, $flag);
@@ -85,6 +92,9 @@ class str
 	*/
 	public static function singularize($str)
 	{
+		if(FALSE !== ($k = array_search($str, self::$_irreg)))
+			return $k;
+
 		$flag = 0;
 
 		$str = preg_replace('/ses$/', 's', $str, 1, $lag);
@@ -123,7 +133,7 @@ class str
 	* @param bool $capitalise_first_char If true, capitalise the first char in $str
 	* @return string $str translated into camel caps
 	*/
-	public static function toCamelCase($str, $capitalise_first_char = false) {
+	public static function toCamelCase($str, $capitalise_first_char = true) {
 		if(strlen($str) < 1) return $str;
 		if($capitalise_first_char) {
 			$str[0] = strtoupper($str[0]);

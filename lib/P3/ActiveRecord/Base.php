@@ -1140,6 +1140,9 @@ abstract class Base extends \P3\Model\Base
 		if(!empty($table)) {
 			static::$_table = $table;
 		} else {
+			if(is_null(static::$_table))
+				static::$_table = \str::pluralize(\str::fromCamelCase(get_called_class()));
+
 			return static::$_table;
 		}
 	}
