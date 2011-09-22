@@ -275,7 +275,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::getHasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];

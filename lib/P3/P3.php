@@ -87,6 +87,18 @@ namespace
 			P3\Router::dispatch();
 		}
 
+		public static function database($db = null)
+		{
+			if(is_null($db)) {
+				if(empty(self::$_database))
+					self::$_database = new \P3\Database\Connection;
+
+				return self::$_database;
+			} else {
+				self::$_database = $db;
+			}
+		}
+
 		/**
 		 * Returns name of app
 		 * 
