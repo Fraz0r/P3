@@ -221,7 +221,7 @@ class PayPal extends Base
 	 */
 	public function inTestMode()
 	{
-		return (isset($this->_options['test']) && $this->_options['test']) || $this->gatewayMode() == 'test';
+		return (isset($this->_options['test']) && $this->_options['test']) || parent::inTestMode();
 	}
 
 	/**

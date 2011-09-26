@@ -58,7 +58,17 @@ abstract class Base
 	 */
 	public function amount($money)
 	{
-		return $this->_money_format == 'cents' ? $money : sprintf('%.2f', $money);
+		return $this->_money_format == 'cents' ? $money * 100 : sprintf('%.2f', $money);
+	}
+
+	/**
+	 * Determines if we are in test mode
+	 * 
+	 * @return boolean true if test, false otherwise
+	 */
+	public function inTestMode()
+	{
+		return $this->gatewayMode() == 'test';
 	}
 
 	/**
@@ -113,12 +123,13 @@ abstract class Base
 	 * 
 	 * @return void
 	 */
-	protected function _requires($hash, array $params = array())
+	protected function _requires($hash, array $params = array(), $strict_as_hell = false)
 	{
-		foreach($params as $param) {
-			if(!isset($hash[$param]))
-				throw new \P3\Merchant\Exception\ArgumentError("Missing required parameter: %s", array($param), 500);
-		}
+		if(($c = array_diff($params, array_keys($hash))) && count($c))
+			throw new \P3\Merchant\Exception\ArgumentError("Missing required parameter: %s", array(current($c)), 500);
+
+		if($strict_as_hell && ($c = array_diff(array_keys($hash), $params)) && count($c))
+			throw new \P3\Merchant\Exception\ArgumentError("Unkown parameter: %s", array(current($c)), 500);
 	}
 
 	/**

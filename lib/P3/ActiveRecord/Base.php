@@ -362,11 +362,6 @@ abstract class Base extends \P3\Model\Base
 		return clone $this;
 	}
 
-	public function export()
-	{
-		return $this->_data;
-	}
-
 	/**
 	 * Returns Primary Key value for the model
 	 *
