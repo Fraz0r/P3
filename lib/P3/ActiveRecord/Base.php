@@ -394,6 +394,9 @@ abstract class Base extends \P3\Model\Base
 			if(isset($belongsTo[$field]['fk']) && is_null($this->_data[$belongsTo[$field]['fk']])) {
 				return null;
 			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
+				if(in_array(null, array($this->_data[$field.'_id'], $this->_data[$field.'_type'])))
+					return null;
+
 				$belongsTo[$field]['polymorphic_as'] = $field;
 				return new Association\PolymorphicAssociation($this, $belongsTo[$field]);
 			}
@@ -1310,10 +1313,6 @@ abstract class Base extends \P3\Model\Base
 			if(!$assoc) 
 				return null;
 
-			if($this->isNew()) {
-				if(!is_a($assoc, 'P3\ActiveRecord\Association\BelongsToAssociation'))
-					throw new \P3\Exception\ActiveRecordException("You cannot access the children of an unsaved parent");
-			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;
 
