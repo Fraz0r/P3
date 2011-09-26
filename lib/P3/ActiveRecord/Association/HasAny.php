@@ -14,9 +14,19 @@ abstract class HasAny extends Base
 	{
 		$this->_options = $options;
 
-		$class = $options['class'];
+		$class = isset($options['class']) ? $options['class'] : false;
 
-		$builder = new QueryBuilder($class::table(), null, $class);
+		if(!$class) {
+			$table = isset($options['table']) ? $options['table'] : false;
+		} else {
+			$table = $class::table();
+		}
+
+		if(!$table)
+			throw new \P3\Exception\ActiveRecordException("Can't determine table to pull from");
+
+
+		$builder = new QueryBuilder($table, null, $class);
 
 		$builder->select();
 
@@ -57,7 +67,7 @@ abstract class HasAny extends Base
 		if(isset($options['order']))
 			$builder->order($options['order']);
 
-		if($class::$_extendable)
+		if($class && $class::$_extendable)
 			$flags = $flags | \P3\ActiveRecord\Collection\FLAG_DYNAMIC_TYPES;
 
 		parent::__construct($builder, $parent, $flags);
