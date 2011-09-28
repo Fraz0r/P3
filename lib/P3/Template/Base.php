@@ -131,11 +131,19 @@ class Base
 
 			$header = static::$MIME_RENDER_HEADERS[$type];
 
-			header("Content-type: {$header}");
 			if(isset($options['filename'])) {
-				header('Content-Disposition: attachment; filename="'.$options['filename'].'"');
+				header("Pragma: public");
+				header("Expires: 0");
+				header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+				header("Cache-Control: private",false);
+				header("Content-Type: {$header}");
+				header('Content-Disposition: attachment; filename="'.$options['filename'].'";');
 				header('Content-Length: '.((int)strlen($content)));
+				header("Content-Transfer-Encoding: binary");
+			} else {
+				header("Content-Type: {$header}");
 			}
+
 			echo $content;
 		}
 	}

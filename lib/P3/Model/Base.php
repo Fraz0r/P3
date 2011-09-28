@@ -58,6 +58,11 @@ abstract class Base {
 		} 
 	}
 
+	public function export()
+	{
+		return $this->_data;
+	}
+
 	/**
 	 * Checks to see if passed field has changed since load()
 	 * @param str $field Field to check

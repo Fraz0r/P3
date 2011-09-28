@@ -67,7 +67,7 @@ class Parser
 			if(!$bool) {
 				throw new \P3\Exception\IOException('Unable to parse "%s" into the config', array($file));
 			} else {
-				$this->_config = array_merge($config, $this->_config);
+				$this->_config = array_merge($this->_config, $config);
 			}
 		}
 
