@@ -31,7 +31,7 @@ abstract class HasAny extends Base
 		$builder->select();
 
 		if(isset($options['fk'])) {
-			$builder->where($options['fk'].' = '.$parent->id());
+			$builder->where($table.'.'.$options['fk'].' = '.$parent->id());
 
 			if($class::$_extendable) {
 				$parents = class_parents($class, false);
