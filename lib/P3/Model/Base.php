@@ -114,6 +114,14 @@ abstract class Base {
 		return true;
 	}
 
+	public function pushEvent($binding, $closure)
+	{
+		if(!isset($this->{'_'.$binding}))
+			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
+
+		$this->{'_'.$binding}[] = $closure;
+	}
+
 	public function pluralize()
 	{
 		return \str::pluralize(lcfirst($this->_class));
@@ -326,12 +334,17 @@ abstract class Base {
 		foreach($funcs as $func) {
 			if(is_string($func) && $func[0] == ':') {
 				$func_name = substr($func, 1);
-				$ret = $ret && call_user_func_array(array($this, $func_name), array());
+				$returned  = call_user_func_array(array($this, $func_name), array());
 			} elseif(is_callable($func)) {
-				$ret = $ret && $func($this);
+				$returned = $func($this);
 			} else {
 				throw new Exception\ModelException("Unknown event handler type");
 			}
+
+			if(is_null($returned))
+				$returned = true;
+
+			$ret = $ret && $returned;
 		}
 
 		return $ret;
