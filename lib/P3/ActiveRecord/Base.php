@@ -275,7 +275,7 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		/* Has Many Through */
-		foreach(static::getHasAndBelongsToMany as $field => $opts) {
+		foreach(static::getHasAndBelongsToMany() as $field => $opts) {
 			if(isset($opts['class']) && $opts['class'] == $model_name) {
 				$class = $opts['class'];
 				$pk = $this->_data[self::pk()];
@@ -362,11 +362,6 @@ abstract class Base extends \P3\Model\Base
 		return clone $this;
 	}
 
-	public function export()
-	{
-		return $this->_data;
-	}
-
 	/**
 	 * Returns Primary Key value for the model
 	 *
@@ -383,7 +378,7 @@ abstract class Base extends \P3\Model\Base
 	 * @param string $field field association to retrieve
 	 * @return Association\Base association for field
 	 */
-	public function getAssociationForField($field)
+	public function getAssociationForField($field, $ignore_new = false)
 	{
 		$belongsTo   = static::getBelongsTo();
 		$hasMany     = static::getHasMany();
@@ -391,19 +386,31 @@ abstract class Base extends \P3\Model\Base
 		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
 
 		if(isset($belongsTo[$field])) {
-			if(isset($belongsTo[$field]['fk']) && is_null($this->_data[$belongsTo[$field]['fk']])) {
+			if(isset($belongsTo[$field]['fk']) && !isset($this->_data[$belongsTo[$field]['fk']])) {
 				return null;
 			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
+				if(in_array(null, array($this->_data[$field.'_id'], $this->_data[$field.'_type'])))
+					return null;
+
 				$belongsTo[$field]['polymorphic_as'] = $field;
 				return new Association\PolymorphicAssociation($this, $belongsTo[$field]);
 			}
 
 			return new Association\BelongsToAssociation($this, $belongsTo[$field]);
 		} elseif(isset($hasAndBelongsToMany[$field])) {
+			if(!$ignore_new && $this->isNew())
+				return false;
+
 			return new Association\HasAndBelongsToMany($this, $hasAndBelongsToMany[$field]);
 		} elseif(isset($hasOne[$field])) {
+			if(!$ignore_new && $this->isNew())
+				return false;
+
 			return new Association\HasOneAssociation($this, $hasOne[$field]);
 		} elseif(isset($hasMany[$field])) {
+			if(!$ignore_new && $this->isNew())
+				return false;
+
 			return new Association\HasManyAssociation($this, $hasMany[$field]);
 		} 
 
@@ -574,6 +581,21 @@ abstract class Base extends \P3\Model\Base
 	}
 
 	/**
+	 * Calls save(), but throws an exception if it returns false
+	 * 
+	 * @return boolean
+	 * 
+	 * @see save
+	 */
+	public function loudSave(array $options = array())
+	{
+		if(FALSE == ($ret = $this->save($options)))
+			throw new \P3\Exception\ActiveRecordException('%s', array(current($this->getErrors())), 500);
+
+		return $ret;
+	}
+
+	/**
 	 * Removes passed model from Many-to-Many relationship
 	 *
 	 * @param P3\ActiveRecord\Base $related_model
@@ -702,6 +724,21 @@ abstract class Base extends \P3\Model\Base
 			$h = '"'.$h.'"';
 
 		return implode(',', $header);
+	}
+
+	public function update_attribute($attr, $val)
+	{
+		$this->{$attr} = $val;
+
+		return $this->save(array('validate' => false));
+	}
+
+	public function update_attributes($attrs)
+	{
+		foreach($attrs as $attr => $val)
+			$this->{$attr} = $val;
+
+		return $this->save(array('validate' => false));
 	}
 
 	/**
@@ -1140,6 +1177,9 @@ abstract class Base extends \P3\Model\Base
 		if(!empty($table)) {
 			static::$_table = $table;
 		} else {
+			if(is_null(static::$_table))
+				static::$_table = \str::pluralize(\str::fromCamelCase(get_called_class()));
+
 			return static::$_table;
 		}
 	}
@@ -1159,13 +1199,15 @@ abstract class Base extends \P3\Model\Base
 		$_db = static::db();
 		$_db->beginTransaction();
 		try {
-			$closure();
+			$ret = $closure();
 			$_db->commit();
 		} catch(\Exception $e) {
 			$_db->rollBack();
 
 			throw $e;
 		}
+
+		return $ret;
 	}
 
 //- Private
@@ -1307,10 +1349,6 @@ abstract class Base extends \P3\Model\Base
 			if(!$assoc) 
 				return null;
 
-			if($this->isNew()) {
-				if(!is_a($assoc, 'P3\ActiveRecord\Association\BelongsToAssociation'))
-					throw new \P3\Exception\ActiveRecordException("You cannot access the children of an unsaved parent");
-			}
 
 			$ret =  $assoc->inSingleMode() ? $assoc->first() : $assoc;
 
@@ -1334,6 +1372,15 @@ abstract class Base extends \P3\Model\Base
 	public function  __isset($name)
 	{
 		return parent::__isset($name);
+	}
+
+	public function __set($name, $val)
+	{
+		if($assoc = $this->getAssociationForField($name, true)) {
+			$assoc->equals($val);
+		} else {
+			parent::__set($name, $val);
+		}
 	}
 
 	/**

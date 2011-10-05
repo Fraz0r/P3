@@ -28,6 +28,24 @@ class HasManyAssociation extends HasAny
 		parent::__construct($parent, $options);
 	}
 
+	public function equals($collection)
+	{
+		$this->_clear();
+
+		$fk = $this->_options['fk'];
+
+		$saveHandler = function($record)use($collection, $fk) {
+			foreach($collection as $i)
+				$i->update_attribute($fk, $record->id());
+		};
+
+		if(!$this->_parentModel->isNew()) {
+			$saveHandler($this->_parentModel);
+		} else {
+			$this->_parentModel->pushEvent('beforeCreate', $saveHandler);
+		}
+	}
+
 	public function offsetSet($offset, $model)
 	{
 		/* The parent doesn't do anything with this, but it does handle the exception if offset is not null */
@@ -55,6 +73,13 @@ class HasManyAssociation extends HasAny
 
 		$model->{$this->_options['fk']} = 'NULL';
 		$model->save();
+	}
+
+//- Private
+	private function _clear()
+	{
+		if(!$this->_parentModel->isNew())
+			$this->collect(':delete');
 	}
 }
 

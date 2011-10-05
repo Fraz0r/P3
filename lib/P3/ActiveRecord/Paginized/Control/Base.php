@@ -60,7 +60,8 @@ abstract class Base implements IRendersControl
 	 */
 	protected function _pageURLPreservingHash($page, $page_key = 'page')
 	{
-		$arr = strlen($_SERVER['QUERY_STRING']) ? explode('&', $_SERVER['QUERY_STRING']) : array();
+		$request = \P3::request();
+		$arr = strlen($request->query()) ? explode('&', $request->query()) : array();
 
 		$tmp = array();
 		foreach($arr as $set) {
@@ -74,7 +75,8 @@ abstract class Base implements IRendersControl
 		foreach($tmp as $k => $v)
 			$arr[] = $k.'='.urlencode($v);
 
-		return '?'.implode('&', $arr);
+
+		return $request->path().'?'.implode('&', $arr);
 	}
 }
 

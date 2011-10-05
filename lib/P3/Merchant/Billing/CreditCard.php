@@ -6,9 +6,26 @@ namespace P3\Merchant\Billing;
  * Description of CreditCard
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @package P3\Merchant\Billing
+ * @version $Id$
  */
 class CreditCard extends \P3\Model\Base
 {
+	/**
+	 *         first_name:  Card Holder's First Name
+	 *          last_name:  Card Holder's First Name
+	 *             number:  Credit Card Number
+	 *              month:  Expiration Month 
+	 *               year:  Expiration Year [YYYY]
+	 * verification_value:  CVV
+	 */
+
+	public $type = 'credit_card';
+
+	/**
+	 * Credit Card Company Detection Map
+	 * @var array
+	 */
 	public static $CARD_COMPANIES = array(
 		'visa'               => '/^4\d{12}(\d{3})?$/',
 		'master'             => '/^(5[1-5]\d{4}|677189)\d{10}$/',
