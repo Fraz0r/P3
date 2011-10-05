@@ -4,7 +4,7 @@ use P3\Router as Router;
 
 /**
  * Form Helper
- *  
+ *
  * @author Tim Frazier <tim.frazier at gmail.com>
  * @package P3\Helper
  * @version $Id$
@@ -342,10 +342,12 @@ class form extends P3\Helper\Base
 		if(isset($options['style']))
 			$style = $options['style'];
 
-		if($this->_fieldRequired($field) && $this->validate())
-			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
-		else
-			$options['class'] = '';
+		if (!isset($options['class'])) {
+			if($this->_fieldRequired($field) && $this->validate())
+				$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
+			else
+				$options['class'] = '';
+		}
 
 		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
 		echo $input;
@@ -536,18 +538,18 @@ class form extends P3\Helper\Base
 	}
 
 	/**
-	 * Generates the class name, including existing [if passed], based on 
+	 * Generates the class name, including existing [if passed], based on
 	 * validtions set in the model.  These are design to work with the
 	 * sweet JQ plugin - jQuery Validate
-	 * 
+	 *
 	 * TODO: Validations Not Current Implemented:
 	 * 			validatesAlpha
 	 * 			validatesAlphaNum
 	 * 			validatesLength
-	 * 
+	 *
 	 * @param string $field field name
 	 * @param string,null $existing existing class [string], if any
-	 * 
+	 *
 	 * @return string class name attribute
 	 */
 	private function _getValidationClassForField($field, $existing = null)
