@@ -894,7 +894,7 @@ abstract class Base extends \P3\Model\Base
 
 		$success = (($stmnt->rowCount() === false)? false : true);
 
-		return $success && $this->_triggerEvent('beforeUpdate');
+		return $success && $this->_triggerEvent('afterUpdate');
 	}
 
 
