@@ -568,12 +568,12 @@ abstract class Base extends \P3\Model\Base
 	{
 		$pk     = static::pk();
 		$pk_val = $this->_data[$pk];
-		$stmnt  = self::$_db->query(
+		$stmnt  = static::db()->query(
 					"SELECT *
 					 FROM ".static::$_table."
 					 WHERE {$pk} = '{$pk_val}'"
 		);
-		$data = $stmnt->fetch(PDO::FETCH_ASSOC);
+		$data = $stmnt->fetch(\PDO::FETCH_ASSOC);
 		foreach($data as $k => $v) {
 			$this->_data[$k] = $v;
 		}
@@ -593,6 +593,16 @@ abstract class Base extends \P3\Model\Base
 			throw new \P3\Exception\ActiveRecordException('%s', array(current($this->getErrors())), 500);
 
 		return $ret;
+	}
+
+	/**
+	 * Reload fields from database back into the model
+	 * 
+	 * @return type boolean
+	 */
+	public function reload()
+	{
+		return $this->load();
 	}
 
 	/**
