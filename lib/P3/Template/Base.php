@@ -107,6 +107,11 @@ class Base
 		}
 	}
 
+	public function display($what, array $vars = array(), array $options = array())
+	{
+		echo $this->render($what, $vars, $options);
+	}
+
 	/**
 	 * Magic Get:  Used to access assigned view vars
 	 *
@@ -170,6 +175,7 @@ class Base
 
 		if(!is_readable($file))
 			throw new \P3\Exception\ViewException('Template "%s" is not readable', array($file));
+
 
 		extract(array_merge($this->_vars, $vars));
 		try{
