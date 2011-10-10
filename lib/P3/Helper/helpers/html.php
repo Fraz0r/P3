@@ -125,8 +125,9 @@ abstract class html extends P3\Helper\Base
 	{
 		$id      = isset($options['id']) ? ' id="'.$options['id'].'"' : '';
 		$class   = isset($options['class']) ? ' class="'.$options['class'].'"' : '';
+		$style   = isset($options['style']) ? ' style="'.$options['style'].'"' : '';
 
-		$select  = '<select name="'.$name.'"'.$id.$class.'>';
+		$select  = '<select name="'.$name.'"'.$id.$class.$style.'>';
 		$select .= self::selectOptions($html_options, $options);
 		$select .= '</select>';
 		echo  $select;
