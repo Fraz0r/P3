@@ -1,6 +1,8 @@
 <?php
 /**
- *  This is the global route file for you project.  (P3\Routing\Map) $map is assigned for you
+ *  This is the global route file for you project.  
+ *
+ *	(P3\Routing\Map) $map is assigned for you, prior to this file being loaded
  * 
  * Examples:
  *     $map->root('welcome#show');
