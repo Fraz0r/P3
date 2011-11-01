@@ -649,15 +649,8 @@ class Base implements  \Iterator, \ArrayAccess , \Countable
 	 */
 	protected function _countQuery() 
 	{
-		if(is_null($this->_countQuery)) {
-			if($this->getBuilder()->isUnion()) {
-				$builder = clone $this->getBuilder();
-				$this->_countQuery = $builder->select('COUNT(*)')->getQuery();
-			} else {
-				$builder = new QueryBuilder;
-				$this->_countQuery = $builder->select('COUNT(*)')->selectFrom($this->_builder)->getQuery();
-			}
-		}
+		if(is_null($this->_countQuery))
+			$this->_countQuery = $this->getBuilder()->getCountQuery();
 
 		return $this->_countQuery;
 	}

@@ -149,6 +149,24 @@ class Builder
 		return $this;
 	}
 
+	public function getCountQuery()
+	{
+		if(!in_array($this->getQueryType(), array(self::TYPE_SELECT, self::TYPE_UNION)))
+			throw new \P3\Exception\QueryBuilderException("Can only convert select querys to a count");
+
+		if($this->isUnion() || $this->hasSection('offset') || $this->hasSection('limit')) {
+			$builder = new self;
+
+			$ret = $builder->select('COUNT(*)')->selectFrom($this)->getQuery();
+		} else {
+			$builder = clone $this;
+
+			$ret = $builder->select('COUNT(*)')->getQuery();
+		}
+
+		return $ret;
+	}
+
 	/**
 	 * Starts a count query
 	 * 
@@ -282,6 +300,13 @@ class Builder
 
 		$this->_section('group', $fields, $mode);
 		return $this;
+	}
+
+	public function hasSection($section)
+	{
+		return 
+			isset($this->_sections[$section])
+				&& !empty($this->_sections[$section]);
 	}
 
 	/**

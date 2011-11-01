@@ -152,24 +152,6 @@ class Collection extends \P3\ActiveRecord\Collection\Base
 
 //- Protected
 	/**
-	 * Returns query to use to count records.
-	 * 
-	 * This is overriden from Collection\Base to use a sub-query of the limit clause'd SELECT COUNT(*) statement
-	 * 
-	 * @return string query to use if count() is called on collection, and it's not in a COMPLETEd state
-	 */
-	protected function _countQuery() 
-	{
-		if(is_null($this->_countQuery)) {
-			$builder = new QueryBuilder;
-			$builder->select('COUNT(*)')->selectFrom($this->_builder);
-			$this->_countQuery = $builder->getQuery();
-		}
-
-		return $this->_countQuery;
-	}
-
-	/**
 	 * Returns the count of all records in the collection
 	 * 
 	 * This method builds a query based off the select statement used for the collection,
