@@ -260,6 +260,16 @@ class Builder
 	}
 
 	/**
+	 * Returns query type (See constants at top of file)
+	 * 
+	 * @return string query string
+	 */
+	public function getQueryType()
+	{
+		return $this->_queryType;
+	}
+
+	/**
 	 * Sets GROUP BY clause.  (override by default)
 	 * 
 	 * @param string,array $fields Fields to group
@@ -301,6 +311,31 @@ class Builder
 
 		$this->_setQueryType(self::TYPE_INSERT);
 		return $this;
+	}
+
+	public function isDelete()
+	{
+		return $this->getQueryType() == self::TYPE_DELETE;
+	}
+
+	public function isInsert()
+	{
+		return $this->getQueryType() == self::TYPE_INSERT;
+	}
+
+	public function isSelect()
+	{
+		return $this->getQueryType() == self::TYPE_SELECT;
+	}
+
+	public function isUpdate()
+	{
+		return $this->getQueryType() == self::TYPE_UPDATE;
+	}
+
+	public function isUnion()
+	{
+		return $this->getQueryType() == self::TYPE_UNION;
 	}
 
 	/**
