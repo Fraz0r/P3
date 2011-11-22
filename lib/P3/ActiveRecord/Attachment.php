@@ -236,9 +236,28 @@ class Attachment extends \P3\Model\Base
 				break;
 			case \UPLOAD_ERR_NO_FILE:
 				return true;
+			case \UPLOAD_ERR_INI_SIZE:
+				$val = ini_get('upload_max_filesize');
+			case \UPLOAD_ERR_FORM_SIZE:
+				if(!isset($val))
+					$val = $_POST['MAX_FILE_SIZE'].' Bytes';
+
+				$this->_parent->_addError($field, 'Maximum File Size of '.$val.' Exceeded');
+				return false;
+			case \UPLOAD_ERR_PARTIAL:
+				$this->_parent->_addError($field, 'Only part of the file was uploaded');
+				return false;
+			case \UPLOAD_ERR_NO_TMP_DIR:
+				$this->_parent->_addError($field, 'There is no temporary directory configured for your PHP Installation');
+				return false;
+			case \UPLOAD_ERR_CANT_WRITE:
+				$this->_parent->_addError($field, 'PHP cannot write to configured temporary directory');
+				return false;
+			case \UPLOAD_ERR_EXTENSION:
+				$this->_parent->_addError($field, 'A PHP extension stopped the file upload');
+				return false;
 			default:
-				$ret = false;
-				$this->_parent->_addError($field, 'Upload Error ['.$data['error'][$field].']');
+				$this->_parent->_addError($field, 'An unknown error happened during the file upload');
 				return false;
 		}
 
