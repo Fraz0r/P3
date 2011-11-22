@@ -795,7 +795,7 @@ abstract class Base extends \P3\Model\Base
 			if(!$this->isNew())
 				$func_opts['conditions'] = array('id != '.$this->id());
 
-			$search = call_user_func_array($class.'::find_all_by_'.$field, array($this->_data[$field], $func_opts));
+			$search = call_user_func_array(array($class, 'find_all_by_'.$field), array($this->_data[$field], $func_opts));
 
 			if(count($search)) {
 				$flag = false;

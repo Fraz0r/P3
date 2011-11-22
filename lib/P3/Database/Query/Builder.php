@@ -149,6 +149,24 @@ class Builder
 		return $this;
 	}
 
+	public function getCountQuery()
+	{
+		if(!in_array($this->getQueryType(), array(self::TYPE_SELECT, self::TYPE_UNION)))
+			throw new \P3\Exception\QueryBuilderException("Can only convert select querys to a count");
+
+		if($this->isUnion() || $this->hasSection('offset') || $this->hasSection('limit')) {
+			$builder = new self;
+
+			$ret = $builder->select('COUNT(*)')->selectFrom($this)->getQuery();
+		} else {
+			$builder = clone $this;
+
+			$ret = $builder->select('COUNT(*)')->getQuery();
+		}
+
+		return $ret;
+	}
+
 	/**
 	 * Starts a count query
 	 * 
@@ -260,6 +278,16 @@ class Builder
 	}
 
 	/**
+	 * Returns query type (See constants at top of file)
+	 * 
+	 * @return string query string
+	 */
+	public function getQueryType()
+	{
+		return $this->_queryType;
+	}
+
+	/**
 	 * Sets GROUP BY clause.  (override by default)
 	 * 
 	 * @param string,array $fields Fields to group
@@ -272,6 +300,13 @@ class Builder
 
 		$this->_section('group', $fields, $mode);
 		return $this;
+	}
+
+	public function hasSection($section)
+	{
+		return 
+			isset($this->_sections[$section])
+				&& !empty($this->_sections[$section]);
 	}
 
 	/**
@@ -301,6 +336,31 @@ class Builder
 
 		$this->_setQueryType(self::TYPE_INSERT);
 		return $this;
+	}
+
+	public function isDelete()
+	{
+		return $this->getQueryType() == self::TYPE_DELETE;
+	}
+
+	public function isInsert()
+	{
+		return $this->getQueryType() == self::TYPE_INSERT;
+	}
+
+	public function isSelect()
+	{
+		return $this->getQueryType() == self::TYPE_SELECT;
+	}
+
+	public function isUpdate()
+	{
+		return $this->getQueryType() == self::TYPE_UPDATE;
+	}
+
+	public function isUnion()
+	{
+		return $this->getQueryType() == self::TYPE_UNION;
 	}
 
 	/**

@@ -353,6 +353,16 @@ abstract class Base {
 //- Static
 
 //- Magic
+	public function __call($method, $args = array())
+	{
+		if(method_exists($this, $method)) {
+			return call_user_func_array(array($this, $method), $args);
+		} else {
+			if(isset($this->_data[$method]))
+				return $this->__get($method);
+		}
+	}
+
 	/**
 	 * Magic Get:  Retrieve Model Value
 	 *
