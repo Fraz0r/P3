@@ -157,6 +157,9 @@ class Builder
 				$closure = array_pop($arguments);
 
 			foreach($arguments as $arg) {
+				if(is_numeric($arg))
+					$arg = (string)$arg;
+
 				if(is_array($arg)) {
 					if(is_null($attrs))
 						$attrs = array();

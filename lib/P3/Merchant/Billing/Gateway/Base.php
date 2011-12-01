@@ -62,6 +62,19 @@ abstract class Base
 	}
 
 	/**
+	 * Resturns Currency for Gateway
+	 * 
+	 * TODO:  Currently only returns default currency - will change when I Make a Money Class
+	 * 
+	 * @param type $money number to format 
+	 * @return int,float fomratted money
+	 */
+	public function currency($money)
+	{
+		return $this->_default_currency;
+	}
+
+	/**
 	 * Determines if we are in test mode
 	 * 
 	 * @return boolean true if test, false otherwise

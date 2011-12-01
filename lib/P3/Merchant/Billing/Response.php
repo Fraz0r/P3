@@ -138,6 +138,11 @@ class Response
 	{
 		return $this->_test;
 	}
+
+	protected function getParam($key)
+	{
+		return isset($this->params[$key]) ? $this->params[$key] : null;
+	}
 }
 
 ?>
