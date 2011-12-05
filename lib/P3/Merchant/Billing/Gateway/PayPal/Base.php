@@ -13,7 +13,7 @@ abstract class Base extends \P3\Merchant\Billing\Gateway\Base
 	/**
 	 * PayPal API Version
 	 */
-	const API_VERSION = '72.0';
+	const API_VERSION = '52.0';
 
 	/**
 	 * PayPal XML Namespace
@@ -203,8 +203,6 @@ abstract class Base extends \P3\Merchant\Billing\Gateway\Base
 	 */
 	protected function _commit($action, $request)
 	{
-		header("Content-type: text/plain");
-		echo($this->_buildRequest($request)); die;
         $response = $this->_parse($action, $this->sslPost($this->endpointURL(), $this->_buildRequest($request)));
 
         return $this->_buildResponse($this->_wasSuccessfull($response), $response['message'], $response, array(

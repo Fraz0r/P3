@@ -69,7 +69,7 @@ abstract class Base
 	 * @param type $money number to format 
 	 * @return int,float fomratted money
 	 */
-	public function currency($money)
+	public function currency($money = null)
 	{
 		return $this->_default_currency;
 	}

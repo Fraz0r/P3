@@ -13,7 +13,7 @@ class ExpressResponse extends Response
 //- Public
 	public function email()
 	{
-		$this->getParam('payer');
+		return $this->getParam('payer');
 	}
 
 	public function name()
@@ -29,17 +29,17 @@ class ExpressResponse extends Response
 
 	public function token()
 	{
-		$this->getParam('token');
+		return $this->getParam('token');
 	}
 
 	public function payer_id()
 	{
-		$this->getParam('payer_id');
+		return $this->getParam('payer_id');
 	}
 
 	public function payer_country()
 	{
-		$this->getParam('payer_country');
+		return $this->getParam('payer_country');
 	}
 
 	public function address()
