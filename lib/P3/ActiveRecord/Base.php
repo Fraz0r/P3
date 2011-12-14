@@ -389,7 +389,7 @@ abstract class Base extends \P3\Model\Base
 			if(isset($belongsTo[$field]['fk']) && !isset($this->_data[$belongsTo[$field]['fk']])) {
 				return null;
 			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
-				if(in_array(null, array($this->_data[$field.'_id'], $this->_data[$field.'_type'])))
+				if(!isset($this->_data[$field.'_id']) || !isset($this->_data[$field.'_type']) || in_array(null, array($this->_data[$field.'_id'], $this->_data[$field.'_type'])))
 					return null;
 
 				$belongsTo[$field]['polymorphic_as'] = $field;
