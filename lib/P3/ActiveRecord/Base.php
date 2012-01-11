@@ -386,7 +386,7 @@ abstract class Base extends \P3\Model\Base
 		$hasAndBelongsToMany = static::getHasAndBelongsToMany();
 
 		if(isset($belongsTo[$field])) {
-			if(isset($belongsTo[$field]['fk']) && !isset($this->_data[$belongsTo[$field]['fk']])) {
+			if(isset($belongsTo[$field]['fk']) && empty($this->_data[$belongsTo[$field]['fk']])) {
 				return null;
 			} elseif(isset($belongsTo[$field]['polymorphic']) && $belongsTo[$field]['polymorphic']) {
 				if(!isset($this->_data[$field.'_id']) || !isset($this->_data[$field.'_type']) || in_array(null, array($this->_data[$field.'_id'], $this->_data[$field.'_type'])))
