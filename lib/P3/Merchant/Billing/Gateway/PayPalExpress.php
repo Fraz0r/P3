@@ -143,6 +143,10 @@ class PayPalExpress extends PayPal\ExpressBase
 						$share['obj']->addAddress($xml, 'n2:Address', $options['address']);
 
 					$xml->tag('n2:AddressOverride', isset($options['address_override']) && $options['address_override'] ? '1' : '0');
+
+					if(isset($options['locale']))
+						$xml->tag('n2:LocaleCode', $options['locale']);
+					
 					$xml->tag('n2:NoShipping', isset($options['no_shipping']) && $options['no_shipping'] ? '1' : '0');
 					$xml->tag('n2:IPAddress', $options['ip']);
 					$xml->tag('n2:OrderDescription', $options['description']);
@@ -152,7 +156,7 @@ class PayPalExpress extends PayPal\ExpressBase
 
 					$xml->tag('n2:InvoiceID', $options['order_id']);
 
-					# Customization of the payment page
+					// Customization of the payment page
 					if(isset($options['page_style']))
 						$xml->tag('n2:PageStyle', $options['page_style']);
 
@@ -168,8 +172,10 @@ class PayPalExpress extends PayPal\ExpressBase
 					if(isset($options['background_color']))
 						$xml->tag('n2:cpp-payflow-color', $options['background_color']);
 
-					if(isset($options['locale']))
-						$xml->tag('n2:LocaleCode', $options['locale']);
+					if(isset($options['allow_guest_checkout']) && $options['allow_guest_checkout']) {
+						$xml->tag('n2:SolutionType', 'Sole');
+						$xml->tag('n2:LandingPage', 'Billing');
+					}
 				});
 			});
 		});
@@ -179,7 +185,7 @@ class PayPalExpress extends PayPal\ExpressBase
       
 	protected function _buildResponse($success, $message, $response, array $options = array()) 
 	{
-		return new Paypal\ExpressResponse($success, $message, $response, $options);
+		return new PayPal\ExpressResponse($success, $message, $response, $options);
 	}
 
 }
