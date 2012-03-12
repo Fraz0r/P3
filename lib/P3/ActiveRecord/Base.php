@@ -847,6 +847,8 @@ abstract class Base extends \P3\Model\Base
 
 		$success = (bool)$stmnt->rowCount();
 
+		if($success)
+			$this->_changed = array();
 
 		return $success && $this->_triggerEvent('afterCreate');
 	}
@@ -903,6 +905,9 @@ abstract class Base extends \P3\Model\Base
 		$stmnt->execute($values);
 
 		$success = (($stmnt->rowCount() === false)? false : true);
+
+		if($success)
+			$this->_changed = array();
 
 		return $success && $this->_triggerEvent('afterUpdate');
 	}
