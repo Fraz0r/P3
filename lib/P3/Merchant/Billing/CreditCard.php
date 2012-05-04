@@ -21,6 +21,16 @@ class CreditCard extends \P3\Model\Base
 	 */
 
 	public $type = 'credit_card';
+	private $_card_type;
+
+	public static $_validatesPresence = array(
+		'number',
+		'first_name',
+		'last_name',
+		'month',
+		'year',
+		'verification_value',
+	);
 
 	/**
 	 * Credit Card Company Detection Map
@@ -40,6 +50,46 @@ class CreditCard extends \P3\Model\Base
 		'forbrugsforeningen' => '/^600722\d{10}$/',
 		'laser'              => '/^(6304[89]\d{11}(\d{2,3})?|670695\d{13})$/'
 	);
+
+	public function valid()
+	{
+		if(!parent::valid())
+			return false;
+
+		if(strtotime(date('Y-m-01')) 
+				>= strtotime(implode('-', array($this->year, sprintf('%02d', $this->month + 1), '01'))))
+			$this->_addError('expiration', 'This card is expired');
+
+		return !count($this->_errors);
+	}
+
+
+	public function __get($name)
+	{
+		switch($name) {
+			case 'card_type':
+				if(is_null($this->_card_type)) {
+					if(empty($this->number))
+						return false;
+
+					$match = false;
+					foreach(self::$CARD_COMPANIES as $n => $p) {
+						if(preg_match($p, $this->number)) {
+							$match = $n;
+							break;
+						}
+					}
+
+					if($match)
+						$this->_card_type = $match;
+				}
+
+				return $this->_card_type;
+				break;
+			default:
+				return parent::__get($name);
+		}
+	}
 }
 
 ?>
