@@ -73,6 +73,22 @@ class Base extends \ArrayObject
 		$_SESSION = $this;
 	}
 
+	public function flash($var, $val = null)
+	{
+		if(is_null($val)) {
+			if(isset($this['flash']) && isset($this['flash'][$var])) {
+				$ret = $this['flash'][$var];
+				$this['flash'][$var] = null;
+				return $ret;
+			} else return false;
+		} else {
+			if(!isset($this['flash']))
+				$this['flash'] = array();
+
+			$this['flash'][$var] = $val;
+		}
+	}
+
 	/**
 	 * Retreives Object Attribute
 	 *
