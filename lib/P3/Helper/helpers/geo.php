@@ -35,5 +35,10 @@ class geo extends \P3\Helper\Base
 				throw new \P3\Exception\HelperException('Unkown State Format used in getStates');
 		}
 	}
+
+	public static function getStateFullName($abr)
+	{
+		return isset(self::$stateList[$abr]) ? self::$stateList[$abr] : false;
+	}
 }
 ?>
