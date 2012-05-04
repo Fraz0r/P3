@@ -101,7 +101,10 @@ abstract class Base {
 		} else {
 			$ret = array();
 			foreach($this->_errors as $field => $arr) {
-				$ret = array_merge($ret, array($arr[0]));
+				if(is_array($arr))
+					$ret = array_merge($ret, array($arr[0]));
+				else
+					$ret[] = $arr;
 			}
 
 
@@ -117,7 +120,7 @@ abstract class Base {
 	public function pushEvent($binding, $closure)
 	{
 		if(!isset($this->{'_'.$binding}))
-			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
+			throw new \P3\Exception\ModelException("'%s' is not a bindable Event", array($event));
 
 		$this->{'_'.$binding}[] = $closure;
 	}
@@ -195,7 +198,7 @@ abstract class Base {
 		/* length (REQUIRES options) */
 		foreach(static::$_validatesLength as $k => $opts) {
 			if(!is_array($opts) || !count($opts)) {
-				throw new Exception\ModelException('_validatesLength requires options', array(), 500);
+				throw new \P3\Exception\ModelException('_validatesLength requires options', array(), 500);
 			}
 
 			$field = $k;
@@ -326,10 +329,11 @@ abstract class Base {
 	protected function _triggerEvent($event)
 	{
 		$ret   = true;
-		$funcs = $this->{'_'.$event};
 
-		if(is_null($funcs))
-			throw new Exception\ModelException("'%s' is not a bindable Event", array($event));
+		if(!isset($this->{'_'.$event}))
+			throw new \P3\Exception\ModelException("'%s' is not a bindable Event", array($event));
+
+		$funcs = $this->{'_'.$event};
 
 		foreach($funcs as $func) {
 			if(is_string($func) && $func[0] == ':') {
@@ -338,7 +342,7 @@ abstract class Base {
 			} elseif(is_callable($func)) {
 				$returned = $func($this);
 			} else {
-				throw new Exception\ModelException("Unknown event handler type");
+				throw new \P3\Exception\ModelException("Unknown event handler type");
 			}
 
 			if(is_null($returned))
