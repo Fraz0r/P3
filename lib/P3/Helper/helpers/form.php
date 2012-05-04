@@ -275,7 +275,9 @@ class form extends P3\Helper\Base
 	 */
 	public function labelFor($field, $text = null, array $options = array())
 	{
-		$options['for'] = $this->_getFieldID($field);
+		if(!isset($options['for']))
+			$options['for'] = $this->_getFieldID($field);
+
 		$text = is_null($text) ? str::toHuman($field, true) : $text;
 
 		$required = false;
@@ -286,7 +288,8 @@ class form extends P3\Helper\Base
 
 		$ret = html::_t('label', $options).$text.'</label>';
 
-		echo ($required ? '<span class="req-astr">*</span>':'').$ret;
+		//echo ($required ? '<span class="req-astr">*</span>':'').$ret;
+		echo $ret;
 	}
 
 	public function monthSelect($field, array $options = array())
