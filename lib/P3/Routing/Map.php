@@ -131,8 +131,8 @@ class Map
 		$controller = $class::$_controller;
 
 		/* Create */
-		if(!$only_set || in_array('index', $only))
-			$this->connect($front.'/', array('controller' => $controller, 'action' => 'create'), 'post', true);
+		if(!$only_set || in_array('create', $only))
+			$this->connect($front.'/', array_merge($options, array('controller' => $controller, 'action' => 'create')), 'post', true);
 
 		/* New */
 		if(!$only_set || in_array('new', $only) || in_array('add', $only)) {
@@ -163,7 +163,7 @@ class Map
 			}
 		}
 
-		return $show;
+		return isset($show) ? $show : null;
 	}
 
 	/**
