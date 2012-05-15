@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Thank you for trying P3!</title>
+
+		<style type="text/css">
+			body {background-color: #666;}
+
+			#content {background-color: #efefef; border-radius: 10px; padding: .25em 1em; border: 1px solid #000; box-shadow: 0 0 5px #000; width: 50%; margin: 100px auto 0;}
+		</style>
+	</head>
+	<body>
+		<div id="content">
+			<h1>Thank you for trying P3!</h1>
+
+			<p>To get started:</p>
+
+			<ul>
+				<li>Delete this file (/public/index.html)</li>
+				<li>Refresh and let the exceptions guide you, padawan [for now]</li>
+			</ul>
+		</div>
+	</body>
+</html>

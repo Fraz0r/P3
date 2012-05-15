@@ -1,0 +1,56 @@
+<?php
+
+desc("Print out all defined routes in match order, with names.");
+task('routes', function(){
+	p3::load_routes();
+
+	$rows   = array();
+
+	foreach(P3\Router::routes() as $route)
+		$rows[] = array(
+			$route->name(), 
+			strtoupper(($m = $route->method()) == 'any' ? '' : $m), 
+			'/'.$route->path(),
+			json_encode($route->options_filtered(array(
+				'action',
+				'controller',
+				'conditions',
+				'namespace'
+			)))
+		);
+
+	if(count($rows)) {
+		/* TODO: Implement some sort of cli\table class - (none exists at time of writing) */
+		$widths = array();
+		$tmp    = array_fill(0, 4, array());
+		$align  = array('right', 'left', 'left', 'left');
+
+		foreach($rows as $row)
+			for($i = 0; $i < 4; $i++)
+				$tmp[$i][] = strlen($row[$i]);
+
+		for($i = 0; $i < 4; $i++)
+			$widths[$i] = max($tmp[$i]);
+		unset($tmp);
+
+		foreach($rows as $row) {
+			for($i = 0; $i < 4; $i++) {
+				$format = '%';
+				
+				if($align[$i] == 'left')
+					$format .= '-';
+
+				$format .= $widths[$i].'s';
+
+				printf($format, $row[$i]);
+
+				if($i != 3)
+					echo '  ';
+			}
+
+			echo "\n";
+		}
+	}
+});
+
+?>

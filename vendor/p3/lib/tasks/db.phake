@@ -1,0 +1,10 @@
+<?php
+
+group('db', function(){
+
+	desc('Migrate database using scripts in db/migrate');
+	task('migrate', function(){
+	});
+});
+
+?>
