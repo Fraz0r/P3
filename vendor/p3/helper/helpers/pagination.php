@@ -35,7 +35,7 @@ class pagination
 	 * 
 	 * @return string paging control (html)
 	 */
-	public static function renderControlForCollection(P3\ActiveRecord\Paginized\Collection $collection, $style = self::CONTROL_STYLE_DIGG)
+	public static function render_collection_control(P3\ActiveRecord\Paginized\Collection $collection, $style = self::CONTROL_STYLE_DIGG)
 	{
 		switch($style) {
 			case self::CONTROL_STYLE_DIGG:

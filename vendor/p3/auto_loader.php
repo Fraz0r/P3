@@ -25,10 +25,10 @@ class AutoLoader
 	private static function _path_for_class($class_name)
 	{
 		if(!strpos($class_name, '\\'))
-			return str::fromCamelCase($class_name).'.php';
+			return str::from_camel($class_name).'.php';
 
 		return implode(DIRECTORY_SEPARATOR, array_map(function($v){ 
-			return str::fromCamelCase($v);
+			return str::from_camel($v);
 		}, explode('\\', $class_name))).'.php';
 	}
 }

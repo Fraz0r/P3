@@ -72,7 +72,7 @@ abstract class Base extends \P3\Controller\Base
 
 		$_GET = array_merge($route->options_filtered(array('controller', 'action', 'format')), $_GET);
 
-		$class = \str::toCamelCase($route->controller()).'Controller';
+		$class = \str::to_camel($route->controller()).'Controller';
 		$controller =  new $class();
 		$controller->set_request($request);
 		$controller->process($route->action());

@@ -29,9 +29,9 @@ abstract class number extends P3\Helper\Base
 	 * @param integer $decimals Number of decimal places to include
 	 * @return string Formatted number string
 	 */
-	public static function toMoney($number, $decimals = 2)
+	public static function to_money($number)
 	{
-		return '$'.number_format($number, $decimals);
+		return money_format('%n', $number);
 	}
 
 	/**
@@ -40,7 +40,7 @@ abstract class number extends P3\Helper\Base
 	 * @param int $number Number to format
 	 * @return string Formatted number string
 	 */
-	public static function withEnglishExtension($number)
+	public static function with_english_extenstion($number)
 	{
 		/* Ugh.. (It's to access it as an array) Shuck your forts! */
 		$number = (string)$number;

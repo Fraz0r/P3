@@ -26,7 +26,7 @@ class str
 	* @param string $str String in camel case format
 	* @return string $str Translated into underscore format
 	*/
-	public static function fromCamelCase($str) {
+	public static function from_camel($str) {
 		return trim(strtolower(preg_replace('/((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$))/', "_$1$2", $str)), '_');
 	}
 
@@ -133,7 +133,7 @@ class str
 	* @param bool $capitalise_first_char If true, capitalise the first char in $str
 	* @return string $str translated into camel caps
 	*/
-	public static function toCamelCase($str, $capitalise_first_char = true) {
+	public static function to_camel($str, $capitalise_first_char = true) {
 		if(strlen($str) < 1) return $str;
 		if($capitalise_first_char) {
 			$str[0] = strtoupper($str[0]);
@@ -150,7 +150,7 @@ class str
 	* @param boolean $titleize Titleizes string, if true
 	* @return string Converted string
 	*/
-	public static function toHuman($str, $titleize = false)
+	public static function humanize($str)
 	{
 		if(FALSE !== strrpos($str, '_')) {
 			$func = create_function('$c', 'return " ".$c[1];');
@@ -176,7 +176,7 @@ class str
 	 * @param string $object_name name of object(s)
 	 * @return string  parsed text
 	 */
-	public static function toPlural($quantity, $object_name)
+	public static function to_plural($quantity, $object_name)
 	{
 		if($quantity > 1)
 			$object_name = self::pluralize($object_name);
