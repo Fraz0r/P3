@@ -28,8 +28,21 @@ abstract class Base
 		return self::$_routes;
 	}
 
+	public function route_for_request($request = null)
+	{
+		return self::_route_for_request($request);
+	}
+
 //- Public Static
 	public static function dispatch($request = null)
+	{
+		if(is_null($request))
+			$request = \P3::request();
+
+		return \P3\ActionController\Base::dispatch($request);
+	}
+
+	protected static function _route_for_request($request = null)
 	{
 		if(is_null($request))
 			$request = \P3::request();
@@ -61,7 +74,7 @@ abstract class Base
 			}
 		}
 
-		$response = \P3\ActionController\Base::dispatch($match);
+		return $match;
 	}
 }
 

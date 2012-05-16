@@ -37,7 +37,9 @@ abstract class Base
 		$class = \str::toCamelCase($controller).'Controller';
 		$controller =  new $class();
 
-		return $controller->process($action);
+		$controller->process($action);
+
+		return $controller;
 	}
 }
 
