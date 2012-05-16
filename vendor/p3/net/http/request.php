@@ -85,7 +85,7 @@ class Request implements \P3\Routing\IFace\Segmentable
 		$base = basename($this->path());
 		$ex   = explode('.', $base, 2);
 
-		return count($ex) > 1 && !empty($ex[1]) ? $ex[1] : 'html';
+		return count($ex) > 1 && !empty($ex[1]) ? $ex[1] : \P3::config()->routing->default_format;
 	}
 
 	/**

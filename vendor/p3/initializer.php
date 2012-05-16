@@ -3,7 +3,6 @@
 namespace P3;
 
 
-Initializer::init();
 /**
  * Description of initializer
  *
@@ -59,6 +58,8 @@ final class Initializer
 		self::_register_error_handler();
 		self::_set_include_path();
 		self::_register_autoloader();
+
+		require(PATH.'/config/defaults.php');
 	}
 
 	public static function init_phake()
@@ -70,8 +71,12 @@ final class Initializer
 
 	public static function run($closure)
 	{
-		require_once(PATH.'/config/handler.php');
-		$closure(Config\Handler::singleton());
+		self::init();
+		$config = Config\Handler::singleton();
+		$closure($config);
+
+		if(file_exists(($env_config = ROOT.'/config/environments/'.self::env().'.php')))
+			require($env_config);
 	}
 
 
