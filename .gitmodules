@@ -1,3 +1,0 @@
-[submodule "vendor/phake"]
-	path = vendor/phake
-	url = https://github.com/jaz303/phake.git
