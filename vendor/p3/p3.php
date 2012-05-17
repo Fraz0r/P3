@@ -12,10 +12,15 @@ final class P3
 //- Public Static
 	public static function boot()
 	{
+		if(self::config()->trap_extraneous_output)
+			ob_start();
+
 		try {
-			self::load_bootstrap();
 			self::load_routes();
 			self::router()->dispatch();
+			
+			if(self::config()->trap_extraneous_output)
+				ob_end_clean();
 		} catch(Exception $e) {
 			self::_handle_exception($e);
 		}
@@ -34,12 +39,6 @@ final class P3
 	public static function env($env = null)
 	{
 		return P3\Initializer::env($env);
-	}
-
-	public static function load_bootstrap()
-	{
-		if(is_readable(P3\ROOT.'/config/bootstrap.php'))
-			require(P3\ROOT.'/config/bootstrap.php');
 	}
 
 	public static function load_routes()
@@ -84,6 +83,9 @@ final class P3
 //- Private Static
 	private static function _handle_exception(Exception $e)
 	{
+		if(self::config()->trap_extraneous_output)
+			ob_end_clean();
+
 		if(self::production()) {
 			$code = $e->getCode();
 

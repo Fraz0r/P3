@@ -12,7 +12,7 @@ $map->resources('users', array(), function($user){
 });
 
 // Legacy
-//$map->match('/:controller(/:action(/:id))');
+$map->match('/:controller(/:action(/:id))');
 
 
 

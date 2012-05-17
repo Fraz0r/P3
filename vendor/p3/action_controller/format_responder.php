@@ -49,6 +49,11 @@ class FormatResponder
 			$this->_formats[$method] = $closure;
 		}
 	}
+
+	public function __get($method)
+	{
+		return $this->__call($method);
+	}
 }
 
 ?>

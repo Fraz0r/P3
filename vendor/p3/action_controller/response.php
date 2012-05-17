@@ -9,11 +9,11 @@ namespace P3\ActionController;
  */
 class Response extends \P3\Net\Http\Response
 {
-	private $_request;
+	private $_conroller;
 
-	public function __construct(\P3\Net\Http\Request $request, $body, array $headers = array(), $code = self::STATUS_OK)
+	public function __construct(\P3\ActionController\Base $conroller, $body, array $headers = array(), $code = self::STATUS_OK)
 	{
-		$this->_request = $request;
+		$this->_conroller = $conroller;
 
 		parent::__construct($body, $headers, $code);
 	}

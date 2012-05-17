@@ -9,9 +9,9 @@ namespace P3\ActionController\Exception;
  */
 class NoRender extends \P3\Exception\ActionControllerException
 {
-	public function __construct($controller)
+	public function __construct($controller, $action, $format)
 	{
-		parent::__construct('%s didn\'t supply output', array($controller), 500);
+		parent::__construct('%s didn\'t supply output for action: %s (%s)', array($controller, $action, $format), 500);
 	}
 }
 

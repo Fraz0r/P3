@@ -17,8 +17,11 @@ class AutoLoader
 
 		if(!(@include($path))) {
 			require_once(PATH.'/system/exception/file_not_found.php');
-			throw new System\Exception\FileNotFound($path);
+			throw new System\Exception\ClassNotFound($class_name);
 		}
+
+		if(!class_exists($class_name) && !interface_exists($class_name))
+			throw new System\Exception\FileClassMismatch($path, $class_name);
 	}
 
 //- Private
