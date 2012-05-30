@@ -163,10 +163,13 @@ class Base extends \ArrayObject
 	 *
 	 * @return void
 	 */
-	public static function start()
+	public static function start($name = null)
 	{
 		if(isset($_SESSION))
 			throw new Error("Session is already started.");
+
+		if(!is_null($name))
+			session_name($name);
 
 		self::$_startedInternally = true;
 		self::$_instance = new static;
