@@ -36,7 +36,8 @@ final class P3App
 
 abstract class Boot
 {
-	abstract public static function load_initializer();
+	// Strict standards doesn't like this... whee!  TODO: Use interface on Boot models
+	//abstract public static function load_initializer();
 
 	final public static function run()
 	{

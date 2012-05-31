@@ -5,14 +5,14 @@
 $map = new P3\Routing\Map;
 
 /* Root Test */
-$map->root(array('to' => 'welcome#show'));
+$map->root(['to' => 'welcome#show']);
 
-$map->resources('users', array(), function($user){
+$map->resources('users', [], function($user){
 	//$user->resource('profile');
 });
 
 // Legacy
-$map->match('/:controller(/:action(/:id))');
+//$map->match('/:controller(/:action(/:id))');
 
 
 

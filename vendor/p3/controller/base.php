@@ -25,11 +25,6 @@ abstract class Base
 	}
 
 //- Protected
-	protected function _after_filter()
-	{ }
-	
-	protected function _before_filter()
-	{ }
 
 //- Public Static
 	public static function dispatch($controller, $action)

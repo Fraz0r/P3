@@ -263,5 +263,12 @@ class Request implements \P3\Routing\IFace\Segmentable
 		return $protocol . $host . $port . $uri;
 	}
 
+//- Magic
+	public function __get($var)
+	{
+		// TODO: Need to throw exception here
+		return $_GET[$var];
+	}
+
 }
 ?>

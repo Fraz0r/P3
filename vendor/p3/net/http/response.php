@@ -89,7 +89,21 @@ class Response
 			$this->_headers = $headers;
 	}
 
+	public function send()
+	{
+		if(\P3::config()->trap_extraneous_output)
+			ob_end_clean();
+
+		self::process($this);
+	}
+
 //- Public Static
+	public static function from_array(array $response = [])
+	{
+		//TODO: Refactor with action controllers implementation
+		return new self($response[2], $response[1], $response[0]);
+	}
+
 	public static function get_http_header($response)
 	{
 		$code = $response->code();

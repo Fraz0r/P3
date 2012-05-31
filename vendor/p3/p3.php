@@ -18,9 +18,6 @@ final class P3
 		try {
 			self::load_routes();
 			self::router()->dispatch();
-			
-			if(self::config()->trap_extraneous_output)
-				ob_end_clean();
 		} catch(Exception $e) {
 			self::_handle_exception($e);
 		}
@@ -83,9 +80,6 @@ final class P3
 //- Private Static
 	private static function _handle_exception(Exception $e)
 	{
-		if(self::config()->trap_extraneous_output)
-			ob_end_clean();
-
 		if(self::production()) {
 			$code = $e->getCode();
 
@@ -93,7 +87,7 @@ final class P3
 
 			$file = P3\ROOT.'/public/'.$file;
 
-			P3\Net\Http\Response::process(new \P3\Net\Http\Response(file_get_contents($file), array(), $code));
+			(new \P3\Net\Http\Response(file_get_contents($file), array(), $code))->send();
 		} else {
 			if(isset($e->xdebug_message))
 				echo '<table>'.$e->xdebug_message.'</table>';

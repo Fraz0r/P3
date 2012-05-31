@@ -16,7 +16,7 @@ abstract class Version
 
 	public static function string()
 	{
-		return implode('.', array(self::MAJOR, self::MINOR, self::TINY)).'-'.self::PRE;
+		return implode('.', [self::MAJOR, self::MINOR, self::TINY]).'-'.self::PRE;
 	}
 }
 

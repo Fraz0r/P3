@@ -12,7 +12,7 @@ use       P3\Net\Http\Request;
 class Route implements iFace\Segmentable
 {
 	private $_options;
-	private $_params = array();
+	private $_params = [];
 	private $_path;
 	private $_raw;
 	private $_regex;
@@ -95,7 +95,7 @@ class Route implements iFace\Segmentable
 	public function sanitize()
 	{
 		$ex = \explode(Segment::SEPARATOR, $this->_raw[0]);
-		$tx = \explode('/', \str_replace(array('(', ')'), '', $this->path()));
+		$tx = \explode('/', \str_replace(['(', ')'], '', $this->path()));
 
 		$j = count($ex);
 		for($i = 0; $i < $j; $i++) {
@@ -147,7 +147,7 @@ class Route implements iFace\Segmentable
 
 
 //- Magic
-	public function __invoke(array $arguments = array())
+	public function __invoke(array $arguments = [])
 	{
 		if(($a = count($arguments)) !== ($p = count($this->params())))
 			throw new \P3\Exception\ArgumentException\Mismatch(

@@ -2,7 +2,6 @@
 
 namespace P3\ActionController;
 use       P3\Net\Http\Request;
-use       P3\Routing\Route;
 /**
  * Description of base
  *
@@ -13,7 +12,7 @@ abstract class Base extends \P3\Controller\Base
 	private static $_status = 0;
 
 	protected $_layout;
-	protected $_response;
+	protected $_responses = [];
 	protected $_request;
 	protected $_vars = array();
 
@@ -30,12 +29,41 @@ abstract class Base extends \P3\Controller\Base
 
 	public function process($action)
 	{
-		$return = parent::process($action);
-		
-		if(is_null($this->_response))
-			throw new Exception\NoRender(get_called_class(), $action, $this->_request->format());
+		$this->_before_filter();
 
-		return $this->_response;
+		$return = parent::process($action);
+
+		if(is_null($return)) {
+			if(!count($this->_responses))
+				$this->render_template($action);
+		} else {
+			if(is_array($return) && count($return) == 3)
+				$return = new Response($this, $return[2], $return[1], $return[0]);
+
+			if(!is_a($return, 'P3\Net\Http\Response'))
+				throw new Exception\UnknownResponse($return, $action, $this->_request->format());
+
+			$this->_responses[] = $return;
+		}
+		
+		if(!($c = count($this->_responses)))
+			throw new Exception\NoRender(get_called_class(), $action, $this->_request->format());
+		else if($c > 1)
+			throw new Exception\MultipleRender(get_called_class(), $action, $this->_request->format());
+
+		$this->_responses[0]->send();
+
+		$this->_after_filter();
+	}
+
+	//TODO:  Make redirect support all kinds of stuff, like redirecting to same action in controller
+	public function redirect($where)
+	{
+		if(is_string($where)) {
+			$path = $where == ':back' ? $_SERVER['HTTP_REFERER'] : $where;
+		}
+
+		$this->_responses[] = new Response($this, null, ['Location: '.$path], Response::STATUS_MOVED);
 	}
 
 	public function render(array $options = array())
@@ -46,31 +74,35 @@ abstract class Base extends \P3\Controller\Base
 		if(!isset($http_body))
 			throw new Exception\InvalidRender('%s called render(), but no valid options were given', array(get_called_class()));
 
-		$this->_response = new Response($this, $http_body);
+		$this->_responses[] = new Response($this, $http_body);
 	}
 
 	public function render_template($template, array $options = array())
 	{
-		$view = new ActionView($this);
-		$view->assign($this->_vars);
-		
-		if($this->_layout)
-			$view->init_layout($this->_layout);
+		$headers = isset($options['headers']) ? $options['headers'] : [];
 
-		return $view->render($template, $options);
+		$this->_responses[] = Response::from_array([200, $headers, $this->render_template_to_s($template, $options)]);
 	}
 
-	public function respond_to($closure)
+	public function render_template_to_s($template, array $options = array())
+	{
+		$view = new ActionView($this, $template);
+		$view->assign($this->_vars);
+
+		$layout = isset($options['layout']) ? $options['layout'] : $this->_layout;
+		
+		if($layout)
+			$view->init_layout($this->_layout);
+
+		return $view->render();
+	}
+
+	public function respond_to(callable $closure)
 	{
 		$responder = new FormatResponder($this);
 		$closure($responder);
 
-		$this->_response = $responder->get_response($this->get_request());
-	}
-
-	public function set_response($response)
-	{
-		$this->_response = $response;
+		$this->_responses[] = $responder->get_response($this->get_request());
 	}
 
 	public function set_request($request)
@@ -78,7 +110,23 @@ abstract class Base extends \P3\Controller\Base
 		$this->_request = $request;
 	}
 
+	public function template_exists($template = null)
+	{
+		if(is_null($template))
+			$template = $this->_request->action;
+
+		$view = new ActionView($this, $template);
+		return $view->exists();
+	}
+
 //- Protected
+	protected function _after_filter()
+	{
+	}
+	
+	protected function _before_filter()
+	{
+	}
 
 //- Static
 	public static function dispatch(Request $request)

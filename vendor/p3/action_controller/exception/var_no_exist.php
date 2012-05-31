@@ -7,7 +7,7 @@ namespace P3\ActionController\Exception;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class VarNoExist extends P3\Exception\ActionControllerException
+class VarNoExist extends \P3\Exception\ActionControllerException
 { }
 
 ?>
