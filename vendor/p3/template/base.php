@@ -10,17 +10,19 @@ namespace P3\Template;
 abstract class Base
 {
 	protected $_active_buffer;
-	protected $_base;
+	protected $_basename;
 	protected $_dir;
 	protected $_layout;
 	protected $_path;
 	protected $_vars = [];
 
+	protected static $_BASE_VIEW_PATH;
+
 	private static $_buffers = [];
 
 	public function __construct($path)
 	{
-		$this->_base = basename($path);
+		$this->_basename = basename($path);
 		$this->_dir  = dirname($path);
 		$this->_path = $path;
 	}
@@ -30,6 +32,8 @@ abstract class Base
 	{
 		foreach($vars as $k => $v)
 			$this->__set($k, $v);
+
+		return $this;
 	}
 
 	public function append_to($buffer, $contents)
@@ -57,17 +61,32 @@ abstract class Base
 		return is_readable($this->_path);
 	}
 
+	public function get_basename()
+	{
+		return $this->_basename;
+	}
+
+	public function get_dir()
+	{
+		return $this->_dir;
+	}
+
 	public function get_buffer($buffer)
 	{
 		if(!isset(self::$_buffers[$buffer]))
-			throw new Exception\UnknownBuffer($this->_base, $buffer);
+			throw new Exception\UnknownBuffer($this->_basename, $buffer);
 
 		return self::$_buffers[$buffer];
 	}
 
+	public function get_vars()
+	{
+		return $this->_vars;
+	}
+
 	public function init_layout($path)
 	{
-		$this->set_layout(new Layout(\P3\ROOT.'/app/views/layouts/'.$path));
+		$this->set_layout(new Layout($path));
 	}
 
 	public function set_buffer($buffer, $contents)
@@ -88,8 +107,15 @@ abstract class Base
 		ob_start();
 	}
 
-	public function render()
+	public function render($what = null)
 	{
+		if(!is_null($what)) {
+			if(!is_array($what) || !isset($what['partial']))
+				throw new Exception\UnknownRender;
+
+			return self::render_partial($what['partial'], $this, (count($what) > 1 ? $what[0] : []));
+		}
+
 		if(!$this->exists())
 			throw new \P3\System\Exception\FileNotFound($this->_path);
 
@@ -113,6 +139,21 @@ abstract class Base
 	public function yield($buffer = 'p3_view')
 	{
 		echo $this->get_buffer($buffer);
+	}
+
+//- Static
+	public static function render_partial($path, Base $templatable, array $options = [])
+	{
+		$partial = new Partial($path, $templatable);
+
+		if(!is_null($templatable)) {
+			if(!is_a($templatable, 'P3\Template\Base'))
+				throw new Exception\UnknownRender;
+
+			$partial->assign($templatable->get_vars());
+		}
+
+		return $partial->render($options);
 	}
 
 //- Magic

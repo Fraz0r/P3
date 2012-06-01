@@ -31,22 +31,26 @@ class Response
 	const STATUS_NOT_IMPLEMENTED = 501;
 
 	private static $_STATUS_LABELS = array(
+		//20*
 		self::STATUS_OK          => 'OK',
 		self::STATUS_CREATED     => 'Created',
 		self::STATUS_ACCEPTED    => 'Accepted',
 		self::STATUS_PARTIAL     => 'Partial Information',
 		self::STATUS_NO_RESPONSE => 'No Response',
 
+		//30*
 		self::STATUS_MOVED        => 'Moved Permanently',
 		self::STATUS_FOUND        => 'Found',
 		self::STATUS_NOT_MODIFIED => 'Not Modified',
 
+		//40*
 		self::STATUS_BAD_REQUEST      => 'Bad Request',
 		self::STATUS_UNAUTHORIZED     => 'Unauthorized',
 		self::STATUS_PAYMENT_REQUIRED => 'Payment Required',
 		self::STATUS_FORBIDDEN        => 'Forbidden',
 		self::STATUS_NOT_FOUND        => 'Not Found',
 
+		//50*
 		self::STATUS_INTERNAL_ERROR  => 'Internal Server Error',
 		self::STATUS_NOT_IMPLEMENTED => 'Not Implemented'
 	);
