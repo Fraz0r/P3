@@ -9,6 +9,10 @@ namespace P3\Template;
  */
 class Layout extends Base
 {
+	/**
+	 * 
+	 * @param type $path Path relative to: [active_view_base]/layouts/
+	 */
 	public function __construct($path)
 	{
 		parent::__construct(\P3::config()->action_view->base_path.'/layouts/'.$path);
