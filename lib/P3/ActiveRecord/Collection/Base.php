@@ -342,7 +342,6 @@ class Base implements  \Iterator, \ArrayAccess , \Countable
 	public function find($id, array $options = array())
 	{
 		/* TODO: Same code from ActiveRecord's find (minus extension checks) (needs to be refactored) */
-
 		$builder = clone $this->_builder;
 
 		$limit    = isset($options['limit']) ? $options['limit'] : null;
@@ -358,7 +357,7 @@ class Base implements  \Iterator, \ArrayAccess , \Countable
 		}
 
 		/* Uses MODE_PREPEND to attempt to preserve indexed keys */
-		$builder->where($class::pk().' = '.$id, QueryBuilder::MODE_PREPEND);
+		$builder->where($builder->table().'.'.$class::pk().' = '.$id, QueryBuilder::MODE_PREPEND);
 
 		if(isset($options['conditions'])) {
 			foreach($options['conditions'] as $k => $v) {

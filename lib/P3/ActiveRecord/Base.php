@@ -1312,6 +1312,7 @@ abstract class Base extends \P3\Model\Base
 				$arguments['one'] = true;
 
 
+			$field = static::table().'.'.$field;
 			$args = array();
 			$args['conditions'] = array($field => array_shift($arguments));
 
