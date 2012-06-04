@@ -341,6 +341,7 @@ class form extends P3\Helper\Base
 		$cols  = empty($options['cols']) ? 45 : $options['cols'];
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
 		$id    = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
+		$placeholder = isset($options['placeholder']) ? $options['placeholder'] : false;
 
 		if(isset($options['style']))
 			$style = $options['style'];
@@ -352,7 +353,7 @@ class form extends P3\Helper\Base
 				$options['class'] = '';
 		}
 
-		$input = '<textarea id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
+		$input = '<textarea'.($placeholder ? ' placeholder="'.$placeholder.'"' : '').' id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
