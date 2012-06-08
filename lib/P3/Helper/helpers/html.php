@@ -70,7 +70,7 @@ abstract class html extends P3\Helper\Base
 				$select_options[$model->{$value_key}] = $model->send($display_key);
 		}
 
-		self::select($options['name'], $select_options, $options);
+		return self::select($options['name'], $select_options, $options);
 	}
 
 	/**
@@ -136,7 +136,7 @@ abstract class html extends P3\Helper\Base
 		$select  = '<select name="'.$name.'"'.$id.$class.$style.$other.'>';
 		$select .= self::selectOptions($html_options, $options);
 		$select .= '</select>';
-		echo  $select;
+		return  $select;
 	}
 
 	/**

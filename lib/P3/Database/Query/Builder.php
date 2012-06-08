@@ -151,6 +151,9 @@ class Builder
 
 	public function getCountQuery()
 	{
+		if(isset($this->_count_query))
+			return $this->_count_query;
+
 		if(!in_array($this->getQueryType(), array(self::TYPE_SELECT, self::TYPE_UNION)))
 			throw new \P3\Exception\QueryBuilderException("Can only convert select querys to a count");
 
@@ -165,6 +168,14 @@ class Builder
 		}
 
 		return $ret;
+	}
+
+	public function setCountQuery($query)
+	{
+		if(is_a($query, 'P3\Database\Query\Builder'))
+			$query = $query->getQuery();
+
+		$this->_count_query = $query;
 	}
 
 	/**
@@ -447,6 +458,8 @@ class Builder
 		} else {
 			unset($this->_sections[$section]);
 		}
+
+		return $this;
 	}
 
 	public function sectionCount($section)
@@ -466,11 +479,15 @@ class Builder
 	 * @param string,array $fields fields to select
 	 * @return Builder self
 	 */
-	public function select($fields = '*')
+	public function select($fields = '*', $mode = self::MODE_OVERRIDE)
 	{
 		$fields = is_array($fields) ? implode(', ', $fields) : $fields;
 
-		$this->_sections['base'] = 'SELECT '.$fields;
+		if($mode == self::MODE_APPEND) {
+			$this->_sections['base'] .= ', '.$fields;
+		} else {
+			$this->_sections['base'] = 'SELECT '.$fields;
+		}
 
 		$this->_setQueryType(self::TYPE_SELECT);
 		$this->selectFrom($this->_table);

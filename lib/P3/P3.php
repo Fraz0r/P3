@@ -87,6 +87,12 @@ namespace
 			P3\Router::dispatch();
 		}
 
+		/**
+		 * Get or set database
+		 * 
+		 * @param P3\Database\Connection $db
+		 * @return P3\Database\Connection
+		 */
 		public static function database($db = null)
 		{
 			if(is_null($db)) {

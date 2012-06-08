@@ -151,7 +151,7 @@ class form extends P3\Helper\Base
 
 		$options['selected'] = $this->_model->{$field};
 
-		\html::collectionSelect($collection, $display_key, $options);
+		echo \html::collectionSelect($collection, $display_key, $options);
 	}
 
 	public function fieldsFor($child_name, array $options = array())
@@ -312,7 +312,7 @@ class form extends P3\Helper\Base
 		if($this->_fieldRequired($field) && $this->validate())
 			$options['class'] = $this->_getValidationClassForField($field, isset($options['class']) ? $options['class'] : null);
 
-		html::select($this->_getFieldName($field), $select_options, $options);
+		echo html::select($this->_getFieldName($field), $select_options, $options);
 	}
 
 	/**
@@ -342,6 +342,7 @@ class form extends P3\Helper\Base
 		$rows  = empty($options['rows']) ? 10 : $options['rows'];
 		$id    = isset($options['id']) ? $options['id'] : $this->_getFieldID($field);
 		$placeholder = isset($options['placeholder']) ? $options['placeholder'] : false;
+		$other = '';
 
 		if(isset($options['style']))
 			$style = $options['style'];
@@ -353,7 +354,16 @@ class form extends P3\Helper\Base
 				$options['class'] = '';
 		}
 
-		$input = '<textarea'.($placeholder ? ' placeholder="'.$placeholder.'"' : '').' id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
+		$data = array();
+		foreach($options as $k => $v) {
+
+			if(substr($k, 0, 5) == 'data-')
+				$data[] = "{$k}=\"{$v}\"";
+
+			$other = ' '.implode(' ', $data).' ';
+		}
+
+		$input = '<textarea'.$other.($placeholder ? ' placeholder="'.$placeholder.'"' : '').' id="'.$id.'" cols="'.$cols.'" rows="'.$rows.'" name="'.$this->_getFieldName($field).'" class="'.$options['class'].'"'.(isset($style) ? ' style="'.$style.'"' : '').'>'.$this->_model->{$field}.'</textarea>';
 		echo $input;
 	}
 
