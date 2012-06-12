@@ -157,14 +157,14 @@ class Builder
 		if(!in_array($this->getQueryType(), array(self::TYPE_SELECT, self::TYPE_UNION)))
 			throw new \P3\Exception\QueryBuilderException("Can only convert select querys to a count");
 
-		if($this->isUnion() || $this->hasSection('offset') || $this->hasSection('limit')) {
+		if($this->isUnion() || $this->hasSection('offset') || $this->hasSection('limit') || $this->hasSection('group')) {
 			$builder = new self;
 
 			$ret = $builder->select('COUNT(*)')->selectFrom($this)->getQuery();
 		} else {
 			$builder = clone $this;
 
-			$ret = $builder->select('COUNT(*)')->getQuery();
+			$ret = $builder->select('COUNT(*)')->removeSection('order')->getQuery();
 		}
 
 		return $ret;
