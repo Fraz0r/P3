@@ -210,13 +210,14 @@ namespace
 		 */
 		private static function _determineEnv()
 		{
-			$env = getenv('P3_Env');
+			if(!defined('P3_Env'))
+				$env = getenv('P3_Env');
+			else
+				$env = P3_Env;
+
 			return ($env) ? $env : 'development';
 		}
 	}
-
-	/*  Determine current environment after loaded */
-	P3::getEnv();
 }
 
 ?>
