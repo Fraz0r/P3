@@ -50,6 +50,16 @@ class CreditCard extends \P3\Model\Base
 		'forbrugsforeningen' => '/^600722\d{10}$/',
 		'laser'              => '/^(6304[89]\d{11}(\d{2,3})?|670695\d{13})$/'
 	);
+	
+	public function expiry($format = 'Y-m')
+	{
+		return date($format, strtotime(implode('-', array($this->year, $this->month, 1))));
+	}
+
+	public function formatted_source()
+	{
+		return implode('-', array($this->card_type, substr($this->number, -4)));
+	}
 
 	public function valid()
 	{
@@ -62,7 +72,6 @@ class CreditCard extends \P3\Model\Base
 
 		return !count($this->_errors);
 	}
-
 
 	public function __get($name)
 	{

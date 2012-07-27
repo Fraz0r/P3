@@ -174,7 +174,7 @@ abstract class Base {
 			$field = (!is_array($opts) ? $opts : $k);
 			$msg   = is_array($opts) && isset($opts['msg']) ? $opts['msg'] : '%s is required';
 
-			if(is_null($this->_data[$field]) || !strlen($this->_data[$field])) {
+			if(!isset($this->_data[$field]) || is_null($this->_data[$field]) || !strlen($this->_data[$field])) {
 				$flag = false;
 				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
 			}
