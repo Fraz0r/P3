@@ -792,10 +792,10 @@ abstract class Base extends \P3\Model\Base
 			$class = $this->_class;
 			$func_opts = array();
 
+			$search = static::all(array('conditions' => array('email' => $this->_data[$field])));
 			if(!$this->isNew())
-				$func_opts['conditions'] = array('id != '.$this->id());
+				$search->getBuilder()->where('id != '.$this->id(), \P3\Database\Query\Builder::MODE_APPEND);
 
-			$search = call_user_func_array(array($class, 'find_all_by_'.$field), array($this->_data[$field], $func_opts));
 
 			if(count($search)) {
 				$flag = false;
