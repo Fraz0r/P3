@@ -68,7 +68,7 @@ abstract class Base {
 
 		$route = self::getRoute($path);
 
-		if(!$route) throw new \P3\Exception\RoutingException('No route was matched', array(), 404);
+		if(!$route) throw new \P3\Exception\RoutingException('No route was matched for \'%s\' (%s)', array(is_null($path) ? self::getPath() : $path, $_SERVER['REQUEST_METHOD']), 404);
 
 		if(defined('\APP\START_TIME'))
 			define('APP\DISPATCH_TIME', microtime(true));
@@ -160,6 +160,12 @@ abstract class Base {
 		return self::$_map;
 	}
 
+	public static function getPath()
+	{
+		$rpos = strrpos($_SERVER['REQUEST_URI'], '?');
+		return ($rpos === false) ? $_SERVER['REQUEST_URI'] : substr($_SERVER['REQUEST_URI'], 0, $rpos);
+	}
+
 	/**
 	 * Returns first matched route for given controller/action
 	 *
@@ -169,10 +175,8 @@ abstract class Base {
 	 */
 	public static function getRoute($path = null)
 	{
-		if(is_null($path)) {
-			$rpos = strrpos($_SERVER['REQUEST_URI'], '?');
-			$path = ($rpos === false) ? $_SERVER['REQUEST_URI'] : substr($_SERVER['REQUEST_URI'], 0, $rpos);
-		}
+		if(is_null($path))
+			$path = self::getPath();
 
 		return self::matchRoute($path);
 	}

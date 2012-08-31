@@ -176,7 +176,7 @@ abstract class Base {
 
 			if(!isset($this->_data[$field]) || is_null($this->_data[$field]) || !strlen($this->_data[$field])) {
 				$flag = false;
-				$this->_addError($field, sprintf($msg, \str::toHuman($field)));
+				$this->_addError($field, sprintf($msg, ucfirst(\str::toHuman($field))));
 			}
 		}
 
@@ -208,7 +208,7 @@ abstract class Base {
 
 			if(isset($opts['exact']) && strlen($this->_data[$field]) != $opts['exact']) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be exactly %d characters long', \str::toHuman($field), $opts['exact']));
+				$this->_addError($field, sprintf('%s must be exactly %d characters long', ucfirst(\str::toHuman($field)), $opts['exact']));
 				continue;
 			}
 
@@ -221,11 +221,11 @@ abstract class Base {
 
 			if(!is_null($min) && strlen($this->_data[$field]) < $min) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be at least %d characters long', \str::toHuman($field), $min));
+				$this->_addError($field, sprintf('%s must be at least %d characters long', ucfirst(\str::toHuman($field)), $min));
 			}
 			if(!is_null($max) && strlen($this->_data[$field]) > $max) {
 				$flag = false;
-				$this->_addError($field, sprintf('%s must be less than %d characters long', \str::toHuman($field), $max));
+				$this->_addError($field, sprintf('%s must be less than %d characters long', ucfirst(\str::toHuman($field)), $max));
 			}
 		}
 
