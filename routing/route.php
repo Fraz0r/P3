@@ -99,7 +99,7 @@ class Route implements iFace\Segmentable
 
 		$j = count($ex);
 		for($i = 0; $i < $j; $i++) {
-			if(!strlen($tx[$i]) || $tx[$i][0] !== ':')
+			if(!strlen($tx[$i]) || $tx[$i][0] !== ':' || empty($ex[$i]))
 				continue;
 
 			$this->_options[\substr($tx[$i], 1)] = $ex[$i];
@@ -116,6 +116,7 @@ class Route implements iFace\Segmentable
 	{
 		if(!isset($this->_segments))
 			$this->_segments = Segment::get_from_path($this->path());
+
 		return $this->_segments;
 	}
 
