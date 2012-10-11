@@ -99,6 +99,11 @@ abstract class Base
 		self::$_buffers[$buffer] .= $contents;
 	}
 
+	public function buffer_exists($buffer_name)
+	{
+		return isset(self::$_buffers[$buffer_name]);
+	}
+
 	/**
 	 * Add $contents to the given buffer, using the return from passed $closure
 	 * 
@@ -297,7 +302,7 @@ abstract class Base
 	 */
 	public function yield($buffer = 'p3_view')
 	{
-		echo $this->get_buffer($buffer);
+		return $this->get_buffer($buffer);
 	}
 
 //- Static
