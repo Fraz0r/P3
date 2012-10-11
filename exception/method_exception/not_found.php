@@ -7,7 +7,7 @@ namespace P3\Exception\MethodException;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class MethodNotFound extends \P3\Exception\Base
+class NotFound extends \P3\Exception\Base
 {
 	public function __construct($class, $method)
 	{
