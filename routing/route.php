@@ -12,7 +12,7 @@ use       P3\Net\Http\Request;
 class Route implements iFace\Segmentable
 {
 	private $_options;
-	private $_params = [];
+	private $_params;
 	private $_path;
 	private $_raw;
 	private $_regex;
@@ -31,7 +31,12 @@ class Route implements iFace\Segmentable
 
 	public function controller()
 	{
-		return $this->_options['controller'];
+		$controller = $this->_options['controller'];
+
+		if(isset($this->_options['namespace']))
+			$controller = $this->_options['namespace'].'\\'.$controller;
+
+		return $controller;
 	}
 
 	public function host()
@@ -43,8 +48,8 @@ class Route implements iFace\Segmentable
 	public function match(Request $request)
 	{
 		/* absolute root */
-		if(!\strlen($this->path()) && !\strlen($request->path()))
-			return $this;
+		if(!\strlen($request->path()) && !strlen($this->path()))
+				return $this;
 
 		if(!\preg_match($this->_to_regex(), $request->path(), $this->_raw))
 			return false;
@@ -79,10 +84,11 @@ class Route implements iFace\Segmentable
 
 	public function params()
 	{
-		if(!isset($this->_params))
+		if(!isset($this->_params)) {
 			foreach($this->segments() as $s)
 				if($s->is_param())
 					$this->_params[] = $s;
+		}
 
 		return $this->_params;
 	}
@@ -99,7 +105,7 @@ class Route implements iFace\Segmentable
 
 		$j = count($ex);
 		for($i = 0; $i < $j; $i++) {
-			if(!strlen($tx[$i]) || $tx[$i][0] !== ':')
+			if(!strlen($tx[$i]) || $tx[$i][0] !== ':' || empty($ex[$i]))
 				continue;
 
 			$this->_options[\substr($tx[$i], 1)] = $ex[$i];
@@ -116,6 +122,7 @@ class Route implements iFace\Segmentable
 	{
 		if(!isset($this->_segments))
 			$this->_segments = Segment::get_from_path($this->path());
+
 		return $this->_segments;
 	}
 
@@ -140,7 +147,7 @@ class Route implements iFace\Segmentable
 	private function _to_regex()
 	{
 		if(!isset($this->_regex)) 
-			$this->_regex = '!^'.preg_replace('/:[^\(^\^\/)]*/', '[^/^\(]*', \str_replace(')', ')?', $this->path())).'$!';
+			$this->_regex = '!^'.preg_replace('/:[^\(^\^\/)]+/', '[^\.^/^\(]+', \str_replace(')', ')?', $this->path())).'$!';
 
 		return $this->_regex;
 	}
@@ -149,18 +156,28 @@ class Route implements iFace\Segmentable
 //- Magic
 	public function __invoke(array $arguments = [])
 	{
-		if(($a = count($arguments)) !== ($p = count($this->params())))
+		if(($arg_count = count($arguments)) !== ($param_count = count($this->params())))
 			throw new \P3\Exception\ArgumentException\Mismatch(
 				get_class(), 
 				'__invoke', 
-				$p,
-				$a
+				$param_count,
+				$arg_count
 			);
 
-		if(!$p)
+		if(!$param_count)
 			return \implode(Segment::SEPARATOR, $this->segments());
-		else
-			die("WTF NOW, NEED TO PARSE PATH WITH ARGS");
+
+		// parse params
+		$segments = $this->segments();
+		$seg_count = count($segments);
+		$ret_segments = [];
+
+		$arg_i = 0;
+
+		for($i = 0; $i < $seg_count; $i++)
+			$ret_segments[] = $segments[$i]->is_param() ? $arguments[$arg_i++] : (string)$segments[$i];
+
+		return \implode(Segment::SEPARATOR, $ret_segments);
 	}
 }
 

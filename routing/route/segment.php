@@ -19,6 +19,11 @@ final class Segment
 		$this->_token = $token;
 	}
 
+	public function is_param()
+	{
+		return strlen($this->_token) && $this->_token[0] == ':';
+	}
+
 	public function token()
 	{
 		return $this->_token;
@@ -49,8 +54,8 @@ final class Segment
 //- Private Static
 	private static function _get_dynamic($path)
 	{
-		var_dump($path);
-		return array("LOL");
+		//TODO: Figure out why this method was even here ( I think it was for optional args... )
+		return self::_get_static($path);
 	}
 
 	private static function _get_globbed($path)

@@ -7,6 +7,7 @@ use       P3\Routing\Route;
  * Description of map
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
+ * @todo Fix Accept Format
  */
 class Map 
 {
@@ -47,7 +48,7 @@ class Map
 		return $route;
 	}
 
-	public function named($name, $path, $options)
+	public function named($name, $path, array $options = [])
 	{
 		$prefix = !isset($options['perform_prefix']) || $options['perform_prefix'];
 
@@ -266,7 +267,14 @@ class Map
 
 	public function root($options)
 	{
-		return $this->named('root', '', $options);
+		return $this->named('root', '', array_merge(['accept_format' => false], $options));
+	}
+
+	public function with_options(array $options, $closure)
+	{
+		$map = new self($this, array_merge($this->_options, $options));
+
+		return $closure($map);
 	}
 
 //- Private
@@ -283,6 +291,23 @@ class Map
 	private function _prefix()
 	{
 		return isset($this->_options['prefix']) ? $this->_options['prefix'].'/' : '';
+	}
+
+//- Magic
+	public function __call($method, $arguments = array())
+	{
+		$c = count($arguments);
+
+		switch($c) {
+			case 0:
+				throw new \P3\Exception\ArgumentException\Invalid(get_class(), 'named', 'No arguments passed');
+			case 1:
+				return $this->named($method, $arguments[0]);
+			case 2:
+				return $this->named($method, $arguments[0], $arguments[1]);
+			case 3:
+				throw new \P3\Exception\ArgumentException\Invalid(get_class(), 'named', 'Too many arguments.  Expecting 1 or 2 args.');
+		}
 	}
 }
 
