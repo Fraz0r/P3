@@ -93,12 +93,22 @@ class Response
 			$this->_headers = $headers;
 	}
 
+	public function message()
+	{
+		return self::$_STATUS_LABELS[$this->status()];
+	}
+
 	public function send()
 	{
 		if(\P3::config()->trap_extraneous_output)
 			ob_end_clean();
 
 		self::process($this);
+	}
+
+	public function status($status = null)
+	{
+		return $this->code($status);
 	}
 
 //- Public Static
