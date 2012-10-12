@@ -23,7 +23,15 @@ class ActionView extends \P3\Template\Base
 		$this->_controller = $controller;
 		$this->_template   = $template;
 
-		parent::__construct(\P3::config()->action_view->base_path.'/'.$request->controller.'/'.$template.'.tpl');
+		$path = '';
+
+		if(!is_null(($namespace = $this->_controller->route()->get_namespace())))
+			$path .= '/'.str_replace('\\', '/', $namespace);
+
+		$path .= '/'.$request->controller.'/'.$template.'.tpl';
+
+
+		parent::__construct(\P3::config()->action_view->base_path.$path);
 	}
 }
 
