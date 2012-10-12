@@ -12,7 +12,7 @@ class NoRouteMatched extends \P3\Exception\RoutingException
 { 
 	public function __construct()
 	{
-		parent::__construct('', array(), Response::STATUS_NOT_FOUND);
+		parent::__construct('No routes matched request: %s', array(\P3::request()->url()), Response::STATUS_NOT_FOUND);
 	}
 }
 
