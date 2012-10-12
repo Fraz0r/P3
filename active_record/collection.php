@@ -32,12 +32,11 @@ class Collection  extends \P3\Object\Collection
 			return parent::average($what);
 
 		$builder = clone $this->_builder;
-		$builder->fetch_class(null); //make sure we get an arr back
 		$builder->select("AVG({$what}) as avg", SqlBuilder::MODE_OVERRIDE);
 
-		$result = $builder->fetch();
+		$result = $builder->send();
 
-		return $result['avg'];
+		return $result->fetchColumn();
 	}
 
 	public function builder($builder = null)
@@ -110,12 +109,11 @@ class Collection  extends \P3\Object\Collection
 			return parent::average($what);
 
 		$builder = clone $this->_builder;
-		$builder->fetch_class(null); //make sure we get an arr back
 		$builder->select("MAX({$what}) as max", SqlBuilder::MODE_OVERRIDE);
 
-		$result = $builder->fetch();
+		$result = $builder->send();
 
-		return $result['max'];
+		return $result->fetchColumn();
 	}
 
 	public function min($what)
@@ -124,12 +122,11 @@ class Collection  extends \P3\Object\Collection
 			return parent::average($what);
 
 		$builder = clone $this->_builder;
-		$builder->fetch_class(null); //make sure we get an arr back
 		$builder->select("MIN({$what}) as min", SqlBuilder::MODE_OVERRIDE);
 
-		$result = $builder->fetch();
+		$result = $builder->send();
 
-		return $result['min'];
+		return $result->fetchColumn();
 	}
 
 	public function reset()
