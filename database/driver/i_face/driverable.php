@@ -1,6 +1,6 @@
 <?php
 
-namespace P3\Database\IFace;
+namespace P3\Database\Driver\IFace;
 
 /**
  * Description of driver

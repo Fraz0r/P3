@@ -11,26 +11,45 @@ abstract class Base extends \PDO implements IFace\Driverable
 {
 	public static $QUERY_CLASS = 'P3\Builder\Sql';
 
-	protected static $_instance;
-
 	protected $_config;
 
 //- Public
 	public function __construct(array $config)
 	{
-		$this->_conf = $config;
+		$this->_config = $config;
 
 		parent::__construct($this->_get_dsn(), $config['username'], $config['password']);
+		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
 	}
 
-//- Private
-	private function _get_dsn()
+	public function exec($string)
 	{
+		$this->log_query($string, 'pdo_exec');
+
+		return parent::exec($string);
 	}
 
 	public function get_query_class()
 	{
 		return static::$QUERY_CLASS;
+	}
+
+	public function log_query($string, $proc = 'app')
+	{
+		\P3::logger()->debug("\t{$string}", "p3[{$proc}]");
+	}
+
+	public function query($string)
+	{
+		$this->log_query($string, 'pdo_query');
+
+		return parent::query($string);
+	}
+
+//- Private
+	private function _get_dsn()
+	{
+		return sprintf('%s:dbname=%s;host=%s', $this->_config['driver'], $this->_config['database'], $this->_config['host']);
 	}
 
 //- Static
@@ -39,22 +58,13 @@ abstract class Base extends \PDO implements IFace\Driverable
 		if(!isset($config['driver']))
 			throw new Exception\NoDriver;
 
-		$class = ucfirct(strtolower($conf['driver'])).'Driver';
+		$class = '\P3\Database\Driver\\'.ucfirst(strtolower($config['driver'])).'Driver';
 
 		try {
-			require_once($class);
 			return new $class($config);
 		} catch(Exception $e) {
 			throw new Exception\UnknownDriver($config['driver']);
 		}
-	}
-
-	public static function singleton()
-	{
-		if(!isset(self::$_instance))
-			self::$_instance = self::init(P3::config()->database->get_vars());
-
-		return self::$_instance;
 	}
 }
 

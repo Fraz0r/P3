@@ -7,9 +7,17 @@ namespace P3\Database\Driver;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class MysqlDriver extends Base
+class MysqlDriver extends \P3\Database\Driver\Base
 {
-	public static $QUERY_CLASS = 'P3\Builder\Sql\Mysql';
+	public function __construct(array $config)
+	{
+		parent::__construct($config);
+		$this->setAttribute(self::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+	}
+
+	public function get_table_info($table)
+	{
+	}
 }
 
 ?>
