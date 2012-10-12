@@ -10,6 +10,7 @@ namespace P3\Object;
 class Collection implements \Iterator, \ArrayAccess, \Countable
 {
 	private $_data;
+	private $_pointer = 0;
 
 	public function __construct(array $items = array())
 	{
@@ -52,9 +53,29 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
 		return $ret;
 	}
 
+	public function current()
+	{
+		return $this->_data[$this->_pointer];
+	}
+
+	public function count()
+	{
+		return count($this->_data);
+	}
+
 	public function export()
 	{
 		return $this->_data;
+	}
+
+	public function key()
+	{
+		return $this->_pointer;
+	}
+
+	public function next()
+	{
+		return ++$this->_pointer;
 	}
 
 	public function max($what)
@@ -65,6 +86,26 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
 	public function min($what)
 	{
 		return min($this->collect($what)->export());
+	}
+
+	public function offsetExists($offset)
+	{
+		return isset($this->_data[$offset]);
+	}
+
+	public function offsetGet($offset)
+	{
+		return $this->_data[$offset];
+	}
+
+	public function offsetSet($offset, $value)
+	{
+		$this->_data[$offset] = $value;
+	}
+
+	public function offsetUnset($offset)
+	{
+		unset($this->_data[$offset]);
 	}
 
 	public function pop()
@@ -88,6 +129,11 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
 		return $ret;
 	}
 
+	public function rewind()
+	{
+		$this->_pointer = 0;
+	}
+
 	public function select($closure)
 	{
 		$ret = new self;
@@ -107,6 +153,11 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
 	public function unshift($item)
 	{
 		return array_unshift($this->_data, $item);
+	}
+
+	public function valid()
+	{
+		return isset($this->_data[$this->_pointer]);
 	}
 }
 
