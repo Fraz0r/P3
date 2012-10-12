@@ -39,6 +39,11 @@ class Route implements iFace\Segmentable
 		return $controller;
 	}
 
+	public function get_namespace()
+	{
+		return isset($this->_options['namespace']) ? $this->_options['namespace'] : null;
+	}
+
 	public function host()
 	{
 		/* TODO: NEED TO HANDLE GETTING HOST FROM ROUTE */
@@ -66,6 +71,7 @@ class Route implements iFace\Segmentable
 	{
 		return isset($this->_options['name']) ? $this->_options['name'] : null;
 	}
+
 
 	public function options()
 	{
