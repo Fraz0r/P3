@@ -15,11 +15,7 @@ abstract class Base
 		if(!method_exists($this, $action))
 			throw new Exception\NoAction($this, $action);
 
-		$this->_before_filter();
-
 		$ret = call_user_func(array($this, $action));
-
-		$this->_after_filter();
 
 		return $ret;
 	}
