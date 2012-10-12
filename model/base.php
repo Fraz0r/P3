@@ -11,6 +11,12 @@ abstract class Base extends \P3\Object\Base
 {
 	protected $_data = array();
 
+	public function __construct(array $data = [])
+	{
+		$this->_data = $data;
+	}
+
+//- Protected
 	protected function _read_attribute($attribute)
 	{
 		if(!isset($this->_data[$attribute]))
