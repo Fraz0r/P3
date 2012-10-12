@@ -4,12 +4,23 @@
 
 final class P3
 {
+	private static $_database;
+	private static $_logger;
 	private static $_request;
 	private static $_root_path = '/';
 	private static $_router;
 
 
 //- Public Static
+	/**
+	 * 
+	 * @return string
+	 * @todo implement app_name
+	 */
+	public static function app_name()
+	{
+		return 'app';
+	}
 	public static function boot()
 	{
 		if(self::config()->trap_extraneous_output)
@@ -28,6 +39,14 @@ final class P3
 		return P3\Config\Handler::singleton();
 	}
 
+	public static function database()
+	{
+		if(is_null(self::$_database))
+			self::$_database = P3\Database\Driver\Base::init(P3\Config\Handler\Ini::read('database.ini', true)->get_section(self::env()));
+
+		return self::$_database;
+	}
+
 	public static function development()
 	{
 		return P3\Initializer::development();
@@ -44,6 +63,14 @@ final class P3
 			throw new P3\Exception\FileNotFound('config/routes.php');
 
 		require(P3\ROOT.'/config/routes.php');
+	}
+
+	public static function logger()
+	{
+		if(is_null(self::$_logger))
+			self::$_logger = new P3\System\Logging\Engine(\P3\ROOT.'/log/'.self::env().'.log', self::config()->logging->log_level, self::app_name());
+
+		return self::$_logger;
 	}
 
 	public static function production()
@@ -80,6 +107,8 @@ final class P3
 //- Private Static
 	private static function _handle_exception(Exception $e)
 	{
+		self::logger()->exception($e);
+
 		if(self::production()) {
 			$code = $e->getCode();
 
