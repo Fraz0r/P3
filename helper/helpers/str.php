@@ -150,7 +150,7 @@ class str
 	* @param boolean $titleize Titleizes string, if true
 	* @return string Converted string
 	*/
-	public static function humanize($str)
+	public static function humanize($str, $titleize = false)
 	{
 		if(FALSE !== strrpos($str, '_')) {
 			$func = create_function('$c', 'return " ".$c[1];');
