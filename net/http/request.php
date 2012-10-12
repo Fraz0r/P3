@@ -28,6 +28,7 @@ class Request implements \P3\Routing\IFace\Segmentable
 
 	private $_method;
 	private $_segments;
+	private $_url;
 
 //- Public
 	/**
@@ -173,6 +174,11 @@ class Request implements \P3\Routing\IFace\Segmentable
 	 */
 	public function query() {
 		return $this->component('query');
+	}
+
+	public function url()
+	{
+		return $this->_url;
 	}
 
 	/**
