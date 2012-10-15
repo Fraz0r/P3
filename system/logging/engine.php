@@ -149,7 +149,7 @@ class Engine
 
 		foreach($trace as $line) {
 			foreach($line['args'] as &$arg)
-				$arg = serialize ($arg);
+				$arg = is_callable($arg) ? 'closure' : serialize ($arg);
 
 			if(isset($line['class']))
 				$method = $line['class'].'#'.$line['function'];
