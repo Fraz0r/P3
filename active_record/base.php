@@ -2,6 +2,7 @@
 
 namespace P3\ActiveRecord;
 use P3\Builder\Sql as SqlBuilder;
+use P3\Database\Table\Column as TableColumn;
 
 /**
  * Description of base
@@ -18,17 +19,24 @@ abstract class Base extends \P3\Model\Base
 		parent::__construct($data);
 	}
 
+//- Protected
+	protected function _read_attribute($attribute)
+	{
+		$attr_info = static::get_attr_info($attribute);
+
+		return $attr_info->parsed_read(parent::_read_attribute($attribute));
+	}
+
 //- Static
 	public static function all(array $options = [])
 	{
-		if(!isset($options['fields'])) {
-			$fields = '*';
-		} elseif(is_array($options['fields'])) {
-			$fields = implode(', ', $options['fields']);
+		if(isset($options['select'])) {
+			$fields = $options['select'];
+			unset($options['select']);
 		} else {
-			$fields = $options['fields'];
+			$fields = '*';
 		}
-		
+
 		$builder = new SqlBuilder(static::get_table());
 		$builder->select($fields);
 
@@ -70,6 +78,52 @@ abstract class Base extends \P3\Model\Base
 		static::$_table = \str::humanize(\str::pluralize($class));
 
 		return static::$_table;
+	}
+
+	public static function get_attr_type($attr)
+	{
+		$info = static::get_attr_info($attr);
+
+		return $info->get_type();
+	}
+
+	public static function get_attr_info($attr)
+	{
+		return \P3::database()->get_column_info(static::get_table(), $attr);
+	}
+
+
+	public static function get_table_info()
+	{
+		return \P3::database()->get_table_info(static::get_table());
+	}
+
+//- Magic
+	public static function __callStatic($method, array $args = [])
+	{
+		if(substr($method, 0, 8) == 'find_by_') {
+			$all   = false;
+			$field = substr($method, 8);
+		} elseif(substr($method, 0, 12) == 'find_all_by_') {
+			$all   = true;
+			$field = substr($method, 12);
+		}
+
+		// TODO: Need exceptions based on num of args/wtf is in them
+		if(isset($field)) {
+			$return = static::all()->where([$field => $args[0]]);
+
+			if(isset($args[1]))
+				foreach($args[1] as $k => $v)
+					$return->{$k}($v);
+
+			if(!$all)
+				$return = $return->limit(1)->fetch();
+
+			return $return;
+		}
+
+		throw new \P3\Exception\MethodException\NotFound(get_called_class(), $method);
 	}
 }
 
