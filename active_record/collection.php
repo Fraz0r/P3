@@ -17,6 +17,7 @@ class Collection  extends \P3\Object\Collection
 	private $_count;
 	private $_state = 0;
 	private $_statement;
+	private $_fetch_pointer = 0;
 
 	public function __construct(SqlBuilder $builder, $fetch_class = null)
 	{
@@ -68,10 +69,12 @@ class Collection  extends \P3\Object\Collection
 		if($record && !is_null(($class = $this->_builder->fetch_class())))
 			$record = new $class($record);
 
-		$this->_data[$this->_pointer++] = $record;
+		if($record)
+			$this->_data[$this->_fetch_pointer++] = $record;
 
-		if($record === FALSE)
-			$this->_state = $this->_state ^ self::STATE_FILLED;
+		if($record === FALSE) {
+			$this->_state |= self::STATE_FILLED;
+		}
 
 		return $record;
 	}
@@ -86,12 +89,12 @@ class Collection  extends \P3\Object\Collection
 		if(!$this->is_started())
 			return false;
 
-		return (bool)$this->_state & self::STATE_FILLED;
+		return (bool)($this->_state & self::STATE_FILLED);
 	}
 
 	public function is_started()
 	{
-		return (bool)$this->_state & self::STATE_STARTED;
+		return (bool)($this->_state & self::STATE_STARTED);
 	}
 	
 	public function limit($limit, $offset = null)
@@ -129,10 +132,41 @@ class Collection  extends \P3\Object\Collection
 		return $result->fetchColumn();
 	}
 
+	public function offset($offset)
+	{
+		$this->_builder->offset($offset);
+
+		return $this;
+	}
+
+	public function offsetGet($offset)
+	{
+		if($this->is_filled())
+			return parent::offsetGet($offset);
+
+		while(!$this->is_filled() && $this->_fetch_pointer <= $offset)
+			$this->fetch();
+
+		return parent::offsetGet($offset);
+	}
+
+	public function offsetSet($offset, $val)
+	{
+		throw new \P3\Exception\MethodException\NotImplemented([get_called_class(), 'offsetSet']);
+	}
+
+	public function order($order_by, $mode = \P3\Builder\Sql::MODE_APPEND)
+	{
+		$this->_builder->order($order_by, $mode);
+
+		return $this;
+	}
+
 	public function reset()
 	{
 		$this->_data    = [];
 		$this->_pointer = 0;
+		$this->_fetch_pointer = 0;
 		$this->_count   = null;
 		$this->_state   = 0;
 		$this->_statement = null;
@@ -143,6 +177,14 @@ class Collection  extends \P3\Object\Collection
 		$this->_builder = $builder;
 
 		return $this;
+	}
+
+	public function valid()
+	{
+		if($this->is_filled())
+			return parent::valid();
+
+		return (bool)$this->fetch();
 	}
 
 	public function where($what, $mode = SqlBuilder::MODE_APPEND)
