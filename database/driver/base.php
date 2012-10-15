@@ -9,6 +9,7 @@ namespace P3\Database\Driver;
  */
 abstract class Base extends \PDO implements IFace\Driverable
 {
+	public static $DATE_TIME_CLASS = '\DateTime';
 	public static $QUERY_CLASS = 'P3\Builder\Sql';
 
 	protected $_config;
@@ -27,6 +28,22 @@ abstract class Base extends \PDO implements IFace\Driverable
 		$this->log_query($string, 'pdo_exec');
 
 		return parent::exec($string);
+	}
+
+	public function get_column_info($table_name, $column)
+	{
+		$table = static::get_table_info($table_name);
+
+		if(!isset($table[$column]))
+			throw new Exception\ColumnNoExist($table_name, $column);
+
+		return $table[$column];
+	}
+
+
+	public function get_date_time_class()
+	{
+		return static::$DATE_TIME_CLASS;
 	}
 
 	public function get_query_class()
