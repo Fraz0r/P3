@@ -8,7 +8,7 @@ use P3\Exception\SessionException as Error;
  *
  * @author Tim Frazier <tim.frazier at gmail.com>
  */
-class Session
+class Session extends \ArrayObject
 {
 	/**
 	 * @var array Holds ojbect attributes
@@ -40,7 +40,7 @@ class Session
 		self::$_startedInternally = false;
 
 		if(!self::$_handlerSet)
-			self::registerHandler(new Handler\File());
+			self::registerHandler(new Session\Handler\File());
 
 		session_start();
 
