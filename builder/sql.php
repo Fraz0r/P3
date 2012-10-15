@@ -361,9 +361,9 @@ class Sql
 	 * 
 	 * @param string,array $order fields to sort by
 	 */
-	public function order($order) 
+	public function order($order, $mode = self::MODE_APPEND) 
 	{
-		$this->_section('order', $order, self::MODE_OVERRIDE);
+		$this->_section('order', $order, $mode);
 
 		return $this;
 	}
@@ -564,7 +564,7 @@ class Sql
 		if(is_array($conditions)) {
 			if(is_numeric(key($conditions))) {
 				$format = array_shift($conditions);
-				$clause = sprintf($format, $conditions);
+				$clause = vsprintf($format, array_map(function($v){ return \P3::database()->quote($v); }, $conditions));
 			} else {
 				$parts = [];
 
