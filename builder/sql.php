@@ -130,8 +130,7 @@ class Sql
 	 */
 	public function execute()
 	{
-		$query = $this->__toString();
-		return \P3::getDatabase()->exec($query);
+		return \P3::database()->exec((string)$this);
 	}
 
 	/**
@@ -259,11 +258,16 @@ class Sql
 	 * 
 	 * @param array $fields fields to insert
 	 * @return Builder 
+	 * 
+	 * @todo estrapulate mysql formatting
 	 */
 	public function insert(array $fields)
 	{
-		$this->_sections = array('base' => "INSERT INTO ".$this->_table.'('.implode(', ', array_keys($fields)).')');
-		$this->values(implode(', ', $fields));
+		$columns = array_map(function($v){ return "`{$v}`";}, array_keys($fields));
+		$values  = array_map(function($v){ return \P3::database()->quote($v); }, $fields);
+
+		$this->_sections = array('base' => "INSERT INTO ".$this->_table.'('.implode(', ', $columns).')');
+		$this->values(implode(', ', $values));
 
 		$this->_set_type(self::TYPE_INSERT);
 		return $this;
@@ -458,10 +462,7 @@ class Sql
 	{
 		$set = array();
 		foreach($fields as $k => $v)
-			if($v !== 'NULL' && !is_numeric($v))
-				$v = '\''.$v.'\'';
-
-			$set[] = $k.'='.$v;
+			$set[] = $k.'='.\P3::database()->quote($v);
 
 		$this->_section('set', $set, $mode);
 	}
