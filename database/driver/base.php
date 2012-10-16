@@ -30,6 +30,13 @@ abstract class Base extends \PDO implements IFace\Driverable
 		return parent::exec($string);
 	}
 
+	public function column_exists($table_name, $column)
+	{
+		$table = static::get_table_info($table_name);
+
+		return isset($table[$column]);
+	}
+
 	public function get_column_info($table_name, $column)
 	{
 		$table = static::get_table_info($table_name);

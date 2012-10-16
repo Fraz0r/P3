@@ -74,6 +74,8 @@ class Column
 			case self::TYPE_TIMESTAMP:
 				if(is_object($val))
 					$val = (string)$val;
+				else
+					$val = date('Y-m-d H:i:s', strtotime($val));
 
 				return $val;
 			case self::TYPE_INT:

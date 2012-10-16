@@ -29,8 +29,16 @@ abstract class Base extends \P3\Controller\Base
 		return $this->_request;
 	}
 
+	public function logger()
+	{
+		return \P3::logger();
+	}
+
 	public function process($action)
 	{
+		if($action == 'new') // cant use new unfortunatley, reserved token
+			$action = 'add';
+
 		$filter_ret = $this->_before_filter();
 		$filter_success = is_null($filter_ret) ? true : (bool)$filter_ret;
 
@@ -63,13 +71,13 @@ abstract class Base extends \P3\Controller\Base
 	}
 
 	//TODO:  Make redirect support all kinds of stuff, like redirecting to same action in controller
-	public function redirect($where)
+	public function redirect($where, $code = Response::STATUS_MOVED)
 	{
 		if(is_string($where)) {
 			$path = $where == ':back' ? $_SERVER['HTTP_REFERER'] : $where;
 		}
 
-		$this->_responses[] = new Response($this, null, ['Location: '.$path], Response::STATUS_MOVED);
+		$this->_responses[] = new Response($this, null, ['Location: '.$path], $code);
 	}
 
 	public function render(array $options = array())

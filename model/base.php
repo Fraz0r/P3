@@ -46,7 +46,7 @@ abstract class Base extends \P3\Object\Base
 		if($this->attr_exists($method))
 			return $this->__get($method);
 
-		throw \P3\Exception\MethodException\NotFound(get_called_class(), $method);
+		throw new \P3\Exception\MethodException\NotFound(get_called_class(), $method);
 	}
 	public function __get($var)
 	{
