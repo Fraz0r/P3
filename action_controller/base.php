@@ -82,13 +82,19 @@ abstract class Base extends \P3\Controller\Base
 
 	public function render(array $options = array())
 	{
-		if(isset($options['template']))
+		$headers = isset($options['headers']) ? $options['headers'] : [];
+
+		if(isset($options['template'])) {
 			$http_body = $this->render_template($options);
+		} elseif(isset($options['text'])) {
+			$http_body = $options['text'];
+			$headers[] = 'Content-type: text/plain';
+		}
 
 		if(!isset($http_body))
 			throw new Exception\InvalidRender('%s called render(), but no valid options were given', array(get_called_class()));
 
-		$this->_responses[] = new Response($this, $http_body);
+		$this->_responses[] = new Response($this, $http_body, $headers);
 	}
 
 	public function render_template($template, array $options = array())

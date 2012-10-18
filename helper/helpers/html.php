@@ -32,6 +32,30 @@ abstract class html extends P3\Helper\Base
 	{
 		return '</'.$tag_name.'>';
 	}
+
+	public static function content_tag($name, $content, array $options = [])
+	{
+		$ret = self::_($name, $options);
+		$ret .= $content;
+		$ret .= self::_c($name);
+
+		return $ret;
+	}
+
+	public static function link_to($display, $location, array $url_options = [], array $html_options = [])
+	{
+		if($location == ':back')
+			$location = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'javascript:history.back();';
+
+		$html_options['href'] = $location;
+
+		if(isset($url_options['method']))
+			$html_options['data-method'] = $url_options['method'];
+		if(isset($url_options['confirm']))
+			$html_options['data-confirm'] = $url_options['confirm'];
+
+		return self::content_tag('a', $display, $html_options);
+	}
 }
 
 ?>
