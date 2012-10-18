@@ -12,6 +12,9 @@ abstract class Base
 //- Public
 	public function send($what)
 	{
+		if(is_callable($what))
+			return $what($this);
+
 		$args = func_get_args();
 		$what = array_shift($args);
 		
