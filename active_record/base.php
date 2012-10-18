@@ -11,6 +11,12 @@ use P3\Database\Table\Column as TableColumn;
  */
 abstract class Base extends \P3\Model\Base
 {
+	public static $accept_nexted_attributes_for = [];
+
+	public static $belongs_to  = [];
+	public static $has_one     = [];
+	public static $has_many    = [];
+
 	public static $has_attachment = [];
 
 	public static $validate_email;
@@ -20,20 +26,90 @@ abstract class Base extends \P3\Model\Base
 	protected static $_fixture;
 	protected static $_table;
 
+	private $_save_attachments = true;
+
+	//TODO:  Need to bind the rest of the triggers this way too (to be able to dynamically add triggers)
+	protected $_after_save = [];
+	protected $_before_save = [];
+
+	private $_association_data = [];
+	private $_attachment_data = [];
+
 	protected $_changed = [];
 
 	public $errors;
 
 	public function __construct(array $data = [])
 	{
-		parent::__construct($data);
+		parent::__construct([]);
+
+		foreach($data as $k => $v)
+			$this->{$k} = $v;
 
 		$this->errors = new Errors($this);
+	}
+
+	public function delete()
+	{
+		$builder = new SqlBuilder(static::get_table());
+		return $builder->delete()->where([$this->get_pk_field() => $this->id()])->execute();
+	}
+
+	public function destroy()
+	{
+		$this->_before_destroy();
+
+		if(FALSE !== ($flag = $this->delete()))
+			$this->_after_destroy();
+
+		return $flag;
 	}
 
 	public function add_error($error, $field = null)
 	{
 		$this->errors->add($error, $field);
+	}
+
+	public function get_association($property)
+	{
+		$class = get_called_class();
+
+		if(!isset($this->_association_data[$property])) {
+			if(isset($class::$has_many[$property]))
+				$association =  new Association\HasMany($this, $property, $class::$has_many[$property]);
+			//TODO: Implement other associations
+
+			$this->_association_data[$property] = $association;
+		}
+
+
+		return $this->_association_data[$property];
+	}
+
+
+	public function get_attachment($property)
+	{
+		$class = get_called_class();
+
+		if(!isset($this->_attachment_data[$property])) {
+			if(isset($class::$has_attachment[$property]))
+				$attachment =  new Attachment($this, $property, $class::$has_attachment[$property]);
+
+			$this->_attachment_data[$property] = $attachment;
+		}
+
+
+		return $this->_attachment_data[$property];
+	}
+
+	public function get_pk_field()
+	{
+		return static::get_pk();
+	}
+
+	public function has_attachments()
+	{
+		return (bool)count(static::$has_attachment);
 	}
 
 	public function id()
@@ -63,6 +139,9 @@ abstract class Base extends \P3\Model\Base
 		$validate = !isset($options['validate']) ? true : (bool)$options['validate'];
 		$method    = $this->is_new() ? 'insert' : 'update';
 
+		if(isset($options['save_attachments']) && !$options['save_attachments'])
+			$this->_save_attachments = false;
+
 		if($validate) {
 			$this->_before_validate();
 			$this->{'_before_validate_on_'.$method}();
@@ -87,6 +166,11 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		return $success;
+	}
+
+	public function set_association($association_property, array $data)
+	{
+		return $this->get_association($association_property)->set_data($data);
 	}
 
 	public function update_attribute($attribute, $value)
@@ -114,7 +198,7 @@ abstract class Base extends \P3\Model\Base
 				if(!empty($val))
 					continue;
 
-				$message = 'is required';
+				$message = 'cannot be blank';
 				
 				if(FALSE === (filter_var($val, FILTER_VALIDATE_EMAIL)))
 					$this->add_error($field, $message);
@@ -140,6 +224,11 @@ abstract class Base extends \P3\Model\Base
 	}
 
 //- Protected
+	protected function _after_destroy()
+	{
+		return true;
+	}
+
 	protected function _after_insert()
 	{
 		return true;
@@ -147,7 +236,23 @@ abstract class Base extends \P3\Model\Base
 
 	protected function _after_save()
 	{
-		return true;
+		$flag = true;
+
+		foreach($this->_after_save as $trig)
+			$this->send($trig);
+
+		//TODO: Refactor this to a method taht can be cached.  Replace other similar occurences
+		$class = \str::from_camel(get_called_class());
+
+		if($this->_save_attachments = $this->has_attachments() && isset($_FILES) && isset($_FILES[$class])) {
+			foreach(static::$has_attachment as $k => $opts) {
+				if(isset($_FILES[$class]['name'][$k])) {
+					$this->get_attachment($k)->save($_FILES[$class]);
+				}
+			}
+		}
+
+		return $flag;
 	}
 
 	protected function _after_update()
@@ -170,6 +275,24 @@ abstract class Base extends \P3\Model\Base
 		return true;
 	}
 
+	protected function _before_destroy()
+	{
+		foreach(static::$has_many as $property => $opts) {
+			if(isset($opts['destroy']) && $opts['destroy'] == 'cascade') {
+				$children = $this->{$property};
+
+				foreach($children as $child)
+					$child->destroy();
+			}
+		}
+		foreach(static::$has_one as $property => $opts) {
+			if(isset($opts['destroy']) && $opts['destroy'] == 'cascade') {
+				$this->{$property}->destroy();
+			}
+		}
+		return true;
+	}
+
 	protected function _before_insert()
 	{
 		return true;
@@ -177,7 +300,13 @@ abstract class Base extends \P3\Model\Base
 
 	protected function _before_save()
 	{
-		return true;
+		//TODO:  Refactor all of these into the same method...
+		$flag = true;
+
+		foreach($this->_before_save as $trig)
+			$this->send($trig);
+
+		return $flag;
 	}
 
 	protected function _before_update()
@@ -289,6 +418,16 @@ abstract class Base extends \P3\Model\Base
 		return new Collection($builder, get_called_class());
 	}
 
+	public static function association_exists($property)
+	{
+		return isset(static::$has_one[$property]) || isset(static::$has_many[$property]) || isset(static::$belongs_to[$property]);
+	}
+
+	public static function attachment_exists($property)
+	{
+		return isset(static::$has_attachment[$property]);
+	}
+
 	public static function find($id_or_what, array $options_if_what = [])
 	{
 		if(is_numeric($id_or_what))
@@ -316,21 +455,6 @@ abstract class Base extends \P3\Model\Base
 		return is_null($fixture) ? self::get_fixture() : self::set_fixture($fixture);
 	}
 
-	public static function get_fixture()
-	{
-		if(is_null(self::$_fixture)) {
-			$class = \P3::config()->active_record->fixture_class;
-			self::$_fixture = new $class;
-		}
-
-		return self::$_fixture;
-	}
-
-	public static function get_table()
-	{
-		return \str::humanize(\str::pluralize(get_called_class()));
-	}
-
 	public static function get_attr_type($attr)
 	{
 		$info = static::get_attr_info($attr);
@@ -343,10 +467,33 @@ abstract class Base extends \P3\Model\Base
 		return \P3::database()->get_column_info(static::get_table(), $attr);
 	}
 
+	public static function get_fixture()
+	{
+		if(is_null(self::$_fixture)) {
+			$class = \P3::config()->active_record->fixture_class;
+			self::$_fixture = new $class;
+		}
+
+		return self::$_fixture;
+	}
+
+	public static function get_table()
+	{
+		if(isset(static::$_table))
+			return static::$_table;
+
+		return \str::from_camel(\str::pluralize(get_called_class()));
+	}
+
 
 	public static function get_table_info()
 	{
 		return \P3::database()->get_table_info(static::get_table());
+	}
+
+	public static function get_pk()
+	{
+		return static::$_pk;
 	}
 
 //- Magic
@@ -375,6 +522,31 @@ abstract class Base extends \P3\Model\Base
 		}
 
 		throw new \P3\Exception\MethodException\NotFound(get_called_class(), $method);
+	}
+
+	public function __get($property)
+	{
+		if(static::association_exists($property))
+			return $this->get_association($property);
+		elseif(static::attachment_exists($property))
+			return $this->get_attachment($property);
+
+		return parent::__get($property);
+	}
+
+	public function __set($property, $value)
+	{
+		if(static::association_exists($property) && array_key_exists($property, static::$accept_nexted_attributes_for)) {
+			if(!$this->is_new()) {
+				$this->_before_save[] = function($record)use($property, $value) { $record->set_association($property, $value); };
+				return true;
+			} else {
+				$this->_after_save[]  = function($record)use($property, $value) { $record->set_association($property, $value); };
+				return true;
+			}
+		}
+
+		return parent::__set($property, $value);
 	}
 }
 

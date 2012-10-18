@@ -15,6 +15,7 @@ class Collection  extends \P3\Object\Collection
 
 	private $_builder;
 	private $_count;
+	private $_offsets_modified = false;
 	private $_state = 0;
 	private $_statement;
 	private $_fetch_pointer = 0;
@@ -47,7 +48,7 @@ class Collection  extends \P3\Object\Collection
 
 	public function count()
 	{
-		if($this->is_filled())
+		if($this->is_filled() || $this->is_dirty())
 			return parent::count();
 
 		if(!isset($this->_count))
@@ -79,9 +80,30 @@ class Collection  extends \P3\Object\Collection
 		return $record;
 	}
 
+	public function fill()
+	{
+		if($this->is_filled())
+			return true;
+
+		while(!$this->is_filled())
+			$this->fetch();
+
+		return true;
+	}
+
 	public function get_builder()
 	{
 		return $this->_builder;
+	}
+
+	public function get_fetch_class()
+	{
+		return $this->_builder->get_fetch_class();
+	}
+
+	public function is_dirty()
+	{
+		return $this->_offsets_modified;
 	}
 
 	public function is_filled()
@@ -152,7 +174,12 @@ class Collection  extends \P3\Object\Collection
 
 	public function offsetSet($offset, $val)
 	{
-		throw new \P3\Exception\MethodException\NotImplemented([get_called_class(), 'offsetSet']);
+		$this->_offsets_modified = true;
+
+		if(is_null($offset))
+			$this->_data[] = $val;
+		else
+			$this->_data[$offset] = $val;
 	}
 
 	public function order($order_by, $mode = \P3\Builder\Sql::MODE_APPEND)
@@ -181,7 +208,7 @@ class Collection  extends \P3\Object\Collection
 
 	public function valid()
 	{
-		if($this->is_filled())
+		if($this->is_filled() || $this->is_dirty())
 			return parent::valid();
 
 		return (bool)$this->fetch();
