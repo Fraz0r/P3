@@ -78,6 +78,9 @@ class Partial extends Base
 	 */
 	public function render(array $options = [])
 	{
+		if(isset($options['partial']))
+			return parent::render($options);
+
 		if(!isset($options['locals']))
 			$options['locals'] = [];
 
