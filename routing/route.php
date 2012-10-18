@@ -180,8 +180,20 @@ class Route implements iFace\Segmentable
 
 		$arg_i = 0;
 
-		for($i = 0; $i < $seg_count; $i++)
-			$ret_segments[] = $segments[$i]->is_param() ? $arguments[$arg_i++] : (string)$segments[$i];
+		for($i = 0; $i < $seg_count; $i++) {
+			if($segments[$i]->is_param()) {
+				$arg = $arguments[$arg_i++];
+
+				if($arg instanceof \P3\ActiveRecord\Base)
+					$value = $arg->id();
+				else
+					$value = $arg;
+
+				$ret_segments[] = $value;
+			} else {
+				$ret_segments[] = (string)$segments[$i];
+			}
+		}
 
 		return \implode(Segment::SEPARATOR, $ret_segments);
 	}
