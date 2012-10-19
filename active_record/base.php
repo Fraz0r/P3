@@ -26,6 +26,9 @@ abstract class Base extends \P3\Model\Base
 	protected static $_fixture;
 	protected static $_table;
 
+	protected $_attachment_offset = false;
+	protected $_attachment_parent = false;
+	protected $_attachment_prop   = false;
 	private $_save_attachments = true;
 
 	//TODO:  Need to bind the rest of the triggers this way too (to be able to dynamically add triggers)
@@ -45,6 +48,8 @@ abstract class Base extends \P3\Model\Base
 
 		foreach($data as $k => $v)
 			$this->{$k} = $v;
+
+		$this->_changed = [];  // loop above makes model think all fields are dirty..
 
 		$this->errors = new Errors($this);
 	}
@@ -173,6 +178,21 @@ abstract class Base extends \P3\Model\Base
 		return $this->get_association($association_property)->set_data($data);
 	}
 
+	public function set_attachment_offset($offset)
+	{
+		$this->_attachment_offset = $offset;
+	}
+
+	public function set_attachment_parent($parent)
+	{
+		$this->_attachment_parent = $parent;
+	}
+
+	public function set_attachment_prop($property)
+	{
+		$this->_attachment_prop = $property;
+	}
+
 	public function update_attribute($attribute, $value)
 	{
 		$this->{$attribute} = $value;
@@ -226,6 +246,9 @@ abstract class Base extends \P3\Model\Base
 //- Protected
 	protected function _after_destroy()
 	{
+		foreach(static::$has_attachment as $property => $opts)
+			$this->{$property}->delete();
+
 		return true;
 	}
 
@@ -238,17 +261,54 @@ abstract class Base extends \P3\Model\Base
 	{
 		$flag = true;
 
-		foreach($this->_after_save as $trig)
+		foreach($this->_after_save as $k => $trig) {
 			$this->send($trig);
+
+			unset($this->_after_save[$k]);
+		}
 
 		//TODO: Refactor this to a method taht can be cached.  Replace other similar occurences
 		$class = \str::from_camel(get_called_class());
 
-		if($this->_save_attachments = $this->has_attachments() && isset($_FILES) && isset($_FILES[$class])) {
-			foreach(static::$has_attachment as $k => $opts) {
-				if(isset($_FILES[$class]['name'][$k])) {
-					$this->get_attachment($k)->save($_FILES[$class]);
+		$parent = $this->_attachment_parent;
+		$offset = $this->_attachment_offset;
+		$has_offset = FALSE !== $offset;
+		$base = $parent ? $parent : $class;
+
+		// TODO:  OMG This got bad.. really need to clean it up  (Ability to have nested attachments)
+		if(($this->_save_attachments && $this->has_attachments()) && isset($_FILES[$base])) {
+
+			foreach(static::$has_attachment as $prop => $opts) {
+				if(!$this->_attachment_prop) {
+					if(!isset($_FILES[$base]['name'][$prop]))
+						continue;
+				} else {
+					if(!isset($_FILES[$base]['name'][$this->_attachment_prop]))
+						continue;
+					elseif($has_offset && (!isset($_FILES[$base]['name'][$this->_attachment_prop][$offset]) || !isset($_FILES[$base]['name'][$this->_attachment_prop][$offset][$prop])))
+						continue;
 				}
+
+				$attachment = $this->get_attachment($prop);
+
+				$data = [];
+				foreach(['name', 'type', 'tmp_name', 'error', 'size'] as $merge) {
+					if(!$this->_attachment_prop) {
+						if($has_offset) {
+							$data[$merge] = $_FILES[$base][$merge][$prop][$offset];
+						} else {
+							$data[$merge] = $_FILES[$base][$merge][$prop];
+						}
+					} else {
+						if($has_offset) {
+							$data[$merge] = $_FILES[$base][$merge][$this->_attachment_prop][$offset][$prop];
+						} else {
+							$data[$merge] = $_FILES[$base][$merge][$this->_attachment_prop][$prop];
+						}
+					}
+				}
+
+				$attachment->save($data);
 			}
 		}
 

@@ -165,7 +165,7 @@ class Attachment extends \P3\Model\Base
 	 */
 	public function exists()
 	{
-		if(empty($this->_parent->{$this->_name.'_file_name'}))
+		if(is_null($this->_parent->{$this->_name.'_file_name'}))
 			return false;
 
 		return $this->_file_info(true)->isReadable();
@@ -234,7 +234,7 @@ class Attachment extends \P3\Model\Base
 		$flag = true;
 
 
-		switch($data['error'][$field])
+		switch($data['error'])
 		{
 			case \UPLOAD_ERR_OK:
 				break;
@@ -265,14 +265,14 @@ class Attachment extends \P3\Model\Base
 				return false;
 		}
 
-		$this->_parent->{$field.'_file_name'} = $data['name'][$field];
+		$this->_parent->{$field.'_file_name'} = $data['name'];
 		$path = $this->path();
 
 		if(!is_dir(dirname($path)) && !@mkdir(dirname($path), 0777, true))
 			throw new \P3\Exception\ActiveRecordException("Attachment directory doesn't exist (%s: %s)", array(get_class($this->_parent), dirname($path)), 500);
 
 
-		if(!move_uploaded_file($data['tmp_name'][$field], $path)) {
+		if(!move_uploaded_file($data['tmp_name'], $path)) {
 			$ret = false;
 			$this->_parent->errors->add($field, 'Upload failed');
 			return false;
@@ -286,7 +286,7 @@ class Attachment extends \P3\Model\Base
 		$this->_parent->{$field.'_content_type'} = finfo_file($finfo, $path);
 		finfo_close($finfo);
 
-		$this->_parent->{$field.'_file_size'} = $data['size'][$field];
+		$this->_parent->{$field.'_file_size'} = $data['size'];
 
 		if(isset($this->_options['styles']))
 			$flag = $flag && $this->_generate_styles();
@@ -296,6 +296,11 @@ class Attachment extends \P3\Model\Base
 		$flag = $flag && $this->_parent->save(array('save_attachments' => false));
 
 		return $flag;
+	}
+
+	public function set_offset($offset)
+	{
+		var_dump($offset);
 	}
 
 	/**

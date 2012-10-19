@@ -33,11 +33,46 @@ abstract class html extends P3\Helper\Base
 		return '</'.$tag_name.'>';
 	}
 
-	public static function content_tag($name, $content, array $options = [])
+	public static function content_tag($name, $content, array $options = [], $closure = null)
 	{
 		$ret = self::_($name, $options);
 		$ret .= $content;
 		$ret .= self::_c($name);
+
+		return $ret;
+	}
+
+	public static function img($src, array $options = [])
+	{
+		if(isset($options['size'])) {
+			list($width, $height) = explode('x', $options['size']);
+			$options['width'] = $width;
+			$options['height'] = $height;
+
+			unset($options['height']);
+		}
+
+		$options['src'] = $src;
+
+		return self::_('img', $options, true);
+	}
+
+	public static function javascript_tag($closure_or_options, $closure_if_options = null)
+	{
+		if(is_callable($closure_or_options)) {
+			$closure = $closure_or_options;
+			$options = [];
+		} else {
+			$closure = $closure_if_options;
+			$options = $closure_or_options;
+		}
+
+		$ret = self::_('script', array_merge(['type' => 'text/javascript'], $options));
+		if(!is_null($closure)) {
+			ob_start();
+			$closure();
+			$ret .= ob_get_clean().self::_c('script');
+		}
 
 		return $ret;
 	}

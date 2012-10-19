@@ -47,7 +47,7 @@ class HasMany extends HasAny
 		$association_property = $this->get_property();
 		$pk = $child_class::get_pk();
 
-		foreach($data as $child_data) {
+		foreach($data as $k => $child_data) {
 			$child_data[$this->get_fk()] = $this->get_parent()->id();
 
 			if(isset($child_data[$pk])) {
@@ -70,12 +70,15 @@ class HasMany extends HasAny
 			} else {
 				$child = new $child_class($child_data);
 			}
+			$child->set_attachment_offset($k);
+			$child->set_attachment_parent(\str::from_camel($parent_class));
+			$child->set_attachment_prop($association_property);
 
-			if(!$child->save()) {
-				var_dump($child); die;
+			//if(!$child->save()) {
 				//TODO:  NEED TO ADD TO PARENT ERRORS!!!
-				break;
-			}
+				//break;
+			//}
+			$child->save(['attachment_offset' => $k]);  // returning false on existing parents for some reason :[  (Fix with todo above)
 		}
 	}
 }

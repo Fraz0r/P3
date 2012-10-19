@@ -130,6 +130,7 @@ class form extends P3\Helper\Base
 		if($print) {
 			$ret = $form->open();
 
+
 			if(!is_null($closure)) {
 				ob_start();
 				$closure(new FormProxy($form, $model));
@@ -362,10 +363,29 @@ class FormProxy
 		return $this->_form->error_messages($options);
 	}
 
-	public function fields_for($association_property, callable $closure = null)
+	public function fields_for($association_property, $options = null, callable $closure = null)
 	{
+		if(is_callable($options)) { // happens if options wasn't supplied, but closure was (shift args)
+			$closure = $options;
+			$options = [];
+		}
+
 		if(FALSE === ($association = $this->_model->get_association($association_property)))
 			throw new \P3\Exception\ArgumentException\Invalid('FormProxy', 'association_property', 'Doesnt exist within atttached model');
+
+		// TODO:  This really needs to be cleaned up and thoroughly tested.  It's getting messy.  Refactor!
+		if(isset($options['object'])) {
+			$index = isset($options['child_index']) ? $options['child_index'] : 0;
+
+			if(is_null($closure))
+				throw new \P3\Exception\ArgumentException\Invalid('FormProxy', 'closure', 'Attempting to render a single child field proxy w/o a closure.  This may be possible in the future, but my head hurts for now');
+
+			$container = $this->_get_container().'['.$association_property.']['.$index.']';
+
+			ob_start();
+			$closure(new self(form::fields_for($options['object']), $options['object'], $container, true), $index);
+			return ob_get_clean();
+		}
 
 		if(is_null($closure))
 			return form::fields_for($association);
@@ -379,7 +399,7 @@ class FormProxy
 			if(!$child->is_new())
 				echo form::hidden_field($container, $child->get_pk_field(), $child->id());
 
-			$closure(new self(form::fields_for($child), $child, $container, true));
+			$closure(new self(form::fields_for($child), $child, $container, true), $k);
 		}
 
 		return ob_get_clean();
