@@ -118,7 +118,7 @@ class Collection  extends \P3\Object\Collection
 	{
 		return (bool)($this->_state & self::STATE_STARTED);
 	}
-	
+
 	public function limit($limit, $offset = null)
 	{
 		$this->reset();
@@ -226,7 +226,7 @@ class Collection  extends \P3\Object\Collection
 //- Private
 	private function _start()
 	{
-		$this->_state = $this->_state ^ self::STATE_STARTED;
+		$this->_state |= self::STATE_STARTED;
 		$this->_statement = $this->_builder->send();
 	}
 }
