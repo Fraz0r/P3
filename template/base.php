@@ -113,7 +113,9 @@ abstract class Base
 	 */
 	public function content_for($buffer, callable $closure)
 	{
-		$this->append_to($buffer, $closure());
+		ob_start();
+		$closure();
+		$this->append_to($buffer, ob_get_clean());
 	}
 
 	/**
