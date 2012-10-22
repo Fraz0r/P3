@@ -27,7 +27,7 @@ abstract class Base extends \P3\Object\Base
 		if(!$this->attr_exists($attribute))
 			throw new Exception\AttributeNoExist(get_called_class(), $attribute);
 
-		return $this->_data[$attribute];
+		return isset($this->_data[$attribute]) ? $this->_data[$attribute] : null;
 	}
 
 	protected function _write_attribute($attribute, $value)
@@ -44,18 +44,18 @@ abstract class Base extends \P3\Object\Base
 	public function __call($method, array $args = [])
 	{
 		if($this->attr_exists($method))
-			return $this->__get($method);
+			return !count($args) ? $this->_read_attribute($method) : $this->_write_attribute($method, $args[0]);
 
 		throw new \P3\Exception\MethodException\NotFound(get_called_class(), $method);
 	}
 	public function __get($var)
 	{
-		return $this->_read_attribute($var);
+		return call_user_func_array(array($this, $var), []);
 	}
 
 	public function __set($var, $val)
 	{
-		return $this->_write_attribute($var, $val);
+		return call_user_func_array(array($this, $var), [$val]);
 	}
 }
 

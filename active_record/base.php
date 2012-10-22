@@ -54,6 +54,14 @@ abstract class Base extends \P3\Model\Base
 		$this->errors = new Errors($this);
 	}
 
+	public function attr_exists($attr)
+	{
+		if(parent::attr_exists($attr))
+			return true;
+
+		return static::column_exists($attr);
+	}
+
 	public function delete()
 	{
 		$builder = new SqlBuilder(static::get_table());
@@ -117,12 +125,17 @@ abstract class Base extends \P3\Model\Base
 		return (bool)count(static::$has_attachment);
 	}
 
-	public function id()
+	public function id($id = null)
 	{
-		if(!isset($this->_data[static::$_pk]))
-			return false;
+		if(is_null($id)) {
+			if(!isset($this->_data[static::$_pk]))
+				return false;
 
-		return $this->_read_attribute(static::$_pk);
+			return $this->_read_attribute(static::$_pk);
+			return $this->is_new() ? false : $this->_read_attribute(static::$_pk);
+		} else {
+			return $this->_write_attribute(static::$_pk, $id);
+		}
 	}
 
 	public function is_dirty($field = null)
@@ -486,6 +499,11 @@ abstract class Base extends \P3\Model\Base
 	public static function attachment_exists($property)
 	{
 		return isset(static::$has_attachment[$property]);
+	}
+
+	public static function column_exists($column)
+	{
+		return \P3::database()->column_exists(static::get_table(), $column);
 	}
 
 	public static function find($id_or_what, array $options_if_what = [])
