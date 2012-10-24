@@ -55,8 +55,9 @@ class form extends P3\Helper\Base
 		if(!($count = count($this->_model->errors)))
 			return false;
 
+		$humanized_model = str::humanize(get_class($this->_model));
 		$header_tag     = isset($options['header_tag']) ? $options['header_tag'] : "h2";
-		$header_message = isset($options['header_message']) ? $options['header_message'] : "{$count} errors prohibited this product from being saved";
+		$header_message = isset($options['header_message']) ? $options['header_message'] : "{$count} errors prohibited this {$humanized_model} from being saved";
 		$message        = isset($options['message']) ? $options['message'] : "There were problems with the following fields:";
 
 		$errors = $this->_model->errors->full_messages();
