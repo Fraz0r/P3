@@ -94,10 +94,7 @@ final class Initializer
 
 	private static function _register_error_handler()
 	{
-		if(!self::production()) {
-			ini_set('display_errors', 'true');
-			error_reporting(E_ALL);
-		}
+		// TODO:  make an epic error handle
 	}
 
 	private static function _set_include_path()
