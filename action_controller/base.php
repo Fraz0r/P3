@@ -144,6 +144,11 @@ abstract class Base extends \P3\Controller\Base
 		return $view->exists();
 	}
 
+	public function var_exists($var)
+	{
+		return isset($this->_vars[$var]);
+	}
+
 //- Protected
 	protected function _after_filter()
 	{
@@ -178,7 +183,7 @@ abstract class Base extends \P3\Controller\Base
 //- Magic
 	public function __get($var)
 	{
-		if(!isset($this->_vars[$var]))
+		if(!$this->var_exists($var))
 			throw new Exception\VarNoExist('%s was never set, but was attempted access', array($var));
 
 		return $this->_vars[$var];

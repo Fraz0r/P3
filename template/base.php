@@ -213,9 +213,12 @@ abstract class Base
 	 * 
 	 * @param string $path Path to layout (relative to ./app/views/layouts)
 	 */
-	public function init_layout($path)
+	public function init_layout($layout)
 	{
-		$this->set_layout(new Layout($path));
+		if(!is_a($layout, 'P3\Template\Layout'))
+				$layout = new Layout($layout);
+
+		$this->set_layout($layout);
 
 		return $this;
 	}
