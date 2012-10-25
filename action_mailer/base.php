@@ -102,6 +102,8 @@ abstract class Base extends \P3\ActionController\Base
 		if(!count($mime_parts)) {
 			if($this->var_exists('body'))
 				$mime_parts[] = new MessagePart\Plain($this->body);
+			elseif(ActionView::is_readable($base.'/'.$action))
+				$mime_parts[] = new MessagePart\Plain($this->render($action));
 			else
 				throw new Exception\NoContent($action);
 		}
