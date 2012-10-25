@@ -112,7 +112,7 @@ abstract class Base extends \P3\Controller\Base
 		$layout = isset($options['layout']) ? $options['layout'] : $this->_layout;
 		
 		if($layout)
-			$view->init_layout($this->_layout);
+			$view->init_layout($layout);
 
 		return $view->render();
 	}

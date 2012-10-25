@@ -84,11 +84,11 @@ abstract class Base extends \P3\ActionController\Base
 		
 		$template = $action.'.text.html';
 		if(ActionView::is_readable($base.'/'.$template))
-			$mime_parts[] = new MessagePart\HTML($this->render($template));
+			$mime_parts[] = new MessagePart\HTML($this->render($template, ['format' => 'html']));
 				
 		$template = $action.'.text.plain';
 		if(ActionView::is_readable($base.'/'.$template))
-			$mime_parts[] = new MessagePart\Plain($this->render($template));
+			$mime_parts[] = new MessagePart\Plain($this->render($template, ['format' => 'plain']));
 
 		if(count($this->_attachments))
 			$options['attachments'] = $this->_attachments;
@@ -126,9 +126,17 @@ abstract class Base extends \P3\ActionController\Base
 	 * @param string $path path to view.  Current action is used if null
 	 * @return string rendered view
 	 */
-	public function render($path)
+	public function render($path, array $options = [])
 	{
-		return (new MailerView($this, $path))->render();
+		$view = new MailerView($this, $path);
+
+		$layout = isset($options['layout']) ? $options['layout'] : $this->_layout;
+		
+		if($layout)
+			$view->init_layout($layout, $options['format']);
+		
+
+		return $view->render();
 	}
 
 //- Protected

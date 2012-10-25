@@ -293,7 +293,7 @@ class Message
 			$ret .= $this->_notice.$eol.$eol;
 
 			foreach($contents as $part) {
-				$part->setBoundary($this->boundary('alt'));
+				$part->set_boundary($this->boundary('alt'));
 				$ret .= $part->render_contents();
 			}
 		} elseif(is_subclass_of($contents, 'P3\Mail\Message\Part')) {
