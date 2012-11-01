@@ -319,7 +319,8 @@ class Engine
 	private function _open()
 	{
 		if(!is_writeable($this->_file))
-			throw new FileNotWriteable($this->_file);
+            if(!touch($this->_file))
+                throw new FileNotWriteable($this->_file);
 
 		$this->_fh = fopen($this->_file, 'a');
 	}
