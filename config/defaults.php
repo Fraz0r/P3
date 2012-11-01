@@ -11,6 +11,9 @@ $config->action_mailer->delivery_handler = 'P3\Mail\Message\Delivery\Standard';
 /* Class used for reading/writing active records */
 $config->active_record->fixture_class = 'P3\ActiveRecord\Fixture\Database';
 
+/* Logging Level - needs to be configured by default in environments/* */
+$config->logging->log_level = P3\System\Logging\Engine::LEVEL_INFO;
+
 /* SMTP settings, or false to fallback to sendmail */
 $config->mail->delivery->smtp = false;
 
