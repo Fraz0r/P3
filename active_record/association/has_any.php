@@ -15,7 +15,7 @@ class HasAny extends Base
 	public function build(array $data = [])
 	{
 		$class = $this->get_fetch_class();
-		return new $class(array_merge([$this->_fk => $this->get_parent()->id()]));
+		return new $class(array_merge($data, [$this->_fk => $this->get_parent()->id()]));
 	}
 
 	public function get_fk()
